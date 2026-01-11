@@ -74,6 +74,7 @@ local Main_Tab = TabSection1:Tab("AutoFarm")
 local AutoFarm_Section = Main_Tab:Section("AutoFarm")
 local Auto_Open_Section = Main_Tab:Section("Eggs")
 local Auto_Rebirth_Section = Main_Tab:Section("Rebirth")
+local Auto_Gold_Section = Main_Tab:Section("Auto Craft Golden Pets")
 local Misc_Section = Main_Tab:Section("Misc")
 
 local TweenService = game:GetService("TweenService")
@@ -214,6 +215,28 @@ Auto_Rebirth_Section:Toggle("Auto Rebirth", function(t)
     Auto_Rebirth = t
 end)
 
+local PetsModule = require(game:GetService("ReplicatedStorage").Game.PetStats.Pets)
+local Pets_Table = {}
+for i,v in pairs(PetsModule) do
+    table.insert(Pets_Table, i)
+end
+
+table.sort(Pets_Table, function(a, b)
+    return a:sub(1,1):lower() < b:sub(1,1):lower()
+end)
+
+Auto_Gold_Section:Dropdown("Select Pet", Pets_Table, function(t)
+    Select_Pet_To_Craft = t
+end)
+
+Auto_Gold_Section:Slider("Pets Amount", 1, 6, 1, function(t)
+    Select_Pet_Amount = t
+end)
+
+Auto_Gold_Section:Toggle("Auto Craft", function(t)
+    Auto_Craft = t
+end)
+
 Misc_Section:Toggle("Infinite Jump", function(t)
     Inf_Jump = t
 end)
@@ -232,9 +255,9 @@ end
 
 local function Tap(Enabled)
     if not Enabled then return end
-    -- for i = 1,5 do
+    for i = 1,5 do
         Network:FireServer("Tap", true, nil, true)
-    -- end
+    end
 end
 
 local function AutoEgg(Enabled, Egg, EggAmount)
@@ -326,6 +349,24 @@ local function FarmWorldChests(Enabled, Allow_TP)
 
 end
 
+function AutoGolden(Enabled, Selected_Amount, Selected_Pet)
+    if not Enabled then return end
+    local Amount = 0
+    
+    local Pets = {}
+    for i,v in pairs(GameData.Data.Pets) do
+        if v.Name == Selected_Pet and v.Tier == "Normal" then
+
+            if Amount ~= Selected_Amount then
+                Amount = Amount + 1
+                table.insert(Pets, v.Id)
+            else
+                Network:InvokeServer("CraftPets", Pets)
+            end
+        end
+    end
+end
+
 game:GetService("UserInputService").JumpRequest:connect(function()
     if not Inf_Jump then return end
     game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")       
@@ -346,5 +387,6 @@ spawn(function()
         SafeRun(AutoEquipBestPets, AutoEquipBestPets)
         SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete)
         SafeRun(FarmWorldChests, AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
+        SafeRun(AutoGolden, Auto_Craft, Select_Pet_Amount, Select_Pet_To_Craft)
     end
 end)
