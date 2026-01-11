@@ -1,3 +1,5 @@
+------------ // TAP SIMULATOR \\ ------------
+
 function ConvertToSuffix(number)
     local Suffixes = {
         {1e63, "SQX"},
