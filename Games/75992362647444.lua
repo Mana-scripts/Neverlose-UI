@@ -189,6 +189,8 @@ end)
 
 local function AutoDelete(Enabled, Selected)
     if not Enabled then return end
+    if type(Selected) == "Number" then return end
+    if Selected == nil then print("Please Select What to Delete!") return end
 
     for i2,v2 in pairs(GameData.Data.Pets) do
         local a = PetStats:GetRarity(v2.Name)
@@ -329,20 +331,20 @@ game:GetService("UserInputService").JumpRequest:connect(function()
     game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")       
 end)
 
-local function SafeRun(func, ...)
-    local hello = task.spawn(func, ...)
-    pcall(hello)
+function SafeRun(func, ...)
+    local success, err = pcall(func, ...)
+    if not success then
+        warn(err)
+    end
 end
 
 spawn(function()
     while task.wait() do
-        pcall(function()
-            SafeRun(Tap, Auto_Tap)
-            SafeRun(AutoEgg, Auto_Open, Select_Egg, Select_Egg_Amount)
-            SafeRun(AutoRebirth, Auto_Rebirth, Select_Rebirth_Amount)
-            SafeRun(AutoEquipBestPets, AutoEquipBestPets)
-            SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete)
-            SafeRun(FarmWorldChests, AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
-        end)
+        SafeRun(Tap, Auto_Tap)
+        SafeRun(AutoEgg, Auto_Open, Select_Egg, Select_Egg_Amount)
+        SafeRun(AutoRebirth, Auto_Rebirth, Select_Rebirth_Amount)
+        SafeRun(AutoEquipBestPets, AutoEquipBestPets)
+        SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete)
+        SafeRun(FarmWorldChests, AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
     end
 end)
