@@ -4108,7 +4108,7 @@ function Neverlose_Main:Window(config)
                             TweenService:Create(
                                 DropdownFrameHold,
                                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                                {Size = UDim2.new(0, 257, 0, 130)}
+                                {Size = UDim2.new(0, 257, 0, 200)}
                             ):Play()
 
                             TweenService:Create(
@@ -4117,7 +4117,7 @@ function Neverlose_Main:Window(config)
                                 {Rotation = 180}
                             ):Play()
 
-                            repeat task.wait() Section.Size = UDim2.new(0, 285, 0, SectionLayout.AbsoluteContentSize.Y + 10) until DropdownFrameHold.Size == UDim2.new(0, 257, 0, 130)
+                            repeat task.wait() Section.Size = UDim2.new(0, 285, 0, SectionLayout.AbsoluteContentSize.Y + 10) until DropdownFrameHold.Size == UDim2.new(0, 257, 0, 200)
                             DropdownHolder.Visible = true
                         else
                             TweenService:Create(
