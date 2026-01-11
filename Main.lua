@@ -5942,15 +5942,17 @@ function Neverlose_Main:Window(config)
                         end
                      )
               
-                     Hue.InputEnded:Connect(
-                        function(input)
-                           if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                              if HueInput then
-                                 HueInput:Disconnect()
-                              end
-                           end
-                        end
-                     )
+                    Hue.InputEnded:Connect(
+                       function(input)
+                          if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                             if HueInput then
+                                HueInput:Disconnect()
+                             end
+                          end
+                       end
+                    )
+
+                    pcall(callback, Colorpreview.BackgroundColor3)
                      
                     Neverlose_Main.Flags[title] = Colorpickerfunc
                     return Colorpickerfunc
