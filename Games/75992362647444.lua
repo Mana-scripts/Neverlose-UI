@@ -249,14 +249,14 @@ local StartCFrame = CFrame.new(
     -0.960909963, 0, 0.276861131,
     0, 1, 0,
     -0.276861131, 0, -0.960909963
-)
+) -- Allow_TP
 
 local EndCFrame = CFrame.new(
     3.14139509, 14717.7402, 367.142059,
     -0.537782848, 0, -0.843083382,
     0, 1, 0,
     0.843083382, 0, -0.537782848
-)
+) -- Allow_TP
 
 local function TweenTo(cf)
     local distance = (HRP.Position - cf.Position).Magnitude
@@ -271,17 +271,14 @@ local function TweenTo(cf)
 end
 
 local function FarmWorldChests(Enabled, Allow_TP)
-    if not Enabled or not Allow_TP then return end
-    if IsRunning then return end -- 🚫 prevents overlap
-
-    IsRunning = true
+    if not Enabled then return end
 
     -- World chests
     for _, v in ipairs(workspace.Game.WorldChests:GetChildren()) do
         if v:IsA("Model") and v:FindFirstChild("Hitbox") then
             firetouchinterest(HRP, v.Hitbox, 0)
             firetouchinterest(HRP, v.Hitbox, 1)
-            task.wait(0.05)
+            -- task.wait(0.05)
         end
     end
 
@@ -292,27 +289,12 @@ local function FarmWorldChests(Enabled, Allow_TP)
                 if prop.Name == "ClickerChest" and prop:FindFirstChild("Hitbox") then
                     firetouchinterest(HRP, prop.Hitbox, 0)
                     firetouchinterest(HRP, prop.Hitbox, 1)
-                    task.wait(0.05)
+                    -- task.wait(0.05)
                 end
             end
         end
     end
 
-    -- Move standplate
-    spawn(function()
-        workspace.Manas_Standplate2.CFrame = HRP.CFrame * CFrame.new(0, -5, 0)
-    end)
-
-    -- Tween movement (NO overlap)
-    if Reached_Destination then
-        TweenTo(StartCFrame)
-        Reached_Destination = false
-    else
-        TweenTo(EndCFrame)
-        Reached_Destination = true
-    end
-
-    IsRunning = false
 end
 
 game:GetService("UserInputService").JumpRequest:connect(function()
@@ -327,7 +309,9 @@ spawn(function()
             AutoEgg(Auto_Open, Select_Egg, Select_Egg_Amount)
             AutoRebirth(Auto_Rebirth, Select_Rebirth_Amount)
             AutoEquipBestPets(AutoEquipBestPets)
-            spawn(FarmWorldChests(AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP))
+            spawn(function()
+                FarmWorldChests(AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
+            end)
         end)
     end
 end)
