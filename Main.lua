@@ -4144,63 +4144,65 @@ function Neverlose_Main:Window(config)
                         ItemSelected.Text = val
                         return pcall(callback, Dropfunc.Value)
                     end
+                    spawn(function()
+                        for i,v in pairs(list) do
+                            task.wait()
+                            local Item = Instance.new("TextButton")
+                            local ItemCorner = Instance.new("UICorner")
+                            local ItemPadding = Instance.new("UIPadding")
+                            local DropdownHolderPadding = Instance.new("UIPadding")
 
-                    for i,v in pairs(list) do
-                        local Item = Instance.new("TextButton")
-                        local ItemCorner = Instance.new("UICorner")
-                        local ItemPadding = Instance.new("UIPadding")
-                        local DropdownHolderPadding = Instance.new("UIPadding")
+                            Item.Name = "Item"
+                            Item.Parent = DropdownHolder
+                            Item.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                            Item.BackgroundTransparency = 1.000
+                            Item.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                            Item.BorderSizePixel = 0
+                            Item.Size = UDim2.new(0.9, 0, 0, 20)
+                            Item.Font = Enum.Font.Gotham
+                            Item.Text = v
+                            Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            Item.TextSize = 14
+                            Item.TextXAlignment = Enum.TextXAlignment.Left
 
-                        Item.Name = "Item"
-                        Item.Parent = DropdownHolder
-                        Item.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                        Item.BackgroundTransparency = 1.000
-                        Item.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                        Item.BorderSizePixel = 0
-                        Item.Size = UDim2.new(0.9, 0, 0, 20)
-                        Item.Font = Enum.Font.Gotham
-                        Item.Text = v
-                        Item.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        Item.TextSize = 14
-                        Item.TextXAlignment = Enum.TextXAlignment.Left
+                            ItemCorner.Name = "ItemCorner"
+                            ItemCorner.Parent = Item
+                            ItemCorner.CornerRadius = UDim.new(0, 2)
 
-                        ItemCorner.Name = "ItemCorner"
-                        ItemCorner.Parent = Item
-                        ItemCorner.CornerRadius = UDim.new(0, 2)
+                            StrokeAdd_Tween(Item, 1)
+                            
+                            ItemPadding.Name = "ItemPadding"
+                            ItemPadding.Parent = Item
+                            ItemPadding.PaddingLeft = UDim.new(0, 5)
+                            
+                            DropdownHolderPadding.Name = "DropdownHolderPadding"
+                            DropdownHolderPadding.Parent = DropdownHolder
+                            DropdownHolderPadding.PaddingTop = UDim.new(0, 1)
 
-                        StrokeAdd_Tween(Item, 1)
-                        
-                        ItemPadding.Name = "ItemPadding"
-                        ItemPadding.Parent = Item
-                        ItemPadding.PaddingLeft = UDim.new(0, 5)
-                        
-                        DropdownHolderPadding.Name = "DropdownHolderPadding"
-                        DropdownHolderPadding.Parent = DropdownHolder
-                        DropdownHolderPadding.PaddingTop = UDim.new(0, 1)
+                            DropdownHolder.CanvasSize = UDim2.new(0, 0, 0, DropdownHolderLayout.AbsoluteContentSize.Y + 50)
 
-                        DropdownHolder.CanvasSize = UDim2.new(0, 0, 0, DropdownHolderLayout.AbsoluteContentSize.Y + 10)
+                            Item.MouseButton1Click:Connect(function()
+                                Neverlose_Main:PlaySound(Neverlose_Main.Lib_Sounds.ClickSound)
+                                Dropfunc:Set(v)
+                                TweenService:Create(
+                                    DropdownFrameHold,
+                                    TweenInfo.new(.3, Enum.EasingStyle.Quad),
+                                    {Size = UDim2.new(0, 257, 0, 0)}
+                                ):Play()
+                                DropdownHolder.Visible = false
+                                
+                                TweenService:Create(
+                                    Arrow,
+                                    TweenInfo.new(.3, Enum.EasingStyle.Quad),
+                                    {Rotation = 0}
+                                ):Play()
 
-                        Item.MouseButton1Click:Connect(function()
-                            Neverlose_Main:PlaySound(Neverlose_Main.Lib_Sounds.ClickSound)
-                            Dropfunc:Set(v)
-                            TweenService:Create(
-                                DropdownFrameHold,
-                                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                                {Size = UDim2.new(0, 257, 0, 0)}
-                            ):Play()
-                            DropdownHolder.Visible = false
-
-                            TweenService:Create(
-                                Arrow,
-                                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                                {Rotation = 0}
-                            ):Play()
-
-                            repeat task.wait() Section.Size = UDim2.new(0, 285, 0, SectionLayout.AbsoluteContentSize.Y + 10)  until DropdownFrameHold.Size == UDim2.new(0, 257, 0, 0)
-                            DropdownFrameHold.Visible = false
-                            DropToggled = false
-                        end)
-                    end
+                                repeat task.wait() Section.Size = UDim2.new(0, 285, 0, SectionLayout.AbsoluteContentSize.Y + 10) until DropdownFrameHold.Size == UDim2.new(0, 257, 0, 0)
+                                DropdownFrameHold.Visible = false
+                                DropToggled = false
+                            end)
+                        end
+                    end)
 
                     function Dropfunc:Refresh(newlist)
                         for i,v in pairs(DropdownHolder:GetChildren()) do
@@ -7457,4 +7459,5 @@ function Neverlose_Main:Window(config)
     end)
     return TabsSec
 end
+
 return Neverlose_Main
