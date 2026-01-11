@@ -106,15 +106,19 @@ local function GetModule(from, Module)
     return nil
 end
 
+local Network = GetModule("Modules", "Network")
+local Eggs = GetModule("Game", "Eggs")
+local GameData = GetModule("Game", "Replication")
+local PetStats = GetModule("Game", "PetStats")
+
 function GetEggs()
-    local Eggs_Module = GetModule("Game", "Eggs")
-    local Eggs = {}
-    for i,v in pairs(Eggs_Module) do
-        if not table.find(Eggs, i) then
-            table.insert(Eggs, i)
+    local Eggs_Table = {}
+    for i,v in pairs(Eggs) do
+        if not table.find(Eggs_Table, i) then
+            table.insert(Eggs_Table, i)
         end
     end
-    return Eggs
+    return Eggs_Table
 end
 
 function GetRebirths()
@@ -149,8 +153,7 @@ AutoFarm_Section:Toggle("Allow TP (Out Soon!)", function(t)
 end)
 
 function GetEggPrice(Egg)
-    local Eggs_Module = GetModule("Game", "Eggs")
-    Egg = Eggs_Module[Egg].Price
+    Egg = Eggs[Egg].Price
     return Egg
 end
 
@@ -167,6 +170,33 @@ end)
 Auto_Open_Section:Toggle("Auto Open", function(t)
     Auto_Open = t
 end)
+
+Auto_Open_Section:Line()
+
+local Rarities = require(game:GetService("ReplicatedStorage").Game.PetStats.Rarities)
+local Rarities_Table = {}
+for i,v in pairs(Rarities) do
+    table.insert(Rarities_Table, i)
+end
+
+Auto_Open_Section:Checklist("Select Auto Delete", "Rarities", Rarities_Table, function(t)
+    Select_AutoDelete = t
+end)
+
+Auto_Open_Section:Toggle("Auto Delete", function(t)
+    Auto_Delete = t
+end)
+
+local function AutoDelete(Enabled, Selected)
+    if not Enabled then return end
+
+    for i2,v2 in pairs(GameData.Data.Pets) do
+        local a = PetStats:GetRarity(v2.Name)
+        if table.find(Selected, a) then
+            Network:InvokeServer("DeletePet", tostring(v2.Id))
+        end
+    end
+end
 
 Auto_Open_Section:Line()
 
@@ -197,9 +227,6 @@ function CorrectRebirth(num)
     end
     return Rebirths[num]
 end
-
-local Network = GetModule("Modules", "Network")
-local Eggs = GetModule("Game", "Eggs")
 
 local function Tap(Enabled)
     if not Enabled then return end
@@ -302,16 +329,20 @@ game:GetService("UserInputService").JumpRequest:connect(function()
     game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")       
 end)
 
+local function SafeRun(func, ...)
+    local hello = task.spawn(func, ...)
+    pcall(hello)
+end
+
 spawn(function()
     while task.wait() do
         pcall(function()
-            Tap(Auto_Tap)
-            AutoEgg(Auto_Open, Select_Egg, Select_Egg_Amount)
-            AutoRebirth(Auto_Rebirth, Select_Rebirth_Amount)
-            AutoEquipBestPets(AutoEquipBestPets)
-            spawn(function()
-                FarmWorldChests(AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
-            end)
+            SafeRun(Tap, Auto_Tap)
+            SafeRun(AutoEgg, Auto_Open, Select_Egg, Select_Egg_Amount)
+            SafeRun(AutoRebirth, Auto_Rebirth, Select_Rebirth_Amount)
+            SafeRun(AutoEquipBestPets, AutoEquipBestPets)
+            SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete)
+            SafeRun(FarmWorldChests, AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
         end)
     end
 end)
