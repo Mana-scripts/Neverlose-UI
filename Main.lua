@@ -4537,7 +4537,7 @@ function Neverlose_Main:Window(config)
                                 ChecklistFrame.Visible = true
                                 ChecklistFrame:TweenSize(
                                 -- UDim2.new(0, 346, 0, FrameSize),
-                                UDim2.new(0, 257, 0, 130),
+                                UDim2.new(0, 257, 0, 200),
                                 Enum.EasingDirection.Out,
                                 Enum.EasingStyle.Quart,
                                 0.1,
@@ -4557,7 +4557,7 @@ function Neverlose_Main:Window(config)
                                 ):Play()
                                 repeat
                                 task.wait()
-                                until ChecklistFrame.Size == UDim2.new(0, 257, 0, 130)
+                                until ChecklistFrame.Size == UDim2.new(0, 257, 0, 200)
                                 Section.Size = UDim2.new(0, 285, 0, SectionLayout.AbsoluteContentSize.Y + 10)
                                 Container.CanvasSize = UDim2.new(0, 0, 0, Container.CanvasSize.Y.Offset + UniNum)
                             else
@@ -7457,5 +7457,4 @@ function Neverlose_Main:Window(config)
     end)
     return TabsSec
 end
-
 return Neverlose_Main
