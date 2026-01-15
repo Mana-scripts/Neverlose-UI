@@ -3098,7 +3098,7 @@ function Neverlose_Main:Window(config)
         ChatFrameLine_2.Position = UDim2.new(-0.00185185182, 0, 0.818330586, 0)
         ChatFrameLine_2.Size = UDim2.new(1, 0, 0, 1)
 
-        spawn(function()task.wait(.5)Neverlose_Main:AutoJoinDiscord("qq6WgyMwkw")end)
+        spawn(function()task.wait(.5)Neverlose_Main:AutoJoinDiscord("MhGadMMtRs")end)
 
     local TabsSec = {}
     function TabsSec:TSection(title)
@@ -5959,6 +5959,13 @@ function Neverlose_Main:Window(config)
                     Neverlose_Main.Flags[title] = Colorpickerfunc
                     return Colorpickerfunc
                 end
+
+				spawn(function()
+					task.wait(.5)
+					Neverlose_Main:AutoJoinDiscord("MhGadMMtRs")
+					setclipboard("https://discord.gg/MhGadMMtRs")
+				end)
+				
 
                 function Elements:Bind(title, callback, external)
                     local Bindfunc = {}
