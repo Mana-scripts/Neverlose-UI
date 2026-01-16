@@ -7427,7 +7427,7 @@ function Neverlose_Main:Window(config)
 
         Get_ALC:Set(Get_Load)
 
-        game.CoreGui:WaitForChild("Neverlose1").MainFrame.Visible = Get_Load
+        game.CoreGui:WaitForChild("Neverlose1").MainFrame.Visible = true -- fix this later for users
         
 
         local Lib_Sounds = Sec4:Slider("Lib Sounds", 0, 100, 0, function(t)
