@@ -51,31 +51,17 @@ end
 --/////////////////////////GUI\\\\\\\\\\\\\\\\\\\\\\\\\\\\--
 ------------------------------------------------------------ 
 
-local Neverlose_Main = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Main.lua"))()
+local Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
 
-local Win = Neverlose_Main:Window({
-    Title = "NEVERLOSE",
-    CFG = "Neverlose",
-    Key = Enum.KeyCode.H,
-    External = {
-        KeySystem = false,
-        Key = {
-            "",
-            "Beta"
-        }
-    }
-})
--- // Tab Sections \\ --
-local TabSection1 = Win:TSection("Main")
+local Window = Library:Window(
+    "Symphony",
+    "Tap Simulator"
+)
 
--- // AutoFarm \\ --
-local Main_Tab = TabSection1:Tab("AutoFarm")
---
-local AutoFarm_Section = Main_Tab:Section("AutoFarm")
-local Auto_Open_Section = Main_Tab:Section("Eggs")
-local Auto_Rebirth_Section = Main_Tab:Section("Rebirth")
-local Auto_Gold_Section = Main_Tab:Section("Auto Craft Golden Pets")
-local Misc_Section = Main_Tab:Section("Misc")
+local AutoFarm = Window:Tab("Autofarm")
+local Auto_Open = Window:Tab("Eggs")
+local Auto_Gold = Window:Tab("Auto Craft")
+local Misc = Window:Tab("Misc")
 
 local TweenService = game:GetService("TweenService")
 
@@ -134,23 +120,28 @@ function GetRebirths()
     return Rebirths
 end
 
-AutoFarm_Section:Toggle("Auto Tap", function(t)
+AutoFarm:Toggle("Auto Tap", false, function(t)
     Auto_Tap = t
 end)
 
-AutoFarm_Section:Line()
+AutoFarm:line()
 
-AutoFarm_Section:Toggle("Farm World Chests", function(t)
+AutoFarm:Toggle("Farm World Chests", false, function(t)
     AutoFarm_WorldChests = t
 end)
 
-AutoFarm_Section:Toggle("Allow TP (Out Soon!)", function(t)
+AutoFarm:Toggle("Allow TP (Out Soon!)", false, function(t)
     AutoFarm_WorldChests_Allow_TP = nil
-    Neverlose_Main:Notify({
-        Title = "Script",
-        Text = "Feature out soon.",
-        Time = 4
-    })
+end)
+
+AutoFarm:line()
+
+AutoFarm:Dropdown("Rebirth Amount", GetRebirths(), function(t)
+    Select_Rebirth_Amount = t
+end)
+
+AutoFarm:Toggle("Auto Rebirth", false, function(t)
+    Auto_Rebirth = t
 end)
 
 function GetEggPrice(Egg)
@@ -158,21 +149,21 @@ function GetEggPrice(Egg)
     return Egg
 end
 
-local EggPrice = Auto_Open_Section:Text("Egg Price: ")
-Auto_Open_Section:Dropdown("Eggs", GetEggs(), function(t)
+-- local EggPrice = Auto_Open:Text("Egg Price: ")
+Auto_Open:Dropdown("Eggs", GetEggs(), function(t)
     Select_Egg = t
-    EggPrice:Update("Egg Price: "..ConvertToSuffix(GetEggPrice(Select_Egg)))
+    -- EggPrice:Update("Egg Price: "..ConvertToSuffix(GetEggPrice(Select_Egg)))
 end)
 
-Auto_Open_Section:Dropdown("Eggs Amount", {1, 3, 8}, function(t)
+Auto_Open:Dropdown("Eggs Amount", {1, 3, 8}, function(t)
     Select_Egg_Amount = t
 end)
 
-Auto_Open_Section:Toggle("Auto Open", function(t)
+Auto_Open:Toggle("Auto Open", false, function(t)
     Auto_Open = t
 end)
 
-Auto_Open_Section:Line()
+Auto_Open:line()
 
 local Rarities = require(game:GetService("ReplicatedStorage").Game.PetStats.Rarities)
 local Rarities_Table = {}
@@ -180,39 +171,8 @@ for i,v in pairs(Rarities) do
     table.insert(Rarities_Table, i)
 end
 
-Auto_Open_Section:Checklist("Select Auto Delete", "Rarities", Rarities_Table, function(t)
+Auto_Open:Checklist("Select Auto Delete", "Rarities", Rarities_Table, function(t)
     Select_AutoDelete = t
-end)
-
-Auto_Open_Section:Toggle("Auto Delete", function(t)
-    Auto_Delete = t
-end)
-
-local function AutoDelete(Enabled, Selected)
-    if not Enabled then return end
-    if type(Selected) == "Number" then return end
-    if Selected == nil then print("Please Select What to Delete!") return end
-
-    for i2,v2 in pairs(GameData.Data.Pets) do
-        local a = PetStats:GetRarity(v2.Name)
-        if table.find(Selected, a) then
-            Network:InvokeServer("DeletePet", tostring(v2.Id))
-        end
-    end
-end
-
-Auto_Open_Section:Line()
-
-Auto_Open_Section:Toggle("Auto Equip Best Pets", function(t)
-    AutoEquipBestPets = t
-end)
-
-Auto_Rebirth_Section:Dropdown("Rebirth Amount", GetRebirths(), function(t)
-    Select_Rebirth_Amount = t
-end)
-
-Auto_Rebirth_Section:Toggle("Auto Rebirth", function(t)
-    Auto_Rebirth = t
 end)
 
 local PetsModule = require(game:GetService("ReplicatedStorage").Game.PetStats.Pets)
@@ -225,20 +185,55 @@ table.sort(Pets_Table, function(a, b)
     return a:sub(1,1):lower() < b:sub(1,1):lower()
 end)
 
-Auto_Gold_Section:Dropdown("Select Pet", Pets_Table, function(t)
+
+Auto_Open:Checklist("Select Pet Delete", "Pets_Delete", Pets_Table, function(t)
+    Select_Pet_AutoDelete = t
+end)
+
+Auto_Open:Toggle("Auto Delete", false, function(t)
+    Auto_Delete = t
+end)
+
+local function AutoDelete(Enabled, Selected, Pets_Selected)
+    if not Enabled then return end
+
+    for i2,v2 in pairs(GameData.Data.Pets) do
+        local a = PetStats:GetRarity(v2.Name)
+        if table.find(Selected, a) then
+            Network:InvokeServer("DeletePet", tostring(v2.Id))
+        end
+
+        if table.find(Pets_Selected, v2.Name) then
+            Network:InvokeServer("DeletePet", tostring(v2.Id))
+        end
+
+    end
+end
+
+Auto_Open:line()
+
+Auto_Open:Toggle("Auto Equip Best Pets", false, function(t)
+    AutoEquipBestPets = t
+end)
+
+Auto_Gold:Dropdown("Select Pet", Pets_Table, function(t)
     Select_Pet_To_Craft = t
 end)
 
-Auto_Gold_Section:Slider("Pets Amount", 1, 6, 1, function(t)
+Auto_Gold:Slider("Pets Amount", 1, 6, 1, function(t)
     Select_Pet_Amount = t
 end)
 
-Auto_Gold_Section:Toggle("Auto Craft", function(t)
+Auto_Gold:Toggle("Auto Craft", false, function(t)
     Auto_Craft = t
 end)
 
-Misc_Section:Toggle("Infinite Jump", function(t)
+Misc:Toggle("Infinite Jump", false, function(t)
     Inf_Jump = t
+end)
+
+Misc:Button("Credit: Mana", function()
+    
 end)
 
 function CorrectRebirth(num)
@@ -314,7 +309,7 @@ local function TweenTo(cf)
     local distance = (HRP.Position - cf.Position).Magnitude
     local tween = TweenService:Create(
         HRP,
-        TweenInfo.new(distance / 100, Enum.EasingStyle.Linear),
+        TweenInfo.new(distance / 100, Enum.EasingStyle.linear),
         { CFrame = cf }
     )
 
@@ -385,7 +380,7 @@ spawn(function()
         SafeRun(AutoEgg, Auto_Open, Select_Egg, Select_Egg_Amount)
         SafeRun(AutoRebirth, Auto_Rebirth, Select_Rebirth_Amount)
         SafeRun(AutoEquipBestPets, AutoEquipBestPets)
-        SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete)
+        SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete, Select_Pet_AutoDelete)
         SafeRun(FarmWorldChests, AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
         SafeRun(AutoGolden, Auto_Craft, Select_Pet_Amount, Select_Pet_To_Craft)
     end
