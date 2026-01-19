@@ -160,7 +160,7 @@ Auto_Open:Dropdown("Eggs Amount", {1, 3, 8}, function(t)
 end)
 
 Auto_Open:Toggle("Auto Open", false, function(t)
-    Auto_Open = t
+    Auto_Open_Toggled = t
 end)
 
 Auto_Open:line()
@@ -194,19 +194,28 @@ Auto_Open:Toggle("Auto Delete", false, function(t)
     Auto_Delete = t
 end)
 
-local function AutoDelete(Enabled, Selected, Pets_Selected)
+local function AutoDelete(Enabled, Selected)
+    local Enabled = Enabled or false
     if not Enabled then return end
+    if Selected == nil then return end
 
     for i2,v2 in pairs(GameData.Data.Pets) do
         local a = PetStats:GetRarity(v2.Name)
         if table.find(Selected, a) then
             Network:InvokeServer("DeletePet", tostring(v2.Id))
         end
+    end
+end
 
+local function AutoDelete_Selected_Pet_Function(Enabled, Pets_Selected)
+    local Enabled = Enabled or false
+    if not Enabled then return end
+    if Pets_Selected == nil then return end
+
+    for i2,v2 in pairs(GameData.Data.Pets) do
         if table.find(Pets_Selected, v2.Name) then
             Network:InvokeServer("DeletePet", tostring(v2.Id))
         end
-
     end
 end
 
@@ -216,7 +225,7 @@ Auto_Open:Toggle("Auto Equip Best Pets", false, function(t)
     AutoEquipBestPets = t
 end)
 
-Auto_Gold:Dropdown("Select Pet", Pets_Table, function(t)
+Auto_Gold:Checklist("Select Pet", "Golden pet", Pets_Table, function(t)
     Select_Pet_To_Craft = t
 end)
 
@@ -249,6 +258,7 @@ function CorrectRebirth(num)
 end
 
 local function Tap(Enabled)
+    local Enabled = Enabled or false
     if not Enabled then return end
     for i = 1,5 do
         Network:FireServer("Tap", true, nil, true)
@@ -256,16 +266,19 @@ local function Tap(Enabled)
 end
 
 local function AutoEgg(Enabled, Egg, EggAmount)
+    local Enabled = Enabled or false
     if not Enabled then return end
     Network:InvokeServer("OpenEgg", Egg, tonumber(EggAmount), {})
 end
 
 local function AutoRebirth(Enabled, Amount)
+    local Enabled = Enabled or false
     if not Enabled then return end
     Network:InvokeServer("Rebirth", CorrectRebirth(Amount))
 end
 
 local function AutoEquipBestPets(Enabled)
+    local Enabled = Enabled or false
     if not Enabled then return end
     Network:InvokeServer("EquipBest")
 end
@@ -318,6 +331,7 @@ local function TweenTo(cf)
 end
 
 local function FarmWorldChests(Enabled, Allow_TP)
+    local Enabled = Enabled or false
     if not Enabled then return end
 
     -- World chests
@@ -344,19 +358,31 @@ local function FarmWorldChests(Enabled, Allow_TP)
 
 end
 
-function AutoGolden(Enabled, Selected_Amount, Selected_Pet)
+function AutoGolden(Enabled, Selected_Amount, Selected_Pet_to_autogold)
     if not Enabled then return end
-    local Amount = 0
-    
-    local Pets = {}
-    for i,v in pairs(GameData.Data.Pets) do
-        if v.Name == Selected_Pet and v.Tier == "Normal" then
+    if not Selected_Pet_to_autogold then return end
 
-            if Amount ~= Selected_Amount then
-                Amount = Amount + 1
-                table.insert(Pets, v.Id)
-            else
-                Network:InvokeServer("CraftPets", Pets)
+    local PetsByName = {}
+
+    for _, v in pairs(GameData.Data.Pets) do
+        if table.find(Selected_Pet_to_autogold, v.Name)
+            and v.Tier == "Normal" then
+
+            PetsByName[v.Name] = PetsByName[v.Name] or {}
+            table.insert(PetsByName[v.Name], v.Id)
+        end
+    end
+
+    for name, ids in pairs(PetsByName) do
+        local batch = {}
+
+        for _, id in ipairs(ids) do
+            table.insert(batch, id)
+
+            if #batch == Selected_Amount then
+                -- print("Crafting", name)
+                Network:InvokeServer("CraftPets", batch)
+                batch = {}
             end
         end
     end
@@ -377,11 +403,48 @@ end
 spawn(function()
     while task.wait() do
         SafeRun(Tap, Auto_Tap)
-        SafeRun(AutoEgg, Auto_Open, Select_Egg, Select_Egg_Amount)
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        SafeRun(AutoEgg, Auto_Open_Toggled, Select_Egg, Select_Egg_Amount)
+    end
+end)
+
+spawn(function()
+    while task.wait() do
         SafeRun(AutoRebirth, Auto_Rebirth, Select_Rebirth_Amount)
+    end
+end)
+
+spawn(function()
+    while task.wait() do
         SafeRun(AutoEquipBestPets, AutoEquipBestPets)
-        SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete, Select_Pet_AutoDelete)
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete)
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        SafeRun(AutoDelete_Selected_Pet_Function, Auto_Delete, Select_Pet_AutoDelete)
+    end
+end)
+
+
+spawn(function()
+    while task.wait() do
         SafeRun(FarmWorldChests, AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
+    end
+end)
+
+spawn(function()
+    while task.wait() do
         SafeRun(AutoGolden, Auto_Craft, Select_Pet_Amount, Select_Pet_To_Craft)
     end
 end)
