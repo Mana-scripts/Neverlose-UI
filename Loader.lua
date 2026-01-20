@@ -1,9 +1,9 @@
 return function (id)
     local LoadScript_Table = {
-        LoadScript_Table.Source = ""
+        Source = ""
     }
 
-    function LoadScript_Table:Load(str)
+    function LoadScript_Table:Load()
         local success, err = pcall(function()
             loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/"..tostring(id).."/"..LoadScript_Table.Source..".lua"))()
         end)
