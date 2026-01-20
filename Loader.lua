@@ -1,5 +1,7 @@
 return function (id)
-    local LoadScript_Table = {}
+    local LoadScript_Table = {
+        LoadScript_Table.Source = ""
+    }
 
     function LoadScript_Table:Load(str)
         local success, err = pcall(function()
