@@ -12,8 +12,3 @@ return function (id)
 
     return LoadScript_Table
 end
-
---local Loader = LoadScript(game.PlaceId)
---Loader.Source = "Source"
---Loader:Load()
- 
