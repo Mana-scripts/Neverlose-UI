@@ -1,16 +1,16 @@
-return function (id)
-    local LoadScript_Table = {
-        Source = ""
-    }
+local Loader_Module = {
+    Source = ""
+}
 
-    function LoadScript_Table:Load()
-        local success, err = pcall(function()
-            loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/"..tostring(id).."/"..LoadScript_Table.Source..".lua"))()
-        end)
-        if not success then
-            warn("Something went wrong | ", err)
-        end
+function Loader_Module:LoadScript(id)
+
+    local success, err = pcall(function()
+        loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/"..tostring(id).."/"..Loader_Module.Source..".lua"))()
+    end)
+    if not success then
+        warn("Something went wrong | ", err)
     end
 
-    return LoadScript_Table
 end
+
+return Loader_Module
