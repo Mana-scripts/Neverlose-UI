@@ -69,7 +69,7 @@ if not getgenv().Loaded_getgenv then
 
     local mt = getrawmetatable(game)
     setreadonly(mt, false)
-    
+
     local nc = mt.__namecall
     mt.__namecall = newcclosure(function(self, ...)
         local args = {...}
@@ -167,7 +167,7 @@ end
 
 function Rebirth(Amount)
     Get_Game_Services("RebirthService"):rebirth(Amount)
-    task.wait(0.1)
+    task.wait()
 end
 
 function Collect_Orbs()
