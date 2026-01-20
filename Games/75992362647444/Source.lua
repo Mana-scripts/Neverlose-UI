@@ -1,4 +1,3 @@
------------- // TAP SIMULATOR \\ ------------
 
 function ConvertToSuffix(number)
     local Suffixes = {
