@@ -1,16 +1,3 @@
------------- // Anime Fighting Simulator \\ ------------
-
-
-
-
-
-
-
-
-------------------------------------------------------------
---///////////////////////SOURCE\\\\\\\\\\\\\\\\\\\\\\\\\\\--
------------------------------------------------------------- 
-
 if game:GetService("ReplicatedStorage").Assets:FindFirstChild("ImpactFrame") then
     game:GetService("ReplicatedStorage").Assets:FindFirstChild("ImpactFrame"):Destroy()
 end
