@@ -1,4 +1,4 @@
-local function LoadScript(id)
+return function (id)
     local LoadScript_Table = {}
 
     function LoadScript_Table:Load(str)
@@ -13,6 +13,7 @@ local function LoadScript(id)
     return LoadScript_Table
 end
 
-local Loader = LoadScript(game.PlaceId)
+--local Loader = LoadScript(game.PlaceId)
 --Loader.Source = "Source"
 --Loader:Load()
+ 
