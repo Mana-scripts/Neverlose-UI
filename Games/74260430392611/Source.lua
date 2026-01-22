@@ -86,6 +86,7 @@ end
 
 local HatchController = require(game:GetService("Players").LocalPlayer.PlayerScripts.Client.Controllers.HatchingController)
 local UIController = require(game:GetService("Players").LocalPlayer.PlayerScripts.Client.Controllers.UIController)
+local ClickController = require(game:GetService("Players").LocalPlayer.PlayerScripts.Client.Controllers.ClickController)
 
 spawn(function()
     setreadonly(UIController, false)
@@ -93,6 +94,7 @@ spawn(function()
     UIController.hideHUD = function() return false end
     if not getgenv().Loaded_getgenv then
         getgenv().OldEggAnimation = HatchController.playEggAnimation
+        getgenv().OldClickAnimation = ClickController.clickPopup
     end
 end)
 
@@ -110,14 +112,33 @@ local Window = Library:Window(
 local AutoFarm = Window:Tab("Autofarm")
 local Eggs = Window:Tab("Eggs")
 local Crafting = Window:Tab("Crafting")
+local Upgrades = Window:Tab("Upgrades")
 
 AutoFarm:Toggle("Auto Tap", false, function(t)
     Auto_Tap = t
 end)
 
+AutoFarm:Toggle("Remove Tap Animation", false, function(t)
+    if t then
+        ClickController.clickPopup = function() return end
+    else
+        ClickController.clickPopup = getgenv().OldClickAnimation
+    end
+end)
+
 AutoFarm:line()
 
-AutoFarm:Slider("Rebith Amount", 1, 3, 1, function(v)
+local Rebirths_ID = require(game:GetService("ReplicatedStorage").Shared.List.Rebirths)
+function Rebirth(Index)
+    local DataController = Get_Game_Controllers("DataController")
+    local RebirthService = Get_Game_Services("RebirthService")
+
+    RebirthService:rebirth(math.min(DataController.data.upgrades.rebirthButtons, Index))
+    
+    task.wait(0.05)
+end
+
+AutoFarm:Slider("Rebirth Amount", 1, #Rebirths_ID, 1, function(v)
     Rebith_Amount = v
 end)
 
@@ -144,6 +165,21 @@ function Get_Eggs()
     return Eggs
 end
 
+AutoFarm:Toggle("Auto Collect Stars", false, function(t)
+    Auto_Collect_Stars = t
+end)
+
+function Collect_Stars()
+    for _, v in ipairs(workspace.Debris:GetChildren()) do
+        if v:IsA("Model") and v:FindFirstChild("Hitbox") and string.find(v.Name, "FallingStar") then
+            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Hitbox, 0)
+            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Hitbox, 1)
+        end
+    end
+end
+
+
+
 Eggs:Dropdown("Select Egg", Get_Eggs(), function(t)
     getgenv().Egg_Name = t
 end)
@@ -162,11 +198,6 @@ end)
 
 function Click()
     Get_Game_Services("ClickService").click._re:FireServer()
-    task.wait(0.1)
-end
-
-function Rebirth(Amount)
-    Get_Game_Services("RebirthService"):rebirth(Amount)
     task.wait()
 end
 
@@ -279,3 +310,72 @@ spawn(function()
     end
 end)
 
+spawn(function()
+    while task.wait() do
+        if Auto_Collect_Stars then
+            SafeRun(Collect_Stars)
+        end
+    end
+end)
+
+
+local UpgradesList = require(game:GetService("ReplicatedStorage").Shared.List.Items.Upgrades)
+
+local AutoUpgrade_Table = {}
+local AutoUpgradeNames = {"Rebirth Buttons"}
+for i, v in pairs(UpgradesList) do
+    AutoUpgrade_Table[i] = v
+    table.insert(AutoUpgradeNames, v.name)
+end
+
+AutoUpgrade_Table["rebirthButtons"] = {
+    name = "Rebirth Buttons"
+}
+
+table.sort(AutoUpgradeNames, function(a, b)
+    return a:sub(1,1):lower() < b:sub(1,1):lower()
+end)
+
+local SortedAutoUpgrade_Table = {}
+for _, name in pairs(AutoUpgradeNames) do
+    for i, v in pairs(AutoUpgrade_Table) do
+        if v.name == name then
+            table.insert(SortedAutoUpgrade_Table, v)
+            break
+        end
+    end
+end
+
+Upgrades:Checklist("Select Upgrades", "upgrade", AutoUpgradeNames, function(v)
+    Selected_Upgrades = v
+end)
+
+Upgrades:Slider("Auto Upgrade Speed", 1, 100, 1, function(t)
+    AutoUpgradeSpeed = t
+end)
+
+Upgrades:Toggle("Auto Upgrade", false, function(t)
+    AutoUpgrade = t
+end)
+
+
+spawn(function()
+    while task.wait() do
+        if AutoUpgrade then
+            if not Selected_Upgrades then continue end
+
+            for i, v in pairs(AutoUpgrade_Table) do
+                if table.find(Selected_Upgrades, v.name) then
+                    -- print(i, v.name)
+                    Get_Game_Services("UpgradeService"):upgrade(i)
+                end
+            end
+
+            local minWait, maxWait = 0.01, 1
+            local waitTime = maxWait - ((AutoUpgradeSpeed / 100) * (maxWait - minWait))
+            task.wait(waitTime)
+        else
+            task.wait(0.1)
+        end
+    end
+end)
