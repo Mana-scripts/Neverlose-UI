@@ -1,3 +1,4 @@
+------------ // TAP SIMULATOR \\ ------------
 
 function ConvertToSuffix(number)
     local Suffixes = {
@@ -64,24 +65,60 @@ local Misc = Window:Tab("Misc")
 
 local TweenService = game:GetService("TweenService")
 
-local BlacklistedNames = {
-    "ChristmasAdminAbuse",
-    "Content",
-    "Folder",
-    "Game",
-    "Hidden Pets",
-    "Modules"
-}
--- Rename Remotes!
-for i,v in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
-    if v:IsA("Folder") and not table.find(BlacklistedNames, v.Name) then
-        for i,v in pairs(v:GetChildren()) do
-            for i,v in pairs(v:GetChildren()) do
-                v.Name = i
-            end
-        end
+
+local functions = {}
+for _, obj in pairs(getgc(true)) do
+    if typeof(obj) == "function" then
+        table.insert(functions, obj)
     end
 end
+
+local EventsFolder = nil
+local constants = nil
+local gc_func = {}
+for _, func in pairs(functions) do
+    pcall(function()
+        constants = debug.getconstants(func)
+    end)
+    local success, err = pcall(function()
+        for _, constant in pairs(constants) do
+            if type(constant) == "string" and string.find(constant:lower(), string.lower("geteventhand"))  and constant ~= nil then
+                
+                local test, err = pcall(func, "Tap") 
+                if not test then
+                    print(err)
+                end
+
+                local success, err = pcall(function()
+                    for k,v in pairs(debug.getstack(1)) do -- level 1 is current thread
+                        if type(v) == "table" then
+                            table.foreach(v, function(i,v)
+                                if type(v) == "table" and v.Folder  and v.Remote then
+                                    table.foreach(v, print)
+                                    EventsFolder = v.Folder
+                                    v.Remote.Name = v.Name
+                                end
+                            end)
+                        end
+                    end
+                end)
+                if not success then
+                    warn("TESTING!!! ", err)
+                end
+                break
+            end
+        end
+
+    end)
+    if not success then
+        warn(err)
+    end
+end
+
+EventsFolder.Tap:FireServer(true, nil, false)
+
+print("found", #functions, "functions")
+print("RemoteEvents Renamed")
 
 local function GetModule(from, Module)
     local from = from or "Modules"
@@ -193,9 +230,7 @@ Auto_Open:Toggle("Auto Delete", false, function(t)
     Auto_Delete = t
 end)
 
-local function AutoDelete(Enabled, Selected)
-    local Enabled = Enabled or false
-    if not Enabled then return end
+local function AutoDelete(Selected)
     if Selected == nil then return end
 
     for i2,v2 in pairs(GameData.Data.Pets) do
@@ -206,9 +241,7 @@ local function AutoDelete(Enabled, Selected)
     end
 end
 
-local function AutoDelete_Selected_Pet_Function(Enabled, Pets_Selected)
-    local Enabled = Enabled or false
-    if not Enabled then return end
+local function AutoDelete_Selected_Pet_Function(Pets_Selected)
     if Pets_Selected == nil then return end
 
     for i2,v2 in pairs(GameData.Data.Pets) do
@@ -256,29 +289,21 @@ function CorrectRebirth(num)
     return Rebirths[num]
 end
 
-local function Tap(Enabled)
-    local Enabled = Enabled or false
-    if not Enabled then return end
-    for i = 1,5 do
+local function Tap()
+    for i = 1,2 do
         Network:FireServer("Tap", true, nil, true)
     end
 end
 
-local function AutoEgg(Enabled, Egg, EggAmount)
-    local Enabled = Enabled or false
-    if not Enabled then return end
+local function AutoEgg(Egg, EggAmount)
     Network:InvokeServer("OpenEgg", Egg, tonumber(EggAmount), {})
 end
 
-local function AutoRebirth(Enabled, Amount)
-    local Enabled = Enabled or false
-    if not Enabled then return end
+local function AutoRebirth(Amount)
     Network:InvokeServer("Rebirth", CorrectRebirth(Amount))
 end
 
-local function AutoEquipBestPets(Enabled)
-    local Enabled = Enabled or false
-    if not Enabled then return end
+local function AutoEquipBestPets()
     Network:InvokeServer("EquipBest")
 end
 
@@ -329,9 +354,7 @@ local function TweenTo(cf)
     tween.Completed:Wait()
 end
 
-local function FarmWorldChests(Enabled, Allow_TP)
-    local Enabled = Enabled or false
-    if not Enabled then return end
+local function FarmWorldChests(Allow_TP)
 
     -- World chests
     for _, v in ipairs(workspace.Game.WorldChests:GetChildren()) do
@@ -357,8 +380,7 @@ local function FarmWorldChests(Enabled, Allow_TP)
 
 end
 
-function AutoGolden(Enabled, Selected_Amount, Selected_Pet_to_autogold)
-    if not Enabled then return end
+function AutoGolden(Selected_Amount, Selected_Pet_to_autogold)
     if not Selected_Pet_to_autogold then return end
 
     local PetsByName = {}
@@ -401,49 +423,65 @@ end
 
 spawn(function()
     while task.wait() do
-        SafeRun(Tap, Auto_Tap)
+        if Auto_Tap then
+            pcall(Tap)
+        end
     end
 end)
 
 spawn(function()
     while task.wait() do
-        SafeRun(AutoEgg, Auto_Open_Toggled, Select_Egg, Select_Egg_Amount)
+        if Auto_Open_Toggled then
+            pcall(AutoEgg, Select_Egg, Select_Egg_Amount)
+        end
     end
 end)
 
 spawn(function()
     while task.wait() do
-        SafeRun(AutoRebirth, Auto_Rebirth, Select_Rebirth_Amount)
+        if Auto_Rebirth then
+            pcall(AutoRebirth, Select_Rebirth_Amount)
+        end
     end
 end)
 
 spawn(function()
     while task.wait() do
-        SafeRun(AutoEquipBestPets, AutoEquipBestPets)
+        if AutoEquipBestPets then
+            pcall(AutoEquipBestPets)
+        end
     end
 end)
 
 spawn(function()
     while task.wait() do
-        SafeRun(AutoDelete, Auto_Delete, Select_AutoDelete)
+        if Auto_Delete then
+            pcall(AutoDelete, Select_AutoDelete)
+        end
     end
 end)
 
 spawn(function()
     while task.wait() do
-        SafeRun(AutoDelete_Selected_Pet_Function, Auto_Delete, Select_Pet_AutoDelete)
+        if Auto_Delete then
+            pcall(AutoDelete_Selected_Pet_Function, Select_Pet_AutoDelete)
+        end
     end
 end)
 
 
 spawn(function()
     while task.wait() do
-        SafeRun(FarmWorldChests, AutoFarm_WorldChests, AutoFarm_WorldChests_Allow_TP)
+        if AutoFarm_WorldChests then
+            pcall(FarmWorldChests, AutoFarm_WorldChests_Allow_TP)
+        end
     end
 end)
 
 spawn(function()
     while task.wait() do
-        SafeRun(AutoGolden, Auto_Craft, Select_Pet_Amount, Select_Pet_To_Craft)
+        if Auto_Craft then
+            pcall(AutoGolden, Select_Pet_Amount, Select_Pet_To_Craft)
+        end
     end
 end)
