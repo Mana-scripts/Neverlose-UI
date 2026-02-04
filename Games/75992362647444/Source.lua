@@ -51,6 +51,13 @@ end
 --/////////////////////////GUI\\\\\\\\\\\\\\\\\\\\\\\\\\\\--
 ------------------------------------------------------------ 
 
+local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+
+UtilityModule:Discord("7wZ7vEgWXR")
+
+local EventsFolder, FunctionsFolder, Remotes = UtilityModule:TapSimulatorRemoteBypass()
+
+
 local Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
 
 local Window = Library:Window(
@@ -64,61 +71,6 @@ local Auto_Gold = Window:Tab("Auto Craft")
 local Misc = Window:Tab("Misc")
 
 local TweenService = game:GetService("TweenService")
-
-
-local functions = {}
-for _, obj in pairs(getgc(true)) do
-    if typeof(obj) == "function" then
-        table.insert(functions, obj)
-    end
-end
-
-local EventsFolder = nil
-local constants = nil
-local gc_func = {}
-for _, func in pairs(functions) do
-    pcall(function()
-        constants = debug.getconstants(func)
-    end)
-    local success, err = pcall(function()
-        for _, constant in pairs(constants) do
-            if type(constant) == "string" and string.find(constant:lower(), string.lower("geteventhand"))  and constant ~= nil then
-                
-                local test, err = pcall(func, "Tap") 
-                if not test then
-                    print(err)
-                end
-
-                local success, err = pcall(function()
-                    for k,v in pairs(debug.getstack(1)) do -- level 1 is current thread
-                        if type(v) == "table" then
-                            table.foreach(v, function(i,v)
-                                if type(v) == "table" and v.Folder  and v.Remote then
-                                    table.foreach(v, print)
-                                    EventsFolder = v.Folder
-                                    v.Remote.Name = v.Name
-                                end
-                            end)
-                        end
-                    end
-                end)
-                if not success then
-                    warn("TESTING!!! ", err)
-                end
-                break
-            end
-        end
-
-    end)
-    if not success then
-        warn(err)
-    end
-end
-
-EventsFolder.Tap:FireServer(true, nil, false)
-
-print("found", #functions, "functions")
-print("RemoteEvents Renamed")
 
 local function GetModule(from, Module)
     local from = from or "Modules"
@@ -178,6 +130,12 @@ end)
 
 AutoFarm:Toggle("Auto Rebirth", false, function(t)
     Auto_Rebirth = t
+end)
+
+AutoFarm:line()
+
+AutoFarm:Toggle("Auto Claim Rank Rewards", false, function(t)
+    Auto_Claim_Rank_Rewards = t
 end)
 
 function GetEggPrice(Egg)
@@ -303,7 +261,11 @@ local function AutoRebirth(Amount)
     Network:InvokeServer("Rebirth", CorrectRebirth(Amount))
 end
 
-local function AutoEquipBestPets()
+local function AutoClaimRankRewards()
+    Remotes.ClaimRankReward:InvokeServer()
+end
+
+local function AutoEquipBestPetsfunc()
     Network:InvokeServer("EquipBest")
 end
 
@@ -431,6 +393,14 @@ end)
 
 spawn(function()
     while task.wait() do
+        if Auto_Claim_Rank_Rewards then
+            pcall(AutoClaimRankRewards)
+        end
+    end
+end)
+
+spawn(function()
+    while task.wait() do
         if Auto_Open_Toggled then
             pcall(AutoEgg, Select_Egg, Select_Egg_Amount)
         end
@@ -448,7 +418,7 @@ end)
 spawn(function()
     while task.wait() do
         if AutoEquipBestPets then
-            pcall(AutoEquipBestPets)
+            pcall(AutoEquipBestPetsfunc)
         end
     end
 end)
