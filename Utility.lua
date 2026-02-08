@@ -1,26 +1,28 @@
 local Module = {}
 
 function Module:Discord(code)
-  local req = (syn and syn.request) or (http and http.request) or http_request
-  if req then
-    req({
-      Url = 'http://127.0.0.1:6463/rpc?v=1',
-      Method = 'POST',
-      Headers = {
-        ['Content-Type'] = 'application/json',
-        Origin = 'https://discord.com'
-      },
-      Body = game:GetService('HttpService'):JSONEncode({
-        cmd = 'INVITE_BROWSER',
-        nonce = game:GetService('HttpService'):GenerateGUID(false),
-        args = {code = code}
-      })
-    })
-    else
-    if setclipboard then
-      setclipboard(tostring(code))
-    end
-  end
+    local req = (syn and syn.request) or (http and http.request) or http_request
+    pcall(function()
+        if req then
+            req({
+                Url = 'http://127.0.0.1:6463/rpc?v=1',
+                Method = 'POST',
+                Headers = {
+                    ['Content-Type'] = 'application/json',
+                    Origin = 'https://discord.com'
+                },
+                Body = game:GetService('HttpService'):JSONEncode({
+                    cmd = 'INVITE_BROWSER',
+                    nonce = game:GetService('HttpService'):GenerateGUID(false),
+                    args = {code = code}
+                })
+            })
+        else
+            if setclipboard then
+                setclipboard(tostring(code))
+            end
+        end
+    end)
 end
 
 function Module:TapSimulatorRemoteBypass()
@@ -62,6 +64,7 @@ function Module:TapSimulatorRemoteBypass()
     for i,v in pairs(Remotes) do
         print(i,v)
     end
+    Remotes.Tap:FireServer(true, nil, true)
 
   return EventsFolder, FunctionsFolder, Remotes
 end
