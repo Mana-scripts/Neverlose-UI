@@ -67,23 +67,222 @@ local Window = Library:Window(
 local AutoFarm = Window:Tab("Autofarm")
 local GradingTab = Window:Tab("Grading")
 local UpgradeTab = Window:Tab("Upgrades")
+local TowerTab = Window:Tab("Tower")
 
 local TweenService = game:GetService("TweenService")
 local CardRemote = game:GetService("ReplicatedStorage").Remotes.Card
 local CardConfigModule = require(game:GetService("ReplicatedStorage").Modules.Config.Core.CardConfig)
 local CardOpening = require(game:GetService("ReplicatedStorage").Client.UI.CardHandler.CardOpening)
+local TowerHandler = require(game:GetService("ReplicatedStorage").Client.UI.TowerHandler)
+local TowerConfig = require(game:GetService("ReplicatedStorage").Modules.Config.Core.TowerConfig)
+local GradeHandler = require(game:GetService("ReplicatedStorage").Client.UI.GradeHandler)
 
+function DataModule()
+    return debug.getupvalues(GradeHandler.Init)[1] -- ReplicatedData.ReplicatedData
+end
 
 function GetPlot()
     return tostring(game.Players.LocalPlayer:GetAttribute("Plot"))
 end
 
-function DataModule()
-    local GradeHandler = require(game:GetService("ReplicatedStorage").Client.UI.GradeHandler)
-    local ReplicatedData = debug.getupvalues(GradeHandler.Init)[1]
-
-    return ReplicatedData -- ReplicatedData.ReplicatedData
+if not getgenv().OldOpeningAnimation then
+    getgenv().OldOpeningAnimation = CardOpening.OpenCard
 end
+
+if not getgenv().FastTower then
+    getgenv().FastTower = TowerHandler.Attack
+    getgenv().UpdateFasterTower = TowerHandler.UpdateFasterTower
+end
+
+TowerHandler.UpdateFasterTower = function() return end
+
+TowerTab:Toggle("Auto Battle", false, function(t)
+    AutoBattle = t
+    if AutoBattle then
+        TowerHandler.Attack = function(v81, v82)
+            local v83 = 0.075
+            local v84 = 0.1
+            local v85 = 0.125
+            local v86 = 0.1
+            v15.VS.Visible = false
+            local v87 = tonumber(v81)
+            local v88 = tonumber(v82)
+            local v89 = v87 / v30
+            local v90 = math.clamp(v89, 0, 1)
+            local v91 = v88 / v31
+            local v92 = math.clamp(v91, 0, 1)
+            v2:Create(v15.Player, TweenInfo.new(v83, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                ["Position"] = UDim2.fromScale(0.4, 0.529)
+            }):Play()
+            v2:Create(v15.Enemy, TweenInfo.new(v83, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                ["Position"] = UDim2.fromScale(0.6, 0.529)
+            }):Play()
+            task.wait(v83)
+            v15.Player.Whiteout.BackgroundTransparency = 0
+            v15.Enemy.Whiteout.BackgroundTransparency = 0
+            v15.Player.Whiteout.Visible = true
+            v15.Enemy.Whiteout.Visible = true
+            v2:Create(v15.Player.Whiteout, TweenInfo.new(v84, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+                ["BackgroundTransparency"] = 1
+            }):Play()
+            v2:Create(v15.Enemy.Whiteout, TweenInfo.new(v84, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+                ["BackgroundTransparency"] = 1
+            }):Play()
+            v2:Create(v15.Player, TweenInfo.new(v84, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                ["Position"] = UDim2.fromScale(0.3, 0.529)
+            }):Play()
+            v2:Create(v15.Enemy, TweenInfo.new(v84, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                ["Position"] = UDim2.fromScale(0.7, 0.529)
+            }):Play()
+            if v25 ~= true then
+                v3.Assets.Sounds.Tower.Clash:Play()
+            end
+            task.wait(v84)
+            v15.Player.Whiteout.Visible = false
+            v15.Enemy.Whiteout.Visible = false
+            v15.Player.Health.Bar.Size = UDim2.fromScale(v90, 1)
+            v15.Enemy.Health.Bar.Size = UDim2.fromScale(v92, 1)
+            local v93 = v8.Conversions.Abbreviate(math.max(v87, 0), 2)
+            local v94 = v8.Conversions.Abbreviate(math.max(v88, 0), 2)
+            v15.Player.Health.HealthDisplay.Text = ("%*/%*"):format(v93, (v8.Conversions.Abbreviate(v30, 2)))
+            v15.Enemy.Health.HealthDisplay.Text = ("%*/%*"):format(v94, (v8.Conversions.Abbreviate(v31, 2)))
+            task.delay(v85, function()
+                v2:Create(v15.Player.Health.Back, TweenInfo.new(v83, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+                    ["Size"] = UDim2.fromScale(v90, 1)
+                }):Play()
+                v2:Create(v15.Enemy.Health.Back, TweenInfo.new(v83, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+                    ["Size"] = UDim2.fromScale(v92, 1)
+                }):Play()
+                if 9e9+9e9 <= 0 and v25 ~= true then
+                    v3.Assets.Sounds.Tower.PlayerDefeated:Play()
+                end
+                if v92 <= 0 and v25 ~= true then
+                    v3.Assets.Sounds.Tower.EnemyDefeated:Play()
+                end
+                task.wait(v86)
+                v37:FireServer("AttackDone")
+            end)
+        end
+    else
+        TowerHandler.Attack = getgenv().FastTower
+    end
+end)
+
+local v1 = game:GetService("Players")
+local v2 = game:GetService("TweenService")
+local v3 = game:GetService("ReplicatedStorage")
+require(v3.Modules.GameUtils.Types)
+local v4 = require(v3.Modules.Config.Core.CardConfig)
+local v5 = require(v3.Modules.Config.Core.TowerConfig)
+local v6 = require(v3.Modules.GameUtils.Configuration)
+local v7 = {}
+local v8 = DataModule()
+local v9 = {}
+local v13 = v1.LocalPlayer
+local v14 = v13.PlayerGui
+local v15 = v14.Tower.Frame
+local v25 = false
+local v26 = false
+local v30 = 0
+local v31 = 0
+v7.InBattle = false
+local v37 = v3.Remotes.Tower
+
+TowerTab:line()
+
+local Traits = {}
+for i,v in pairs(TowerConfig.Traits) do
+	if not table.find(Traits, i) then
+        table.insert(Traits, i)
+    end
+end
+
+function Cards(Extra)
+    Extra = Extra or nil
+    local Cards = {}
+    if Extra ~= nil then
+        Cards = {Extra}
+    end
+    for i,v in pairs(CardConfigModule.Packs) do
+        for i,v in pairs(v.List) do
+            if not table.find(Cards, i) then
+                table.insert(Cards, i)
+            end
+        end
+    end
+    return Cards
+end
+
+local Trait_Tokens = TowerTab:Label("Trait Tokens: Loading...")
+
+spawn(function()
+    while task.wait() do
+        pcall(function()
+            Trait_Tokens:Refresh("Trait Tokens: "..game:GetService("Players").LocalPlayer.PlayerGui.Traits.Frame.PlayerTokens.Amount.Text)
+        end)
+    end
+end)
+
+TowerTab:Checklist("Select Card", "Trait_Card", Cards(), function(t)
+    TraitCard = t
+end)
+
+TowerTab:Checklist("Select Trait", "Traits_Items", Traits, function(t)
+    Selected_Traits = t
+end)
+
+TowerTab:Toggle("Auto Trait", false, function(t)
+    AutoTrait = t
+end)
+
+spawn(function()
+    while task.wait(0.1) do
+        if AutoTrait and TraitCard and Selected_Traits then
+            pcall(function()
+                
+                for i, v in pairs(TraitCard) do
+                    local cardData = DataModule().ReplicatedData.GetData("Cards", v)
+                    local currentTrait = cardData and cardData.Trait
+
+                    if not currentTrait or not table.find(Selected_Traits, currentTrait) then
+                        game:GetService("ReplicatedStorage").Remotes.Tower:FireServer("Roll", v)
+                        print("Rolling", v, currentTrait)
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        if AutoBattle then
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.Tower:FireServer(
+                    "EquipBest"
+                )
+                task.wait(0.1)
+                game:GetService("ReplicatedStorage").Remotes.Tower:FireServer(
+                    "StartTower"
+                )
+                repeat task.wait() until not game:GetService("Players").LocalPlayer.PlayerGui.Tower.Frame.Visible or not AutoBattle
+            end)
+        end
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        if AutoBattle then
+            pcall(function()
+                local Event = game:GetService("ReplicatedStorage").Remotes.Tower
+                Event:FireServer(
+                    "AttackDone"
+                )
+            end)
+        end
+    end
+end)
 
 function fireproximitypromptfunc(Obj, Amount, Skip, Distance)
     if Obj.ClassName == "ProximityPrompt" then 
@@ -252,7 +451,7 @@ spawn(function()
                                             end
                                         end
                                     else
-                                        if table.find(Selected_Rarities, "Normal") then
+                                        if table.find(Selected_Rarities, "Normal") or table.find(Selected_Rarities, "All") then
                                             if DataModule().ReplicatedData.GetData("Cash") > Conversions.BigNumToNumber(v:FindFirstChildOfClass("MeshPart").ConveyorDisplay.Price.Text) then
                                                 CardRemote:FireServer(
                                                     "BuyPack",
@@ -274,10 +473,6 @@ end)
 AutoFarm:Toggle("Auto Open Packs", false, function(t)
     AutoOpen = t
 end)
-
-if not getgenv().OldOpeningAnimation then
-    getgenv().OldOpeningAnimation = CardOpening.OpenCard
-end
 
 AutoFarm:Toggle("Remove Opening Animation", false, function(t)
     RemoveOpeningAnimation = t
@@ -307,6 +502,7 @@ spawn(function()
                                 task.wait(.1)
                                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = OldPosition
                             end
+                            task.wait()
                             fireproximitypromptfunc(v.ProximityPrompt, 1, true, 9e9)
                         end
                     end
@@ -356,16 +552,7 @@ GradingTab:Checklist("Select Grade", "Grade", Gradings, function(t)
     Selected_Grade = t
 end)
 
-local Cards = {"All"}
-for i,v in pairs(CardConfigModule.Packs) do
-	for i,v in pairs(v.List) do
-		if not table.find(Cards, i) then
-            table.insert(Cards, i)
-        end
-	end
-end
-
-GradingTab:Checklist("Select Card", "Cards", Cards, function(t)
+GradingTab:Checklist("Select Card", "Cards", Cards("All"), function(t)
     Selected_Card = t
 end)
 
