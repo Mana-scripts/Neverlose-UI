@@ -59,7 +59,7 @@ UtilityModule:Discord("7wZ7vEgWXR")
 local Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
 
 local Window = Library:Window(
-    "TBH",
+    "Symphony",
     "Anime Card Collection",
     false
 )
