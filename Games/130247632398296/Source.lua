@@ -1,3 +1,16 @@
+------------ // Anime Fighting Simulator \\ ------------
+
+
+
+
+
+
+
+
+------------------------------------------------------------
+--///////////////////////SOURCE\\\\\\\\\\\\\\\\\\\\\\\\\\\--
+------------------------------------------------------------ 
+
 if game:GetService("ReplicatedStorage").Assets:FindFirstChild("ImpactFrame") then
     game:GetService("ReplicatedStorage").Assets:FindFirstChild("ImpactFrame"):Destroy()
 end
@@ -564,11 +577,15 @@ end
 --/////////////////////////GUI\\\\\\\\\\\\\\\\\\\\\\\\\\\\--
 ------------------------------------------------------------ 
 
+local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+
+UtilityModule:Discord("7wZ7vEgWXR")
+
 local Neverlose_Main = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-some-ui-83251"))()
 
 local Win = Neverlose_Main:Window({
-    Title = "NEVERLOSE",
-    CFG = "Neverlose",
+    Title = UtilityModule.HubName,
+    CFG = UtilityModule.HubName,
     Key = Enum.KeyCode.H,
     External = {
         KeySystem = false,
