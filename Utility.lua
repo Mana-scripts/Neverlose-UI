@@ -25,6 +25,11 @@ function Module:Discord(code)
     end)
 end
 
+Module.HubName = "Qyrix"
+Module.Loader = false
+
+Module.Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))
+
 function Module:TapSimulatorRemoteBypass()
     local tables = {}
     for _, obj in pairs(getgc(true)) do
