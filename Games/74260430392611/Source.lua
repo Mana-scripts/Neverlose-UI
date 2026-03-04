@@ -83,30 +83,53 @@ if not getgenv().Loaded_getgenv then
     end)
 end
 
+if not getgenv().Functions then
+    getgenv().Functions = {}
+end
 
 local HatchController = require(game:GetService("Players").LocalPlayer.PlayerScripts.Client.Controllers.HatchingController)
 local UIController = require(game:GetService("Players").LocalPlayer.PlayerScripts.Client.Controllers.UIController)
 local ClickController = require(game:GetService("Players").LocalPlayer.PlayerScripts.Client.Controllers.ClickController)
+local RunService = game:GetService("RunService")
+
+if not getgenv().OldClickAnimation then
+    getgenv().OldClickAnimation = ClickController.clickPopup
+end
+if not getgenv().OldEggAnimation then
+    getgenv().OldEggAnimation = HatchController.playEggAnimation
+end
 
 spawn(function()
     setreadonly(UIController, false)
     setreadonly(HatchController, false)
     UIController.hideHUD = function() return false end
-    if not getgenv().Loaded_getgenv then
-        getgenv().OldEggAnimation = HatchController.playEggAnimation
-        getgenv().OldClickAnimation = ClickController.clickPopup
+    if getgenv().Loaded_getgenv then
+        -- repeat task.wait() until Functions ~= {}
+        -- task.wait(5)
+        for i,v in pairs(getgenv().Functions) do
+            if v then
+                RunService:UnbindFromRenderStep(i)
+            end
+        end
     end
+    
 end)
 
 
 if not getgenv().Loaded_getgenv then
     getgenv().Loaded_getgenv = true
 end
-local Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
+
+local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+
+UtilityModule:Discord("7wZ7vEgWXR")
+
+local Library = UtilityModule.Library()
 
 local Window = Library:Window(
-    "Symphony",
-    "Rebirth Champions"
+    UtilityModule.HubName,
+    "Rebirth Champions",
+    UtilityModule.Loader
 )
 
 local AutoFarm = Window:Tab("Autofarm")
@@ -120,7 +143,7 @@ end)
 
 AutoFarm:Toggle("Remove Tap Animation", false, function(t)
     if t then
-        ClickController.clickPopup = function() return end
+        ClickController.clickPopup = function() pcall(function() return false end) end
     else
         ClickController.clickPopup = getgenv().OldClickAnimation
     end
@@ -129,6 +152,7 @@ end)
 AutoFarm:line()
 
 local Rebirths_ID = require(game:GetService("ReplicatedStorage").Shared.List.Rebirths)
+getgenv().Functions["Rebirth"] = true
 function Rebirth(Index)
     local DataController = Get_Game_Controllers("DataController")
     local RebirthService = Get_Game_Services("RebirthService")
@@ -169,6 +193,7 @@ AutoFarm:Toggle("Auto Collect Stars", false, function(t)
     Auto_Collect_Stars = t
 end)
 
+getgenv().Functions["Collect_Stars"] = true
 function Collect_Stars()
     for _, v in ipairs(workspace.Debris:GetChildren()) do
         if v:IsA("Model") and v:FindFirstChild("Hitbox") and string.find(v.Name, "FallingStar") then
@@ -196,11 +221,13 @@ Eggs:Toggle("Remove Egg Animation", false, function(t)
     end
 end)
 
+getgenv().Functions["Click"] = true
 function Click()
     Get_Game_Services("ClickService").click._re:FireServer()
     task.wait()
 end
 
+getgenv().Functions["Collect_Orbs"] = true
 function Collect_Orbs()
     for i,v in pairs(workspace.Debris.Orbs:GetChildren()) do
         if v:IsA("Part") then
@@ -210,6 +237,7 @@ function Collect_Orbs()
     end
 end
 
+getgenv().Functions["Collect_Mini_Chests"] = true
 function Collect_Mini_Chests()
     for i,v in pairs(workspace.Game.Maps:GetDescendants()) do
         if v:IsA("Model") and v.Name == "MiniChest" and v:FindFirstChild("Touch") then
@@ -222,11 +250,13 @@ function Collect_Mini_Chests()
     task.wait(10)
 end
 
+getgenv().Functions["Open_Egg"] = true
 function Open_Egg(Egg_Name)
-    Get_Game_Services("EggService").openEgg._re:FireServer(Egg_Name, math.huge)
+    Get_Game_Services("EggService").openEgg._re:FireServer(Egg_Name, 2)
     task.wait(0.1)
 end
 
+getgenv().Functions["AutoGold"] = true
 function AutoGold(pet_names, amount)
     if not pet_names then return end
     local PetService = Get_Game_Services().PetService
@@ -262,59 +292,47 @@ Crafting:Toggle("Craft Golden Pets", false, function(t)
     Craft_Golden_Pets = t
 end)
 
-spawn(function()
-    while task.wait() do
-        if Auto_Tap then
-            SafeRun(Click)
-        end
+local Priority = 1
+
+RunService:BindToRenderStep("Click", Priority, function()
+    if Auto_Tap then
+        SafeRun(Click)
     end
 end)
 
-spawn(function()
-    while task.wait() do
-        if Auto_Rebirth then
-            SafeRun(Rebirth, Rebith_Amount)
-        end
+RunService:BindToRenderStep("Rebirth", Priority, function()
+    if Auto_Rebirth then
+        SafeRun(Rebirth, Rebith_Amount)
     end
 end)
 
-spawn(function()
-    while task.wait() do
-        if Auto_Collect_Orbs then
-            SafeRun(Collect_Orbs)
-        end
+RunService:BindToRenderStep("Collect_Orbs", Priority, function()
+    if Auto_Collect_Orbs then
+        SafeRun(Collect_Orbs)
     end
 end)
 
-spawn(function()
-    while task.wait() do
-        if Auto_Collect_Mini_Chests then
-            SafeRun(Collect_Mini_Chests)
-        end
+RunService:BindToRenderStep("Collect_Mini_Chests", Priority, function()
+    if Auto_Collect_Mini_Chests then
+        SafeRun(Collect_Mini_Chests)
     end
 end)
 
-spawn(function()
-    while task.wait() do
-        if Auto_Open_Egg then
-            SafeRun(Open_Egg, getgenv().Egg_Name)
-        end
+RunService:BindToRenderStep("Open_Egg", Priority, function()
+    if Auto_Open_Egg then
+        SafeRun(Open_Egg, getgenv().Egg_Name)
     end
 end)
 
-spawn(function()
-    while task.wait() do
-        if Craft_Golden_Pets then
-            SafeRun(AutoGold, Selected_Pets, Golden_Amount)
-        end
+RunService:BindToRenderStep("AutoGold", Priority, function()
+    if Craft_Golden_Pets then
+        SafeRun(AutoGold, Selected_Pets, Golden_Amount)
     end
 end)
 
-spawn(function()
-    while task.wait() do
-        if Auto_Collect_Stars then
-            SafeRun(Collect_Stars)
-        end
+RunService:BindToRenderStep("Collect_Stars", Priority, function()
+    if Auto_Collect_Stars then
+        SafeRun(Collect_Stars)
     end
 end)
 
@@ -358,24 +376,24 @@ Upgrades:Toggle("Auto Upgrade", false, function(t)
     AutoUpgrade = t
 end)
 
+getgenv().Functions["AutoUpgrade"] = true
+RunService:BindToRenderStep("AutoUpgrade", Priority, function()
+    if AutoUpgrade then
+        if not Selected_Upgrades then return end
 
-spawn(function()
-    while task.wait() do
-        if AutoUpgrade then
-            if not Selected_Upgrades then continue end
-
-            for i, v in pairs(AutoUpgrade_Table) do
-                if table.find(Selected_Upgrades, v.name) then
-                    -- print(i, v.name)
-                    Get_Game_Services("UpgradeService"):upgrade(i)
-                end
+        for i, v in pairs(AutoUpgrade_Table) do
+            if table.find(Selected_Upgrades, v.name) then
+                -- print(i, v.name)
+                Get_Game_Services("UpgradeService"):upgrade(i)
             end
-
-            local minWait, maxWait = 0.01, 1
-            local waitTime = maxWait - ((AutoUpgradeSpeed / 100) * (maxWait - minWait))
-            task.wait(waitTime)
-        else
-            task.wait(0.1)
         end
+
+        local minWait, maxWait = 0.01, 1
+        local waitTime = maxWait - ((AutoUpgradeSpeed / 100) * (maxWait - minWait))
+        task.wait(waitTime)
+    else
+        task.wait(0.1)
     end
 end)
+
+-- RunService:UnbindFromRenderStep()
