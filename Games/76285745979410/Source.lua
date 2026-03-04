@@ -56,12 +56,12 @@ local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubuserconten
 UtilityModule:Discord("7wZ7vEgWXR")
 
 
-local Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
+local Library = UtilityModule.Library() --loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
 
 local Window = Library:Window(
-    "Symphony",
+    UtilityModule.HubName,
     "Anime Card Collection",
-    false
+    UtilityModule.Loader
 )
 
 local AutoFarm = Window:Tab("Autofarm")
@@ -95,26 +95,6 @@ if not getgenv().FastTower then
 end
 
 TowerHandler.UpdateFasterTower = function() return end
-
-local v1 = game:GetService("Players")
-local v2 = game:GetService("TweenService")
-local v3 = game:GetService("ReplicatedStorage")
-require(v3.Modules.GameUtils.Types)
-local v4 = require(v3.Modules.Config.Core.CardConfig)
-local v5 = require(v3.Modules.Config.Core.TowerConfig)
-local v6 = require(v3.Modules.GameUtils.Configuration)
-local v7 = {}
-local v8 = DataModule()
-local v9 = {}
-local v13 = v1.LocalPlayer
-local v14 = v13.PlayerGui
-local v15 = v14.Tower.Frame
-local v25 = false
-local v26 = false
-local v30 = 0
-local v31 = 0
-v7.InBattle = false
-local v37 = v3.Remotes.Tower
 
 TowerTab:Toggle("Auto Battle", false, function(t)
     AutoBattle = t
@@ -187,6 +167,26 @@ TowerTab:Toggle("Auto Battle", false, function(t)
         TowerHandler.Attack = getgenv().FastTower
     end
 end)
+
+local v1 = game:GetService("Players")
+local v2 = game:GetService("TweenService")
+local v3 = game:GetService("ReplicatedStorage")
+require(v3.Modules.GameUtils.Types)
+local v4 = require(v3.Modules.Config.Core.CardConfig)
+local v5 = require(v3.Modules.Config.Core.TowerConfig)
+local v6 = require(v3.Modules.GameUtils.Configuration)
+local v7 = {}
+local v8 = DataModule()
+local v9 = {}
+local v13 = v1.LocalPlayer
+local v14 = v13.PlayerGui
+local v15 = v14.Tower.Frame
+local v25 = false
+local v26 = false
+local v30 = 0
+local v31 = 0
+v7.InBattle = false
+local v37 = v3.Remotes.Tower
 
 TowerTab:line()
 
