@@ -27,7 +27,7 @@ function ConvertToSuffix(number)
 
     number = tonumber(number)
     if not number then return nil end
-
+    
     for _, pair in ipairs(Suffixes) do
         local value, suffix = pair[1], pair[2]
         if number >= value then
@@ -58,11 +58,12 @@ UtilityModule:Discord("7wZ7vEgWXR")
 local EventsFolder, FunctionsFolder, Remotes = UtilityModule:TapSimulatorRemoteBypass()
 
 
-local Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
+local Library = UtilityModule.Library()
 
 local Window = Library:Window(
-    "Symphony",
-    "Tap Simulator"
+    UtilityModule.HubName,
+    "Tap Simulator",
+    UtilityModule.Loader
 )
 
 local AutoFarm = Window:Tab("Autofarm")
