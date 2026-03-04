@@ -96,6 +96,26 @@ end
 
 TowerHandler.UpdateFasterTower = function() return end
 
+local v1 = game:GetService("Players")
+local v2 = game:GetService("TweenService")
+local v3 = game:GetService("ReplicatedStorage")
+require(v3.Modules.GameUtils.Types)
+local v4 = require(v3.Modules.Config.Core.CardConfig)
+local v5 = require(v3.Modules.Config.Core.TowerConfig)
+local v6 = require(v3.Modules.GameUtils.Configuration)
+local v7 = {}
+local v8 = DataModule()
+local v9 = {}
+local v13 = v1.LocalPlayer
+local v14 = v13.PlayerGui
+local v15 = v14.Tower.Frame
+local v25 = false
+local v26 = false
+local v30 = 0
+local v31 = 0
+v7.InBattle = false
+local v37 = v3.Remotes.Tower
+
 TowerTab:Toggle("Auto Battle", false, function(t)
     AutoBattle = t
     if AutoBattle then
@@ -167,26 +187,6 @@ TowerTab:Toggle("Auto Battle", false, function(t)
         TowerHandler.Attack = getgenv().FastTower
     end
 end)
-
-local v1 = game:GetService("Players")
-local v2 = game:GetService("TweenService")
-local v3 = game:GetService("ReplicatedStorage")
-require(v3.Modules.GameUtils.Types)
-local v4 = require(v3.Modules.Config.Core.CardConfig)
-local v5 = require(v3.Modules.Config.Core.TowerConfig)
-local v6 = require(v3.Modules.GameUtils.Configuration)
-local v7 = {}
-local v8 = DataModule()
-local v9 = {}
-local v13 = v1.LocalPlayer
-local v14 = v13.PlayerGui
-local v15 = v14.Tower.Frame
-local v25 = false
-local v26 = false
-local v30 = 0
-local v31 = 0
-v7.InBattle = false
-local v37 = v3.Remotes.Tower
 
 TowerTab:line()
 
