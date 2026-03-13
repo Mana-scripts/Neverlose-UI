@@ -16,6 +16,9 @@ local Games = {
 	[76285745979410] = EncodeSpaces("Anime Card Collection.lua"),
 	[75992362647444] = EncodeSpaces("Tap Simulator.lua"),
 	[74260430392611] = EncodeSpaces("Rebirth Champions Ultimate.lua"),
+	[2753915549] = EncodeSpaces("Blox Fruits.lua"), -- World 1
+	[4442272183] = EncodeSpaces("Blox Fruits.lua"), -- World 2
+	[7449423635] = EncodeSpaces("Blox Fruits.lua"), -- World 3
 }
 
 function LoadScript(id)
@@ -25,7 +28,7 @@ function LoadScript(id)
 		warn("Game not supported:", id)
 		return
 	end
-
+    
 	print("Loading:", url)
 
 	local scriptSource = game:HttpGetAsync(url)
