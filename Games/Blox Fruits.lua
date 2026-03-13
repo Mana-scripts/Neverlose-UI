@@ -30,7 +30,7 @@ function GetQuestPlace(lvl)
     local character = player.Character or player.CharacterAdded:Wait()
 
     local pos = character.HumanoidRootPart.Position
-    local level = lvl -- your level
+    local level = lvl
 	
     local npcData = Navigation:GetNearestNPC(pos, level)
 
@@ -52,7 +52,7 @@ end
 
 function GetQuestData(lvl)
     local player = Players.LocalPlayer
-    local level = lvl --player.Data.Level.Value -- change if your level path is different
+    local level = lvl --player.Data.Level.Value
 
     local QuestData = nil
     local QuestName = nil
