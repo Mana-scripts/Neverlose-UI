@@ -10,7 +10,14 @@ local Window = Library:Window(
     UtilityModule.Loader
 )
 
+UtilityModule:Notify({
+    Title = "Welcome!",
+    Description = "Hello "..game.Players.LocalPlayer.Name.."!",
+    Duration = 5
+})
+
 local AutoFarm = Window:Tab("Autofarm")
+local Misc = Window:Tab("Misc")
 
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -30,7 +37,7 @@ function GetQuestPlace(lvl)
     local character = player.Character or player.CharacterAdded:Wait()
 
     local pos = character.HumanoidRootPart.Position
-    local level = lvl
+    local level = lvl -- your level
 	
     local npcData = Navigation:GetNearestNPC(pos, level)
 
@@ -52,7 +59,7 @@ end
 
 function GetQuestData(lvl)
     local player = Players.LocalPlayer
-    local level = lvl --player.Data.Level.Value
+    local level = lvl --player.Data.Level.Value -- change if your level path is different
 
     local QuestData = nil
     local QuestName = nil
@@ -113,12 +120,15 @@ end
 
 originalAOE = CombatUtil.GetDefaultAOEDelay
 
+local CombatUtil = require(game:GetService("ReplicatedStorage").Modules.CombatUtil)
+CombatUtil.CanAttack = function() return true end
+
 function ToggleHitDelay(state)
     HitDelayEnabled = state
 
     for index,orig in pairs(originalConstants) do
         if HitDelayEnabled then
-            debug.setconstant(CombatUtil.RunHitDetection, index, 0.005)
+            debug.setconstant(CombatUtil.RunHitDetection, index, 0)
         else
             debug.setconstant(CombatUtil.RunHitDetection, index, orig)
         end
@@ -127,7 +137,7 @@ function ToggleHitDelay(state)
     if HitDelayEnabled then
         if not aoeHook then
             aoeHook = hookfunction(CombatUtil.GetDefaultAOEDelay,function(...)
-                return 0.005
+                return 0
             end)
         end
     else
@@ -160,6 +170,18 @@ end
 
 AutoFarm:Toggle("Autofarm", false, function(t)
     Autofarm = t
+end)
+
+AutoFarm:Slider("Distance X", -20, 20, 0, function(t)
+    Distance_X = t
+end)
+
+AutoFarm:Slider("Distance Y", -20, 20, 0, function(t)
+    Distance_Y = t
+end)
+
+AutoFarm:Slider("Distance Z", -20, 20, 0, function(t)
+    Distance_Z = t
 end)
 
 AutoFarm:Toggle("Fast Attack [BETA]", false, function(t)
@@ -203,10 +225,11 @@ spawn(function()
 
 				local UpdatedQuest = GetQuestPlace(FakeLevel)
                 local Quest = GetQuestData(FakeLevel)
-				print("------------------------")
-				table.foreach(Quest, print)
-				print("- UpdatedQuest -")
-				table.foreach(UpdatedQuest, print)
+				-- print("------------------------")
+				-- table.foreach(Quest, print)
+				-- print("- UpdatedQuest -")
+				-- table.foreach(UpdatedQuest, print)
+
                 if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false then
                     local Distance = (UpdatedQuest.NPCHRP.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
                     local Speed = 300
@@ -227,7 +250,6 @@ spawn(function()
                         Remotes.CommF_:InvokeServer("StartQuest", Quest.QuestName, Quest.QuestIndex)
                     until not Autofarm or game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
 
-					print("Done")
 					
                 elseif not workspace.Enemies:FindFirstChild(Quest.QuestData.Name) and game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible then
 					local FortBuilderReplicatedSpawnPositionsFolder = game:GetService("ReplicatedStorage").FortBuilderReplicatedSpawnPositionsFolder
@@ -244,7 +266,7 @@ spawn(function()
 							local Tween_ = TweenService:Create(
 								game.Players.LocalPlayer.Character.HumanoidRootPart,
 								TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-								{CFrame = FortBuilderReplicatedSpawnPositionsFolder[Quest.QuestData.Name].CFrame}
+								{CFrame = FortBuilderReplicatedSpawnPositionsFolder[Quest.QuestData.Name].CFrame * CFrame.new(0, -10, 0)}
 							)
 							Tween_:Play()
 							task.wait(Distance/Speed)
@@ -269,9 +291,6 @@ spawn(function()
 							task.wait(Distance/Speed)
 						until not Autofarm or workspace.Enemies:FindFirstChild(Quest.QuestData.Name)
 					end
-
-					print("Found Enemy!")
-
                 else
                     for i,v in pairs(workspace.Enemies:GetChildren()) do
                         local Enemy = v
@@ -282,29 +301,22 @@ spawn(function()
 								local Speed = 300
 								if Distance <= 900 then
 									Speed = 9e9
+									Enemy.HumanoidRootPart.Anchored = true
+									game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)
 								else
 									Speed = 300
+									local Tween_ = TweenService:Create(
+										game.Players.LocalPlayer.Character.HumanoidRootPart,
+										TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+										{CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)}
+									)
+									Tween_:Play()
+									task.wait(Distance/Speed)
 								end
-								local Tween_ = TweenService:Create(
-									game.Players.LocalPlayer.Character.HumanoidRootPart,
-									TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-									{CFrame = Enemy.HumanoidRootPart.CFrame}
-								)
-								Tween_:Play()
-								task.wait(Distance/Speed)
-                                -- task.spawn(function()
-                                --     Attack()
-                                --     task.wait()
-                                -- end)
                             until not Autofarm or Enemy.Humanoid.Health <= 0 or not Enemy:FindFirstChild("HumanoidRootPart") or not Enemy:FindFirstChild("Humanoid") or not workspace.Enemies:FindFirstChild(Quest.QuestData.Name)
-							print("Enemy Dead!")
 						end
                     end
                 end
-
-
-
-                -- table.foreach(UpdatedQuest, print)
             end)
             if not success then
                 warn("Autofarm - ", err)
@@ -312,3 +324,88 @@ spawn(function()
         end
     end
 end)
+
+AutoFarm:line()
+
+AutoFarm:Toggle("Hitbox Expander", false, function(t)
+    getgenv().HitboxExpander = t
+end)
+
+AutoFarm:Slider("Hitbox Size", 0, 20, 5, function(t)
+    getgenv().HitboxMultiplier = t
+end)
+
+if not getgenv().HitboxAlreadyFound then
+    getgenv().HitboxAlreadyFound = true
+
+    local old
+    old = hookmetamethod(game, "__namecall", newcclosure(function(self,...)
+        local method = getnamecallmethod()
+        local args = {...}
+
+        if getgenv().HitboxExpander and method == "GetPartBoundsInBox" and self == workspace then
+            -- print(args[2])
+            args[2] = args[2] * getgenv().HitboxMultiplier
+            return old(self, unpack(args))
+        end
+
+        return old(self,...)
+    end))
+end
+
+function GetGarbage()
+    print("Collected")
+    local GC = {}
+    for i,v in pairs(getgc(true)) do
+        table.insert(GC, v)
+    end
+    return GC
+end
+
+if not getgenv().GarbageCollector then
+    getgenv().GarbageCollector = GetGarbage()
+end
+
+Misc:Toggle("Infinite Energy", false, function(t)
+    Inf_Energy = t
+end)
+
+Misc:Toggle("No Dodge Cooldown", false, function(t)
+    getgenv().Dodge_Cooldown = t
+end)
+
+local Energy = game.Players.LocalPlayer.Character.Energy
+local OldEnergyValue = Energy.Value
+spawn(function()
+    while task.wait() do
+        if Inf_Energy then
+            local success, err = pcall(function()
+                Energy.Value = OldEnergyValue
+            end)
+            if not success then
+                warn("Energy - ", err)
+            end
+        end
+    end
+end)
+
+if not getgenv().NoDGCD then
+    getgenv().NoDGCD = true
+    for i,v in pairs(getgenv().GarbageCollector) do
+        if game.Players.LocalPlayer.Character.Dodge then
+            if typeof(v) == "function" and getfenv(v).script == game.Players.LocalPlayer.Character.Dodge then
+                for i2,v2 in pairs(debug.getupvalues(v)) do
+                    if tostring(v2) == "0.4" then
+                        while task.wait(0.1) do
+                            if not getgenv().Dodge_Cooldown then
+                                continue
+                            end
+                            debug.setupvalue(v, i2, 0)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
