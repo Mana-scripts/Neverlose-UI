@@ -21,6 +21,9 @@ UtilityModule:Notify({
 local AutoFarm = Window:Tab("Autofarm")
 local Misc = Window:Tab("Misc")
 
+local Config = Window:Tab("Config")
+Library:ConfigTab(Config)
+
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 
@@ -526,4 +529,7 @@ if not getgenv().NoDGCD then
         end
     end
 end
+
+
+
 
