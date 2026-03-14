@@ -1,3 +1,5 @@
+
+
 local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
 UtilityModule:Discord("7wZ7vEgWXR")
@@ -28,8 +30,13 @@ local FakeLevel, Level = 0, game:GetService("Players").LocalPlayer.Data.Level
 
 local Quests = require(game:GetService("ReplicatedStorage").Quests)
 local QuestController = require(game:GetService("ReplicatedStorage").Controllers.QuestController)
-local CombatController = require(game.ReplicatedStorage.Controllers.CombatController)
+local success, CombatController = pcall(function()
+    return require(game.ReplicatedStorage.Controllers.CombatController)
+end)
+-- local CombatController = require(game.ReplicatedStorage.Controllers.CombatController)
+
 local CombatUtil = require(game:GetService("ReplicatedStorage").Modules.CombatUtil)
+local CamShake = require(game:GetService("ReplicatedStorage").Util.CameraShaker)
 
 function GetQuestPlace(lvl)
     local Navigation = require(game:GetService("ReplicatedStorage").GuideModule)
@@ -37,7 +44,7 @@ function GetQuestPlace(lvl)
     local character = player.Character or player.CharacterAdded:Wait()
 
     local pos = character.HumanoidRootPart.Position
-    local level = lvl -- your level
+    local level = lvl
 	
     local npcData = Navigation:GetNearestNPC(pos, level)
 
@@ -59,7 +66,7 @@ end
 
 function GetQuestData(lvl)
     local player = Players.LocalPlayer
-    local level = lvl --player.Data.Level.Value -- change if your level path is different
+    local level = lvl
 
     local QuestData = nil
     local QuestName = nil
@@ -103,7 +110,7 @@ end
 -- local questData = QuestController:GetQuest(questGroup, questName)
 
 
-local FastAttack_Func = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/BloxFruitModules/FastAttack.lua"))()
+-- local FastAttack_Func = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/BloxFruitModules/FastAttack.lua"))()
 
 
 local HitDelayEnabled = true
@@ -152,9 +159,6 @@ if not getgenv().FastAttack_original then
     getgenv().FastAttack_original = CombatController.Attack
 end
 
-sethiddenproperty(game.Players.LocalPlayer,"MaximumSimulationRadius",math.huge)
-sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
-
 function Attack()
     local player = Players.LocalPlayer
 
@@ -164,41 +168,109 @@ function Attack()
         UserInputType = Enum.UserInputType.MouseButton1,
         UserInputState = Enum.UserInputState.Begin
     }
-
-    CombatController:Attack(tool, input)
+    pcall(function()
+        CombatController:Attack(tool, input)
+    end)
 end
 
 AutoFarm:Toggle("Autofarm", false, function(t)
     Autofarm = t
 end)
 
-AutoFarm:Slider("Distance X", -20, 20, 10, function(t)
+AutoFarm:Slider("Distance X", -20, 20, 0, function(t)
     Distance_X = t
 end)
 
-AutoFarm:Slider("Distance Y", -20, 20, 10, function(t)
+AutoFarm:Slider("Distance Y", -20, 20, 0, function(t)
     Distance_Y = t
 end)
 
-AutoFarm:Slider("Distance Z", -20, 20, 10, function(t)
+AutoFarm:Slider("Distance Z", -20, 20, 0, function(t)
     Distance_Z = t
 end)
 
 AutoFarm:line()
 
+
+if not getgenv().FastDMGHitFuncTest then
+	getgenv().ValuesDMGHit = {}
+    getgenv().FastDMGHitFuncTest = true
+    print("-------------------")
+	for i,v in pairs(getgc()) do
+		if typeof(v) == "function" and getfenv(v).script == game:GetService("ReplicatedStorage").Modules.CombatUtil then
+			for i2,v2 in pairs(debug.getconstants(v)) do
+				if type(v2) == "number" then
+					getgenv().ValuesDMGHit[i2] = {v, v2}
+				end
+			end
+		end
+	end
+end
+
+if not getgenv().FastHitFuncTest then
+	getgenv().ValuesHit = {}
+    getgenv().FastHitFuncTest = true
+    print("-------------------")
+    for i,v in pairs(getgc()) do
+        if typeof(v) == "function" and getfenv(v).script == game.ReplicatedStorage.Controllers.CombatController then
+            for i2,v2 in pairs(debug.getupvalues(v)) do
+                if type(v2) == "number" then
+                    getgenv().ValuesHit[i2] = {v, v2}
+                end
+            end
+        end
+    end
+end
+
 AutoFarm:Toggle("Fast Attack [BETA]", false, function(t)
     FastAttack = t
-	ToggleHitDelay(FastAttack)
+	-- ToggleHitDelay(FastAttack)
     if FastAttack then
-        CombatController.Attack = FastAttack_Func
+        for i,v in pairs(getgenv().ValuesHit) do
+            if tonumber(debug.getupvalue(v[1], i)) == 0.8 then
+                print(i,v)
+                debug.setupvalue(v[1], i, 0.05)
+            end
+        end
+
+        for i,v in pairs(getgenv().ValuesDMGHit) do
+            if tonumber(debug.getconstant(v[1], i)) == 0.13 then
+                debug.setconstant(v[1], i, 0)
+            end
+        end
+        -- CombatController.Attack = FastAttack_Func
     else
-        CombatController.Attack = getgenv().FastAttack_original
+        for i,v in pairs(getgenv().ValuesHit) do
+            debug.setupvalue(v[1], i, v[2])
+        end
+
+        for i,v in pairs(getgenv().ValuesDMGHit) do
+            debug.setconstant(v[1], i, v[2])
+        end
+        -- CombatController.Attack = getgenv().FastAttack_original
     end
 end)
 
-spawn(function()
+AutoFarm:Toggle("Stop Camera Shake", false, function(t)
+    if t then
+        CamShake:Stop()
+    else
+        CamShake:Start()
+    end
+end)
+
+AutoFarm:Toggle("Bring Mobs", false, function(t)
+    BringMobs = t
+end)
+
+AutoFarm:Slider("Bring Mobs Radius", 0, 400, 50, function(t)
+    BringMobsRadius = t
+end)
+
+local Allow_Attack = false
+task.spawn(function()
     while task.wait() do
-        if Autofarm then
+        if Autofarm and Allow_Attack then
             local success, err = pcall(function()
                 Attack()
                 task.wait()
@@ -210,7 +282,7 @@ spawn(function()
     end
 end)
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if Autofarm then
             local success, err = pcall(function()
@@ -233,6 +305,7 @@ spawn(function()
 				-- table.foreach(UpdatedQuest, print)
 
                 if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false then
+                    Allow_Attack = false
                     local Distance = (UpdatedQuest.NPCHRP.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
                     local Speed = 300
 					if Distance <= 900 then
@@ -254,6 +327,7 @@ spawn(function()
 
 					
                 elseif not workspace.Enemies:FindFirstChild(Quest.QuestData.Name) and game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible then
+                    Allow_Attack = false
 					local FortBuilderReplicatedSpawnPositionsFolder = game:GetService("ReplicatedStorage").FortBuilderReplicatedSpawnPositionsFolder
 					if FortBuilderReplicatedSpawnPositionsFolder:FindFirstChild(Quest.QuestData.Name) then
 
@@ -299,12 +373,37 @@ spawn(function()
                         if Enemy and Enemy.Name == Quest.QuestData.Name and Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health > 0 and Enemy:FindFirstChild("HumanoidRootPart") then
 							
 							repeat task.wait()
+                                Allow_Attack = true
 								local Distance = (Enemy.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
 								local Speed = 300
 								if Distance <= 900 then
 									Speed = 9e9
 									Enemy.HumanoidRootPart.Anchored = true
 									game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)
+                                    task.spawn(function()
+                                        if BringMobs then
+                                            local success, err = pcall(function()
+                                                for i,v in pairs(workspace.Enemies:GetChildren()) do
+                                                    local BringMobsDistance = (Enemy.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                                                    local BringMobsSpeed = 300
+                                                    if BringMobsDistance <= BringMobsRadius then -- isnetworkowner(v.PrimaryPart)
+                                                        TweenService:Create(
+                                                            v.HumanoidRootPart,
+                                                            TweenInfo.new(BringMobsDistance/BringMobsSpeed, Enum.EasingStyle.Linear),
+                                                            {CFrame = Enemy.HumanoidRootPart.CFrame}
+                                                        ):Play()
+                                                        v.HumanoidRootPart.CanCollide = false
+                                                    end
+                                                end
+                                            end)
+                                            if not success then
+                                                warn("BringMobs - ", err)
+                                            end
+                                        end
+                                    end)
+
+                                    sethiddenproperty(game.Players.LocalPlayer,"MaximumSimulationRadius",math.huge)
+                                    sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
 								else
 									Speed = 300
 									local Tween_ = TweenService:Create(
@@ -326,6 +425,23 @@ spawn(function()
         end
     end
 end)
+
+-- spawn(function()
+--     while task.wait() do
+--         if BringMobs then
+--             local success, err = pcall(function()
+--                 if Autofarm then
+--                     for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
+
+--                     end
+--                 end
+--             end)
+--             if not success then
+--                 warn("BringMobs - ", err)
+--             end
+--         end
+--     end
+-- end)
 
 AutoFarm:line()
 
