@@ -2230,10 +2230,12 @@ end
  
  
  
+
  function ContainerItems:Slider(text, min, max, start, callback)
     local Sliderfunc = {Value = 0}
     local dragging = false
 
+    -- Create GUI elements (omitted for brevity; same as your code)
     local Slider = Instance.new("TextButton")
     local SliderTitle = Instance.new("TextLabel")
     local SliderFrame = Instance.new("Frame")
@@ -2244,16 +2246,7 @@ end
     local SliderCorner = Instance.new("UICorner")
     local Value1 = Instance.new("TextBox")
 
-    function Sliderfunc:Set(val)
-        SliderIndicator.Size = UDim2.new((val or 0) / max, 0, 0, 11)
-        Value1.Text = tostring(val and math.floor((val / max) * (max - min) + min) or 0)
-        Sliderfunc.Value = val
-        pcall(callback, tonumber(val))
-        return val
-    end
- 
- 
-    Slider.Name = text
+        Slider.Name = text
     Slider.Parent = Container
     Slider.BackgroundColor3 = getgenv().GUI_Color.DarkContrast
     Slider.Position = UDim2.new(-0.747557044, 0, 0.729113936, 0)
@@ -2321,67 +2314,66 @@ end
     Value1.TextSize = 14.000
     Value1.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
     Value1.TextXAlignment = Enum.TextXAlignment.Right
- 
-    -- ToolTip(Slider, SliderTitle, tooltiptext or "This is a Slider!", text)
- 
-    local function slide(input)
-       local pos =
-          UDim2.new(
-             math.clamp((input.Position.X - SliderFrame.AbsolutePosition.X) / SliderFrame.AbsoluteSize.X, 0, 1),
-             0,
-             0,
-             11
-          )
-       SliderIndicator:TweenSize(pos, Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.3, true)
-       local val = math.floor(((pos.X.Scale * max) / max) * (max - min) + min)
-       Value1.Text = tostring(val)
-      --  pcall(callback, tonumber(val))
-       Sliderfunc:Set(tonumber(val))
+
+    -- Fixed: normalize value to 0-1 range
+    local function valueToScale(val)
+        return (val - min) / (max - min)
     end
- 
-    SliderFrame.InputBegan:Connect(
-       function(input)
-          if input.UserInputType == Enum.UserInputType.MouseButton1 then
-             slide(input)
-             dragging = true
-          end
-       end
-    )
- 
-    SliderFrame.InputEnded:Connect(
-       function(input)
-          if input.UserInputType == Enum.UserInputType.MouseButton1 then
-             dragging = false
-          end
-       end
-    )
- 
-    UserInputService.InputChanged:Connect(
-       function(input)
-          if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-             slide(input)
-          end
-       end
-    )
- 
-    Value1.FocusLost:Connect(
-       function(ep)
-          if ep then
-            --  pcall(callback, tonumber(Value1.Text))
+
+    local function scaleToValue(scale)
+        return math.floor(scale * (max - min) + min)
+    end
+
+    function Sliderfunc:Set(val)
+        val = math.clamp(val, min, max)
+        SliderIndicator.Size = UDim2.new(valueToScale(val), 0, 0, 11)
+        Value1.Text = tostring(val)
+        Sliderfunc.Value = val
+        pcall(callback, val)
+        return val
+    end
+
+    -- Initialize
+    Sliderfunc:Set(start or min)
+
+    local function slide(input)
+        local scale = math.clamp((input.Position.X - SliderFrame.AbsolutePosition.X) / SliderFrame.AbsoluteSize.X, 0, 1)
+        SliderIndicator:TweenSize(UDim2.new(scale, 0, 0, 11), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.3, true)
+        local val = scaleToValue(scale)
+        Sliderfunc:Set(val)
+    end
+
+    SliderFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            slide(input)
+            dragging = true
+        end
+    end)
+
+    SliderFrame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            slide(input)
+        end
+    end)
+
+    Value1.FocusLost:Connect(function(ep)
+        if ep then
             Sliderfunc:Set(tonumber(Value1.Text))
-          end
-       end)
-       
+        end
+    end)
+
+    -- Container adjustments
     Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
- 
-    Sliderfunc:Set(tonumber(Value1.Text))
-
-
-      Mainholder.Flags[text] = Sliderfunc
+    Mainholder.Flags[text] = Sliderfunc
 
     return Sliderfunc
- end
- 
+end
  
  function ContainerItems:line()
     local line = Instance.new("TextButton")
@@ -4600,7 +4592,7 @@ function Example()
    end)
 
    -- <title> <Min value> <Max value> <Start value> <callback>
-   local Slider = Tab:Slider("Slider", 1, 100, 50, function(value)
+   local Slider = Tab:Slider("Slider", -100, 100, 50, function(value)
       
    end)
 
