@@ -1079,7 +1079,7 @@ end
      local uitoggled = false
    UserInputService.InputBegan:Connect(
     function(io, p)
-       if io.KeyCode == Enum.KeyCode[game:GetService("CoreGui").woof.MainSettingsFrame.MainSettingsContainer.Bind.BText.Text] then
+       if io.KeyCode == Enum.KeyCode[BText.Text] then
           if uitoggled == false then
              spawn(function()
                 if settingsToggled == false then
@@ -4531,14 +4531,29 @@ end
 
    tab:Button("Refresh Configs", function()
       ConfigsDropdown:Refresh(Mainholder:GetConfigs(false))
+      Mainholder.UtilityModule:Notify({
+         Title = Mainholder.UtilityModule.HubName,
+         Description = "Updated Configs List!",
+         Duration = 3
+      })
    end)
    tab:line()
    tab:Button("Load Config", function()
       Mainholder:LoadCfg(ConfigName)
+      Mainholder.UtilityModule:Notify({
+         Title = Mainholder.UtilityModule.HubName,
+         Description = "Loaded: "..ConfigName.."!",
+         Duration = 3
+      })
    end)
    tab:line()
    tab:Button("Save Config", function()
       Mainholder:SaveCfg(ConfigName)
+      Mainholder.UtilityModule:Notify({
+         Title = Mainholder.UtilityModule.HubName,
+         Description = "Saved Config: "..ConfigName.."!",
+         Duration = 3
+      })
    end)
    tab:line()
    tab:Textbox("Config Name", "Name", function(t)
@@ -4546,10 +4561,20 @@ end
    end)
    tab:Button("Create Config", function()
       Mainholder:CreateCfg(NewConfigName)
+      Mainholder.UtilityModule:Notify({
+         Title = Mainholder.UtilityModule.HubName,
+         Description = "Created Config: "..ConfigName.."! \nRemember to refresh configs!",
+         Duration = 3
+      })
    end)
    tab:line()
    tab:Button("Delete Config", function()
       Mainholder:DeleteCfg(ConfigName)
+      Mainholder.UtilityModule:Notify({
+         Title = Mainholder.UtilityModule.HubName,
+         Description = "Deleted Config: "..ConfigName.."!",
+         Duration = 3
+      })
    end)
  end
  
