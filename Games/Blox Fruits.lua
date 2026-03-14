@@ -172,17 +172,19 @@ AutoFarm:Toggle("Autofarm", false, function(t)
     Autofarm = t
 end)
 
-AutoFarm:Slider("Distance X", -20, 20, 0, function(t)
+AutoFarm:Slider("Distance X", -20, 20, 10, function(t)
     Distance_X = t
 end)
 
-AutoFarm:Slider("Distance Y", -20, 20, 0, function(t)
+AutoFarm:Slider("Distance Y", -20, 20, 10, function(t)
     Distance_Y = t
 end)
 
-AutoFarm:Slider("Distance Z", -20, 20, 0, function(t)
+AutoFarm:Slider("Distance Z", -20, 20, 10, function(t)
     Distance_Z = t
 end)
+
+AutoFarm:line()
 
 AutoFarm:Toggle("Fast Attack [BETA]", false, function(t)
     FastAttack = t
