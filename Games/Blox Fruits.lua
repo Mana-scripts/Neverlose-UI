@@ -225,7 +225,7 @@ if not getgenv().FastHitFuncTest then
     end
 end
 
-AutoFarm:Toggle("Fast Attack [BETA]", false, function(t)
+AutoFarm:Toggle("Fast Attack", false, function(t)
     FastAttack = t
 	-- ToggleHitDelay(FastAttack)
     if FastAttack then
