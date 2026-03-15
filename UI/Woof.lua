@@ -483,7 +483,6 @@ end
 
       task.wait(1)
 
-      print("Welcome "..game.Players.LocalPlayer.Name.."!".."\n Project Empathy")
    end
 
    local MainFolder = "Qyrix"
@@ -1424,6 +1423,8 @@ end
  
    --  local ExecuteFile = CodeStorage.."/".."Exec.lua"
    --  local SaveProgress = CodeStorage.."/".."Saved.lua"
+
+   local Allow_Encoding = false
     
    function Mainholder:LoadCfg(cfg)
       cfg = tostring(cfg)
@@ -1432,7 +1433,7 @@ end
       local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
 
       local success, JSONData = pcall(function()
-         return Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded))
+         return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
       end)
 
       if not success then
@@ -1441,6 +1442,7 @@ end
       end
 
       for flag, value in pairs(JSONData) do
+         if flag == "ConfigSettings" then continue end
          if Mainholder.Flags[flag] then
                task.spawn(function()
                   Mainholder.Flags[flag]:Set(value)
@@ -1451,27 +1453,106 @@ end
       end
    end
    
-   function Mainholder:SaveCfg(cfg)
-      local content = {}
+   function Mainholder:SaveCfg(cfg, exp)
 
+      cfg = tostring(cfg)
+      local path = ConfigsStorage .. "/" .. cfg .. ".txt"
+
+      local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
+
+      local success, JSONData = pcall(function()
+         return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
+      end)
+      
+      local content = {}
       for i,v in pairs(Mainholder.Flags) do
          content[i] = v.Value
+         if not JSONData.ConfigSettings then
+            print("New ConfigSettings!")
+            content["ConfigSettings"] = {
+               ["Name"] = cfg,
+               ["AllowExport"] = exp, -- Default Value
+               ["Author"] = tostring(game.Players.LocalPlayer.UserId),
+            }
+         elseif tostring(JSONData.ConfigSettings.Author) == tostring(game.Players.LocalPlayer.UserId) then
+               content["ConfigSettings"] = {
+                  ["Name"] = cfg,
+                  ["AllowExport"] = exp, -- Default Value
+                  ["Author"] = tostring(game.Players.LocalPlayer.UserId),
+               }
+         else
+            print("Changed AllowExport", tostring(exp))
+            JSONData.ConfigSettings.AllowExport = exp
+            continue
+         end
       end
 
-      local Encoded = Mainholder:encode(Mainholder.HttpService:JSONEncode(content))
+      local Encoded = Allow_Encoding and Mainholder:encode(Mainholder.HttpService:JSONEncode(content)) or Mainholder.HttpService:JSONEncode(content)
 
       writefile(ConfigsStorage .. "/" .. cfg .. ".txt", Encoded)
    end
    
-   function Mainholder:CreateCfg(cfg)
+   function Mainholder:CreateCfg(cfg, exp)
+      if isfile(ConfigsStorage .. "/" .. cfg .. ".txt") then print("Config already exists!") return end
        local content = {}
        for i, v in pairs(Mainholder.Flags) do
-           content[i] = v.Value
+            content[i] = v.Value
+            content["ConfigSettings"] = {
+               ["Name"] = cfg,
+               ["AllowExport"] = exp, -- Default Value
+               ["Author"] = tostring(game.Players.LocalPlayer.UserId),
+            }
        end
        
-       local Encoded = Mainholder.HttpService:JSONEncode(content) -- Convert to JSON string
+       local Encoded = Allow_Encoding and Mainholder:encode(Mainholder.HttpService:JSONEncode(content)) or Mainholder.HttpService:JSONEncode(content)
        
        writefile(ConfigsStorage .. "/" .. cfg .. ".txt", Encoded)
+   end
+
+   function Mainholder:ImportCFG(data)
+      local success, JSONData = pcall(function()
+         return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(data)) or Mainholder.HttpService:JSONDecode(data)
+      end)
+
+      if not success then
+         warn("Failed to import config")
+         return
+      end
+
+      local Encoded = Allow_Encoding and Mainholder:encode(Mainholder.HttpService:JSONEncode(JSONData)) or Mainholder.HttpService:JSONEncode(JSONData)
+
+      writefile(ConfigsStorage .. "/" .. JSONData.ConfigSettings.Name .. ".txt", Encoded)
+
+      return {
+         Name = JSONData.ConfigSettings.Name,
+         Author = JSONData.ConfigSettings.Author,
+         AllowExport = JSONData.ConfigSettings.AllowExport,
+      }
+   end
+
+   function Mainholder:CheckExport(cfg)
+      cfg = tostring(cfg)
+      local path = ConfigsStorage .. "/" .. cfg .. ".txt"
+
+      local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
+
+      local success, JSONData = pcall(function()
+         return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
+      end)
+
+      -- print(JSONData.ConfigSettings.Author, game.Players.LocalPlayer.UserId)
+      
+      if tonumber(JSONData.ConfigSettings.Author) == game.Players.LocalPlayer.UserId then
+         return true, JSONData.ConfigSettings.AllowExport
+      elseif JSONData.ConfigSettings.AllowExport then
+         return true, JSONData.ConfigSettings.AllowExport
+      end
+      
+      return false, false
+   end
+
+   function Mainholder:ExportCFG(cfg)
+      setclipboard(tostring(readfile(ConfigsStorage .. "/" .. cfg .. ".txt")))
    end
 
    function Mainholder:DeleteCfg(cfg)
@@ -2127,9 +2208,8 @@ end
     local TextboxFrame = Instance.new("Frame")
     local TextboxFrameCorner = Instance.new("UICorner")
     local TextBox = Instance.new("TextBox")
+    local TextBoxTextSizeConstraint = Instance.new("UITextSizeConstraint")
     local TextboxCorner = Instance.new("UICorner")
-    local Textboxinfo = Instance.new("TextLabel")
-    local textboxinfoimage = Instance.new("ImageLabel")
  
     Textbox.Name = text
     Textbox.Parent = Container
@@ -2154,6 +2234,8 @@ end
         pcall(callback, TextBoxfunc.Value)
         return val
     end
+
+    TextBoxfunc:Set("")
     
     TextboxTitle.Name = "TextboxTitle"
     TextboxTitle.Parent = Textbox
@@ -2185,42 +2267,27 @@ end
     TextBox.Text = ""
     TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
     TextBox.TextSize = 15.000
+    TextBox.TextScaled = true
+
+    TextBox.PlaceholderText = disapper
+    TextBox.PlaceholderColor3 = Color3.fromRGB(178,178,178)
+
+   TextBoxTextSizeConstraint.Parent = TextBox
+   TextBoxTextSizeConstraint.MaxTextSize = 14
     
     TextboxCorner.CornerRadius = UDim.new(0, 6)
     TextboxCorner.Name = "TextboxCorner"
     TextboxCorner.Parent = Textbox
-    
-    Textboxinfo.Name = "Textboxinfo"
-    Textboxinfo.Parent = Textbox
-    Textboxinfo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Textboxinfo.BackgroundTransparency = 1.000
-    Textboxinfo.Position = UDim2.new(0.476641178, 0, 0, 0)
-    Textboxinfo.Size = UDim2.new(0, 53, 0, 40)
-    Textboxinfo.Visible = false
-    Textboxinfo.Font = Enum.Font.Gotham
-    Textboxinfo.Text = "->"
-    Textboxinfo.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Textboxinfo.TextSize = 15.000
-    
-    textboxinfoimage.Name = "textboxinfoimage"
-    textboxinfoimage.Parent = Textbox
-    textboxinfoimage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    textboxinfoimage.BackgroundTransparency = 1.000
-    textboxinfoimage.Position = UDim2.new(0.523456812, 0, 0.241463467, 0)
-    textboxinfoimage.Size = UDim2.new(0, 25, 0, 21)
-    textboxinfoimage.Image = "rbxassetid://6031225818"
- 
-    -- ToolTip(Textbox, TextboxTitle, tooltiptext or "This is a Textbox!", text)
  
  
     TextBox.FocusLost:Connect(
        function(ep)
-          if ep then
+         --  if ep then
              --if #TextBox.Text > 0 then
                --  pcall(callback, TextBox.Text)
                TextBoxfunc:Set(TextBox.Text)
              --end
-          end
+         --  end
        end
     )
     Mainholder.Flags[text] = TextBoxfunc
@@ -2539,7 +2606,7 @@ end
     Label.Font = Enum.Font.Gotham
     Label.Text = text
     Label.TextColor3 = getgenv().GUI_Color.TextColor
-    Label.TextSize = 17.000
+    Label.TextSize = 15.000
  
     -- local LabelStroke = Instance.new("UIStroke")
     -- LabelStroke.Parent = Label
@@ -2554,6 +2621,11 @@ end
     function Labelfunc:Refresh(hewo)
        Label.Text = hewo
     end
+
+    function Labelfunc:visibility(vis)
+      Label.Visible = vis
+    end
+
     Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
     return Labelfunc
  end
@@ -3113,6 +3185,7 @@ end
  
  
  function ContainerItems:Button(text, callback)
+   local Buttonfunc = {}
     local Button = Instance.new("TextButton")
     local ButtonCorner = Instance.new("UICorner")
  
@@ -3135,6 +3208,11 @@ end
     ButtonCorner.CornerRadius = UDim.new(0, 5)
     ButtonCorner.Name = "ButtonCorner"
     ButtonCorner.Parent = Button
+
+    function Buttonfunc:visibility(vis)
+      Button.Visible = vis
+      return Button
+    end
  
     Button.MouseEnter:Connect(function()
        TweenService:Create(
@@ -3167,6 +3245,8 @@ end
        pcall(callback)
     end)
     Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+
+    return Buttonfunc
  end
 
   function ContainerItems:Text(text)
@@ -3229,6 +3309,10 @@ end
         Togglefunc.Value = val
         pcall(callback, val)
         return val
+    end
+
+    function Togglefunc:visibility(vis)
+      Toggle.Visible = vis
     end
  
     Toggle.Name = text
@@ -3326,8 +3410,9 @@ end
          --  pcall(callback, Toggled)
     end)
     
-    Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+    Togglefunc:Set(Toggled)
 
+    Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
     Mainholder.Flags[text] = Togglefunc
     return Togglefunc
  end
@@ -4515,51 +4600,126 @@ end
  function Mainholder:ConfigTab(tab)
 
    local ConfigVisual = tab:Label("Selected Config: None")
+   local ExportInfo = nil
+   local Export_alo = nil
+   local Allow_Exports
+   local Allow_Exports_Tog
+   local ExportDisabled
 
    local ConfigsDropdown = tab:Dropdown("Select Config", Mainholder:GetConfigs(false), function(t)
-      ConfigVisual:Refresh("Selected Config: "..tostring(t))
       ConfigName = t
+      ConfigVisual:Refresh("Selected Config: "..tostring(ConfigName))
+      if ExportInfo or Export_alo or Allow_Exports_Tog then
+         local CheckExpo, Straight = Mainholder:CheckExport(ConfigName)
+         ExportInfo:Refresh("Export Config: "..tostring(ConfigName))
+         ExportInfo:visibility(CheckExpo)
+         Export_alo:visibility(CheckExpo)
+         Allow_Exports_Tog:visibility(CheckExpo)
+         Allow_Exports_Tog:Set(Straight)
+         ExportDisabled:visibility(not CheckExpo)
+      end
    end)
 
-   tab:Button("Refresh Configs", function()
-      ConfigsDropdown:Refresh(Mainholder:GetConfigs(false))
-      Mainholder.UtilityModule:Notify({
-         Title = Mainholder.UtilityModule.HubName,
-         Description = "Updated Configs List!",
-         Duration = 3
-      })
-   end)
+   -- tab:Button("Refresh Configs", function()
+   --    Mainholder.UtilityModule:Notify({
+   --       Title = Mainholder.UtilityModule.HubName,
+   --       Description = "Updated Configs List!",
+   --       Duration = 3
+   --    })
+   --    ConfigsDropdown:Refresh(Mainholder:GetConfigs(false))
+   -- end)
+
    tab:line()
+
    tab:Button("Load Config", function()
-      Mainholder:LoadCfg(ConfigName)
       Mainholder.UtilityModule:Notify({
          Title = Mainholder.UtilityModule.HubName,
          Description = "Loaded: "..ConfigName.."!",
          Duration = 3
       })
+      Mainholder:LoadCfg(ConfigName)
    end)
-   tab:line()
+
    tab:Button("Save Config", function()
-      Mainholder:SaveCfg(ConfigName)
       Mainholder.UtilityModule:Notify({
          Title = Mainholder.UtilityModule.HubName,
          Description = "Saved Config: "..ConfigName.."!",
          Duration = 3
       })
+      Mainholder:SaveCfg(ConfigName, Allow_Exports)
    end)
+
    tab:line()
+
    tab:Textbox("Config Name", "Name", function(t)
       NewConfigName = t
    end)
    tab:Button("Create Config", function()
-      Mainholder:CreateCfg(NewConfigName)
       Mainholder.UtilityModule:Notify({
          Title = Mainholder.UtilityModule.HubName,
-         Description = "Created Config: "..ConfigName.."! \nRemember to refresh configs!",
+         Description = "Created Config: "..NewConfigName.."! \nRemember to refresh configs!",
          Duration = 3
       })
+      local success, err = pcall(function()
+         Mainholder:CreateCfg(NewConfigName, Allow_Exports)
+      end)
+      if not success then
+         warn(err)
+         return
+      end
+      ConfigsDropdown:Refresh(Mainholder:GetConfigs(false))
    end)
+
    tab:line()
+   tab:Textbox("Import Data", "Paste Data Here!", function(t)
+      ImportData = t
+   end)
+   tab:Button("Import Config", function()
+      local success, data = pcall(function()
+         return Mainholder:ImportCFG(ImportData)
+      end)
+      if not success then
+         warn(data)
+         return
+      end
+
+      ConfigsDropdown:Refresh(Mainholder:GetConfigs(false))
+
+      Mainholder.UtilityModule:Notify({
+         Title = Mainholder.UtilityModule.HubName,
+         Description = "Imported: "..data.Name.."!".."\nAuthor: "..game:GetService("Players"):GetNameFromUserIdAsync(data.Author).."\nShareable: "..tostring(data.AllowExport),
+         Duration = 5
+      })
+   end)
+   
+   tab:line()
+   if setclipboard or writeclipboard then
+      ExportInfo = tab:Label("Export Config: ")
+      Export_alo = tab:Button("Export Config", function()
+         Mainholder.UtilityModule:Notify({
+            Title = Mainholder.UtilityModule.HubName,
+            Description = "Exported : "..ConfigName.." to clipboard",
+            Duration = 3
+         })
+         Mainholder:ExportCFG(ConfigName)
+      end)
+   else
+      tab:Label("Your Executor Doesn't Support Exports")
+   end
+
+   ExportDisabled = tab:Label("Exports have been disabled by the Author!")
+   
+   spawn(function()
+      task.wait(2)
+      ExportDisabled:visibility(false)
+   end)
+   
+   Allow_Exports_Tog = tab:Toggle("Allow Exports", true, function(t)
+      Allow_Exports = t
+   end)
+
+   tab:line()
+
    tab:Button("Delete Config", function()
       Mainholder:DeleteCfg(ConfigName)
       Mainholder.UtilityModule:Notify({
@@ -4567,7 +4727,9 @@ end
          Description = "Deleted Config: "..ConfigName.."!",
          Duration = 3
       })
+      ConfigsDropdown:Refresh(Mainholder:GetConfigs(false))
    end)
+
  end
  
  return ContainerItems
