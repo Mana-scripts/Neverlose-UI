@@ -1424,7 +1424,7 @@ end
    --  local ExecuteFile = CodeStorage.."/".."Exec.lua"
    --  local SaveProgress = CodeStorage.."/".."Saved.lua"
 
-   local Allow_Encoding = false
+   local Allow_Encoding = true
     
    function Mainholder:LoadCfg(cfg)
       cfg = tostring(cfg)
