@@ -4710,7 +4710,7 @@ end
    ExportDisabled = tab:Label("Exports have been disabled by the Author!")
    
    spawn(function()
-      task.wait(2)
+      task.wait(5)
       ExportDisabled:visibility(false)
    end)
    
