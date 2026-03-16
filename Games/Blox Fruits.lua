@@ -12,6 +12,18 @@ local Window = Library:Window(
     UtilityModule.Loader
 )
 
+if not getgenv().Qyrix_Loaded then
+    getgenv().Qyrix_Loaded = {
+        Loaded = true,
+    }
+else
+    for i,v in pairs(getgenv().Qyrix_Loaded) do
+        print("Function "..i.." Already Loaded!")
+    end
+end
+
+
+
 UtilityModule:Notify({
     Title = "Welcome!",
     Description = "Hello "..game.Players.LocalPlayer.Name.."!",
@@ -158,8 +170,30 @@ function ToggleHitDelay(state)
     end
 end
 
-if not getgenv().FastAttack_original then
-    getgenv().FastAttack_original = CombatController.Attack
+-- local TeleportService = game:GetService("TeleportService")
+-- local Players = game:GetService("Players")
+
+-- local player = Players.LocalPlayer
+-- local placeId = game.PlaceId
+
+-- TeleportService:Teleport(placeId, player)
+
+local OldNameCall = nil
+OldNameCall = hookmetamethod(game, "__namecall", function(self, ...)
+    local Args = {...}
+    local Self = Args[1]
+    if self.Name == "RE/ReceivedHit" then
+        return "  ___XP DE KEY"
+    end
+    return OldNameCall(self, ...)
+end)
+
+if not getgenv().Qyrix_Loaded.FastAttack_original then
+    getgenv().Qyrix_Loaded.FastAttack_original = CombatController.Attack
+end
+
+function IsAlive(Model)
+    return Model and Model:FindFirstChild("Humanoid") and Model.Humanoid.Health > 0
 end
 
 function Attack()
@@ -174,7 +208,43 @@ function Attack()
     pcall(function()
         CombatController:Attack(tool, input)
     end)
+    
+    task.wait()
 end
+
+AutoFarm:Toggle("Auto Equip Weapon", false, function(t)
+    Auto_Equip_Weapon = t
+end)
+
+function GetWeapons()
+    local Weapons = {}
+
+    for i,v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do
+        if v:IsA("Tool") and v.Name ~= "Tool" then
+            table.insert(Weapons, v.Name)
+        end
+    end
+
+    return Weapons
+end
+
+local Weapons_Drop = AutoFarm:Dropdown("Select Weapon", GetWeapons(), function(t)
+    Selected_Weapon = t
+end)
+
+AutoFarm:Button("Refresh Weapons", function()
+    Weapons_Drop:Refresh(GetWeapons())
+end)
+
+function EquipWeapon(Weapon)
+    if not game.Players.LocalPlayer.Character:FindFirstChild(Weapon) then
+        local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(Weapon)
+        task.wait()
+        game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+    end
+end
+
+AutoFarm:line()
 
 AutoFarm:Toggle("Autofarm", false, function(t)
     Autofarm = t
@@ -195,63 +265,93 @@ end)
 AutoFarm:line()
 
 
-if not getgenv().FastDMGHitFuncTest then
-	getgenv().ValuesDMGHit = {}
-    getgenv().FastDMGHitFuncTest = true
+if not getgenv().Qyrix_Loaded.FastDMGHitFuncTest then
+	getgenv().Qyrix_Loaded.ValuesDMGHit = {}
+    getgenv().Qyrix_Loaded.FastDMGHitFuncTest = true
     print("-------------------")
 	for i,v in pairs(getgc()) do
 		if typeof(v) == "function" and getfenv(v).script == game:GetService("ReplicatedStorage").Modules.CombatUtil then
 			for i2,v2 in pairs(debug.getconstants(v)) do
 				if type(v2) == "number" then
-					getgenv().ValuesDMGHit[i2] = {v, v2}
+					getgenv().Qyrix_Loaded.ValuesDMGHit[i2] = {v, v2}
 				end
 			end
 		end
 	end
 end
 
-if not getgenv().FastHitFuncTest then
-	getgenv().ValuesHit = {}
-    getgenv().FastHitFuncTest = true
+if not getgenv().Qyrix_Loaded.FastHitFuncTest then
+	getgenv().Qyrix_Loaded.ValuesHit = {}
+    getgenv().Qyrix_Loaded.FastHitFuncTest = true
     print("-------------------")
     for i,v in pairs(getgc()) do
         if typeof(v) == "function" and getfenv(v).script == game.ReplicatedStorage.Controllers.CombatController then
             for i2,v2 in pairs(debug.getupvalues(v)) do
                 if type(v2) == "number" then
-                    getgenv().ValuesHit[i2] = {v, v2}
+                    getgenv().Qyrix_Loaded.ValuesHit[i2] = {v, v2}
                 end
             end
         end
     end
 end
 
+local FastAttack_Func = {}
+
+local Characters_F = workspace:WaitForChild("Characters")
+local Enemies_F = workspace:WaitForChild("Enemies")
+
+function FastAttack_Func:Target(Enemies, Folder, Distance)
+    local BasePart = nil
+    for _, Enemy in Folder:GetChildren() do
+        local Head = Enemy:FindFirstChild("Head")
+        if Head and Enemy.Humanoid.Health > 0 and game.Players.LocalPlayer:DistanceFromCharacter(Head.Position) < tonumber(Distance) then
+            if Enemy ~= game.Players.LocalPlayer.Character then
+                table.insert(Enemies, { Enemy, Head })
+                BasePart = Head
+            end
+        end
+    end
+    return BasePart
+end
+
+function FastAttack_Func:Attack(Distance)
+    local Enemies = {}
+    local E_Mob = self:Target(Enemies, Enemies_F, Distance)
+    local E_plr = self:Target(Enemies, Characters_F, Distance)
+    if #Enemies > 0 then
+        if not (E_Mob or E_plr) or #Enemies == 0 then return end
+        game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0)
+        game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterHit"):FireServer(E_Mob or E_plr, Enemies)
+    end
+end
+
 AutoFarm:Toggle("Fast Attack", false, function(t)
     FastAttack = t
 	-- ToggleHitDelay(FastAttack)
-    if FastAttack then
-        for i,v in pairs(getgenv().ValuesHit) do
-            if tonumber(debug.getupvalue(v[1], i)) == 0.8 then
-                print(i,v)
-                debug.setupvalue(v[1], i, 0.05)
-            end
-        end
+    -- if FastAttack then
+    --     for i,v in pairs(getgenv().Qyrix_Loaded.ValuesHit) do
+    --         if tonumber(debug.getupvalue(v[1], i)) == 0.8 then
+    --             print(i,v)
+    --             debug.setupvalue(v[1], i, 0)
+    --         end
+    --     end
 
-        for i,v in pairs(getgenv().ValuesDMGHit) do
-            if tonumber(debug.getconstant(v[1], i)) == 0.13 then
-                debug.setconstant(v[1], i, 0)
-            end
-        end
-        -- CombatController.Attack = FastAttack_Func
-    else
-        for i,v in pairs(getgenv().ValuesHit) do
-            debug.setupvalue(v[1], i, v[2])
-        end
+    --     for i,v in pairs(getgenv().Qyrix_Loaded.ValuesDMGHit) do
+    --         if tonumber(debug.getconstant(v[1], i)) == 0.13 then
+    --             debug.setconstant(v[1], i, 0)
+    --         end
+    --     end
+    --     -- CombatController.Attack = FastAttack_Func
+    -- else
+    --     for i,v in pairs(getgenv().Qyrix_Loaded.ValuesHit) do
+    --         debug.setupvalue(v[1], i, v[2])
+    --     end
 
-        for i,v in pairs(getgenv().ValuesDMGHit) do
-            debug.setconstant(v[1], i, v[2])
-        end
-        -- CombatController.Attack = getgenv().FastAttack_original
-    end
+    --     for i,v in pairs(getgenv().Qyrix_Loaded.ValuesDMGHit) do
+    --         debug.setconstant(v[1], i, v[2])
+    --     end
+    --     -- CombatController.Attack = getgenv().Qyrix_Loaded.FastAttack_original
+    -- end
 end)
 
 AutoFarm:Toggle("Stop Camera Shake", false, function(t)
@@ -271,35 +371,51 @@ AutoFarm:Slider("Bring Mobs Radius", 0, 400, 50, function(t)
 end)
 
 local Allow_Attack = false
-task.spawn(function()
-    while task.wait() do
-        if Autofarm and Allow_Attack then
-            local success, err = pcall(function()
-                Attack()
-                task.wait()
-            end)
-            if not success then
-                warn("Auto Attack - ", err)
+
+function BringMobs_F(Enabled, Radius, Enemy)
+    if Enabled then
+        local success, err = pcall(function()
+            for i,v in pairs(workspace.Enemies:GetChildren()) do
+                local BringMobsDistance = (Enemy.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                local BringMobsSpeed = 300
+                if BringMobsDistance <= Radius then -- isnetworkowner(v.PrimaryPart)
+                    TweenService:Create(
+                        v.HumanoidRootPart,
+                        TweenInfo.new(BringMobsDistance/BringMobsSpeed, Enum.EasingStyle.Linear),
+                        {CFrame = Enemy.HumanoidRootPart.CFrame}
+                    ):Play()
+                    v.HumanoidRootPart.CanCollide = false
+                end
             end
+            sethiddenproperty(game.Players.LocalPlayer,"MaximumSimulationRadius",math.huge)
+            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
+        end)
+        if not success then
+            warn("BringMobs - ", err)
         end
     end
-end)
+end
+
+function GetLevel()
+    local FakeLevel = 0
+    if Level.Value >= 675 and game.PlaceId == 2753915549 then
+        FakeLevel = 675
+	elseif Level.Value >= 1450 and game.PlaceId == 4442272183 then
+		FakeLevel = 1450
+	elseif Level.Value >= 2700 and game.PlaceId == 7449423635 then
+		FakeLevel = Level.Value
+	else
+        FakeLevel = Level.Value
+    end
+    return FakeLevel
+end
 
 task.spawn(function()
     while task.wait() do
         if Autofarm then
             local success, err = pcall(function()
                 -- print("New Enemy!")
-                if Level.Value >= 675 and game.PlaceId == 2753915549 then
-                    FakeLevel = 675
-				elseif Level.Value >= 1450 and game.PlaceId == 4442272183 then
-					FakeLevel = 1450
-				elseif Level.Value >= 2700 and game.PlaceId == 7449423635 then
-					FakeLevel = Level.Value
-				else
-                    FakeLevel = Level.Value
-                end
-
+                local FakeLevel = GetLevel()
 				local UpdatedQuest = GetQuestPlace(FakeLevel)
                 local Quest = GetQuestData(FakeLevel)
 				-- print("------------------------")
@@ -307,120 +423,109 @@ task.spawn(function()
 				-- print("- UpdatedQuest -")
 				-- table.foreach(UpdatedQuest, print)
 
-                if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false then
-                    Allow_Attack = false
-                    local Distance = (UpdatedQuest.NPCHRP.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                    local Speed = 300
-					if Distance <= 900 then
-						Speed = 9e9
-					else
-						Speed = 300
-					end
-                    local Tween_ = TweenService:Create(
-                        game.Players.LocalPlayer.Character.HumanoidRootPart,
-                        TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-                        {CFrame = UpdatedQuest.NPCHRP.CFrame}
-                    )
-                    
-                    repeat task.wait() 
-                        Tween_:Play()
-                        task.wait(Distance/Speed)
-                        Remotes.CommF_:InvokeServer("StartQuest", Quest.QuestName, Quest.QuestIndex)
-                    until not Autofarm or game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
+                for i,v in pairs(workspace.Enemies:GetChildren()) do
+                    if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false then
+                        Allow_Attack = false
+                        local Distance = (UpdatedQuest.NPCHRP.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                        local Speed = 300
+                        if Distance <= 900 then
+                            Speed = 9e9
+                        else
+                            Speed = 300
+                        end
+                        local Tween_ = TweenService:Create(
+                            game.Players.LocalPlayer.Character.HumanoidRootPart,
+                            TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+                            {CFrame = UpdatedQuest.NPCHRP.CFrame}
+                        )
+                        
+                        repeat task.wait() 
+                            Tween_:Play()
+                            task.wait(Distance/Speed)
+                            Remotes.CommF_:InvokeServer("StartQuest", Quest.QuestName, Quest.QuestIndex)
+                        until not Autofarm or game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
+                        
+                    elseif not workspace.Enemies:FindFirstChild(GetQuestData(GetLevel()).QuestData.Name) and game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible then
+                        Allow_Attack = false
+                        local FortBuilderReplicatedSpawnPositionsFolder = game:GetService("ReplicatedStorage").FortBuilderReplicatedSpawnPositionsFolder
+                        if FortBuilderReplicatedSpawnPositionsFolder:FindFirstChild(Quest.QuestData.Name) then
+                            
+                            repeat task.wait()
+                                local Distance = (FortBuilderReplicatedSpawnPositionsFolder[Quest.QuestData.Name].Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude 
+                                local Speed = 300
+                                if Distance <= 900 then
+                                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = FortBuilderReplicatedSpawnPositionsFolder[Quest.QuestData.Name].CFrame * CFrame.new(0, -30, 0)
+                                else
+                                    local Tween_ = TweenService:Create(
+                                        game.Players.LocalPlayer.Character.HumanoidRootPart,
+                                        TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+                                        {CFrame = FortBuilderReplicatedSpawnPositionsFolder[Quest.QuestData.Name].CFrame * CFrame.new(0, -30, 0)}
+                                    )
+                                    Tween_:Play()
+                                    task.wait(Distance/Speed)
+                                end
+                            until not Autofarm or workspace.Enemies:FindFirstChild(Quest.QuestData.Name) or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
 
-					
-                elseif not workspace.Enemies:FindFirstChild(Quest.QuestData.Name) and game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible then
-                    Allow_Attack = false
-					local FortBuilderReplicatedSpawnPositionsFolder = game:GetService("ReplicatedStorage").FortBuilderReplicatedSpawnPositionsFolder
-					if FortBuilderReplicatedSpawnPositionsFolder:FindFirstChild(Quest.QuestData.Name) then
+                        else
 
-						repeat task.wait()
-							local Distance = (FortBuilderReplicatedSpawnPositionsFolder[Quest.QuestData.Name].Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude 
-							local Speed = 300
-							if Distance <= 900 then
-								Speed = 9e9
-							else
-								Speed = 300
-							end
-							local Tween_ = TweenService:Create(
-								game.Players.LocalPlayer.Character.HumanoidRootPart,
-								TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-								{CFrame = FortBuilderReplicatedSpawnPositionsFolder[Quest.QuestData.Name].CFrame * CFrame.new(0, -10, 0)}
-							)
-							Tween_:Play()
-							task.wait(Distance/Speed)
-						until not Autofarm or workspace.Enemies:FindFirstChild(Quest.QuestData.Name)
-
-					else
-
-						repeat task.wait()
-							local Distance = (UpdatedQuest.Island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude 
-							local Speed = 300
-							if Distance <= 900 then
-								Speed = 9e9
-							else
-								Speed = 300
-							end
-							local Tween_ = TweenService:Create(
-								game.Players.LocalPlayer.Character.HumanoidRootPart,
-								TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-								{CFrame = UpdatedQuest.Island.CFrame * CFrame.new(0,30,0)}
-							)
-							Tween_:Play()
-							task.wait(Distance/Speed)
-						until not Autofarm or workspace.Enemies:FindFirstChild(Quest.QuestData.Name)
-					end
-                else
-                    for i,v in pairs(workspace.Enemies:GetChildren()) do
-                        local Enemy = v
-                        if Enemy and Enemy.Name == Quest.QuestData.Name and Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health > 0 and Enemy:FindFirstChild("HumanoidRootPart") then
-							
-							repeat task.wait()
-                                Allow_Attack = true
-								local Distance = (Enemy.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-								local Speed = 300
-								if Distance <= 900 then
-									Speed = 9e9
-									Enemy.HumanoidRootPart.Anchored = true
-									game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)
-                                    task.spawn(function()
-                                        if BringMobs then
-                                            local success, err = pcall(function()
-                                                for i,v in pairs(workspace.Enemies:GetChildren()) do
-                                                    local BringMobsDistance = (Enemy.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-                                                    local BringMobsSpeed = 300
-                                                    if BringMobsDistance <= BringMobsRadius then -- isnetworkowner(v.PrimaryPart)
-                                                        TweenService:Create(
-                                                            v.HumanoidRootPart,
-                                                            TweenInfo.new(BringMobsDistance/BringMobsSpeed, Enum.EasingStyle.Linear),
-                                                            {CFrame = Enemy.HumanoidRootPart.CFrame}
-                                                        ):Play()
-                                                        v.HumanoidRootPart.CanCollide = false
-                                                    end
-                                                end
-                                            end)
-                                            if not success then
-                                                warn("BringMobs - ", err)
-                                            end
+                            repeat task.wait()
+                                local Distance = (UpdatedQuest.Island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude 
+                                local Speed = 300
+                                if Distance <= 900 then
+                                    Speed = 9e9
+                                else
+                                    Speed = 300
+                                end
+                                local Tween_ = TweenService:Create(
+                                    game.Players.LocalPlayer.Character.HumanoidRootPart,
+                                    TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+                                    {CFrame = UpdatedQuest.Island.CFrame * CFrame.new(0,-30,0)}
+                                )
+                                Tween_:Play()
+                                task.wait(Distance/Speed)
+                            until not Autofarm or workspace.Enemies:FindFirstChild(Quest.QuestData.Name) or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
+                        end
+                    else
+                            local WentAllAround = false
+                            local Enemy = v
+                            if Enemy and Enemy.Name == Quest.QuestData.Name and IsAlive(Enemy) and Enemy:FindFirstChild("HumanoidRootPart") then
+                                if not WentAllAround then
+                                    for i,v in pairs(workspace.Enemies:GetChildren()) do
+                                        if v.Name == Quest.QuestData.Name and IsAlive(v) and v:FindFirstChild("HumanoidRootPart") then
+                                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)
+                                            task.wait(0.1)
                                         end
-                                    end)
-
-                                    sethiddenproperty(game.Players.LocalPlayer,"MaximumSimulationRadius",math.huge)
-                                    sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
-								else
-									Speed = 300
-									local Tween_ = TweenService:Create(
-										game.Players.LocalPlayer.Character.HumanoidRootPart,
-										TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-										{CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)}
-									)
-									Tween_:Play()
-									task.wait(Distance/Speed)
-								end
-                            until not Autofarm or Enemy.Humanoid.Health <= 0 or not Enemy:FindFirstChild("HumanoidRootPart") or not Enemy:FindFirstChild("Humanoid") or not workspace.Enemies:FindFirstChild(Quest.QuestData.Name)
-						end
+                                    end
+                                    WentAllAround = true
+                                end
+                                repeat task.wait()
+                                    Allow_Attack = true
+                                    EquipWeapon(Selected_Weapon)
+                                    local Distance = (Enemy.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                                    local Speed = 300
+                                    if Distance <= 900 then
+                                        Speed = 9e9
+                                        -- Enemy.HumanoidRootPart.Anchored = true
+                                        Enemy.Humanoid.WalkSpeed = 0
+                                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)
+                                        task.spawn(BringMobs_F, BringMobs, BringMobsRadius, Enemy)
+                                    else
+                                        Speed = 300
+                                        local Tween_ = TweenService:Create(
+                                            game.Players.LocalPlayer.Character.HumanoidRootPart,
+                                            TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+                                            {CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(Distance_X, Distance_Y, Distance_Z)}
+                                        )
+                                        Tween_:Play()
+                                        task.wait(Distance/Speed)
+                                        task.spawn(BringMobs_F, BringMobs, BringMobsRadius, Enemy)
+                                        
+                                    end
+                                until not Autofarm or not IsAlive(Enemy) or not Enemy:FindFirstChild("HumanoidRootPart") or not Enemy:FindFirstChild("Humanoid") or not workspace.Enemies:FindFirstChild(Quest.QuestData.Name)
+                                WentAllAround = false
+                            end
+                        end
                     end
-                end
             end)
             if not success then
                 warn("Autofarm - ", err)
@@ -429,44 +534,27 @@ task.spawn(function()
     end
 end)
 
--- spawn(function()
---     while task.wait() do
---         if BringMobs then
---             local success, err = pcall(function()
---                 if Autofarm then
---                     for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
-
---                     end
---                 end
---             end)
---             if not success then
---                 warn("BringMobs - ", err)
---             end
---         end
---     end
--- end)
-
 AutoFarm:line()
 
 AutoFarm:Toggle("Hitbox Expander", false, function(t)
-    getgenv().HitboxExpander = t
+    getgenv().Qyrix_Loaded.HitboxExpander = t
 end)
 
 AutoFarm:Slider("Hitbox Size", 0, 20, 5, function(t)
-    getgenv().HitboxMultiplier = t
+    getgenv().Qyrix_Loaded.HitboxMultiplier = t
 end)
 
-if not getgenv().HitboxAlreadyFound then
-    getgenv().HitboxAlreadyFound = true
+if not getgenv().Qyrix_Loaded.HitboxAlreadyFound then
+    getgenv().Qyrix_Loaded.HitboxAlreadyFound = true
 
     local old
     old = hookmetamethod(game, "__namecall", newcclosure(function(self,...)
         local method = getnamecallmethod()
         local args = {...}
 
-        if getgenv().HitboxExpander and method == "GetPartBoundsInBox" and self == workspace then
+        if method == "GetPartBoundsInBox" and self == workspace then
             -- print(args[2])
-            args[2] = args[2] * getgenv().HitboxMultiplier
+            args[2] = getgenv().Qyrix_Loaded.HitboxExpander and args[2] * getgenv().Qyrix_Loaded.HitboxMultiplier or args[2] * 1
             return old(self, unpack(args))
         end
 
@@ -474,25 +562,26 @@ if not getgenv().HitboxAlreadyFound then
     end))
 end
 
-function GetGarbage()
-    print("Collected")
-    local GC = {}
-    for i,v in pairs(getgc(true)) do
-        table.insert(GC, v)
+task.spawn(function()
+    while task.wait() do
+        if Autofarm and Allow_Attack then
+            local success, err = pcall(function()
+                FastAttack_Func:Attack(getgenv().Qyrix_Loaded.HitboxExpander and getgenv().Qyrix_Loaded.HitboxMultiplier * 10 or 100)
+                -- task.wait()
+            end)
+            if not success then
+                warn("Auto Attack - ", err)
+            end
+        end
     end
-    return GC
-end
-
-if not getgenv().GarbageCollector then
-    getgenv().GarbageCollector = GetGarbage()
-end
+end)
 
 Misc:Toggle("Infinite Energy", false, function(t)
     Inf_Energy = t
 end)
 
 Misc:Toggle("No Dodge Cooldown", false, function(t)
-    getgenv().Dodge_Cooldown = t
+    getgenv().Qyrix_Loaded.Dodge_Cooldown = t
 end)
 
 local Energy = game.Players.LocalPlayer.Character.Energy
@@ -510,17 +599,15 @@ spawn(function()
     end
 end)
 
-if not getgenv().NoDGCD then
-    getgenv().NoDGCD = true
-    for i,v in pairs(getgenv().GarbageCollector) do
+if not getgenv().Qyrix_Loaded.NoDGCD then
+    getgenv().Qyrix_Loaded.NoDGCD = true
+    for i,v in pairs(getgc()) do
         if game.Players.LocalPlayer.Character.Dodge then
             if typeof(v) == "function" and getfenv(v).script == game.Players.LocalPlayer.Character.Dodge then
                 for i2,v2 in pairs(debug.getupvalues(v)) do
                     if tostring(v2) == "0.4" then
-                        while task.wait(0.1) do
-                            if not getgenv().Dodge_Cooldown then
-                                continue
-                            end
+                        while getgenv().Qyrix_Loaded.Dodge_Cooldown == true do
+                            task.wait(0.1)
                             debug.setupvalue(v, i2, 0)
                         end
                     end
