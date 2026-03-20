@@ -136,6 +136,8 @@ local AutoFarm = Window:Tab("Autofarm")
 local Eggs = Window:Tab("Eggs")
 local Crafting = Window:Tab("Crafting")
 local Upgrades = Window:Tab("Upgrades")
+local Config = Window:Tab("Config")
+Library:ConfigTab(Config)
 
 AutoFarm:Toggle("Auto Tap", false, function(t)
     Auto_Tap = t
