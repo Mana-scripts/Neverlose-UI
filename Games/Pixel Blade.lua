@@ -22,6 +22,8 @@ local Combat = Window:Tab("Combat")
 local Legit = Window:Tab("Legit")
 local Quest = Window:Tab("Quest")
 local Credits = Window:Tab("Credits")
+local Config = Window:Tab("Config")
+Library:ConfigTab(Config)
 
 Credits:Button("Mana", function()
     UtilityModule:Discord("7wZ7vEgWXR")
