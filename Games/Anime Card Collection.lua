@@ -68,6 +68,8 @@ local AutoFarm = Window:Tab("Autofarm")
 local GradingTab = Window:Tab("Grading")
 local UpgradeTab = Window:Tab("Upgrades")
 local TowerTab = Window:Tab("Tower")
+local Config = Window:Tab("Config")
+Library:ConfigTab(Config)
 
 local TweenService = game:GetService("TweenService")
 local CardRemote = game:GetService("ReplicatedStorage").Remotes.Card
