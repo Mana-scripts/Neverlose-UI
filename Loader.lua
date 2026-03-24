@@ -12,6 +12,7 @@ end
 local Games = {
 	[18172550962] = EncodeSpaces("Pixel Blade.lua"),
 	[18172553902] = EncodeSpaces("Pixel Blade.lua"),
+	[133884972346775] = EncodeSpaces("Pixel Blade.lua"),
 	[130247632398296] = EncodeSpaces("Anime Fighting Simulator.lua"),
 	[76285745979410] = EncodeSpaces("Anime Card Collection.lua"),
 	[75992362647444] = EncodeSpaces("Tap Simulator.lua"),
