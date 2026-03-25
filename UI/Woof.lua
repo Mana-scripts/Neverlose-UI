@@ -4,8 +4,8 @@ for i,v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do
 end
 
 if game.CoreGui:FindFirstChild("woof") then
-    game.CoreGui.woof:Destroy()
- end
+   game.CoreGui:FindFirstChild("woof"):Destroy()
+end
  
 --  if game:GetService("CoreGui"):FindFirstChild("Notifaction") then
 --     game:GetService("CoreGui").Notifaction:Destroy();
