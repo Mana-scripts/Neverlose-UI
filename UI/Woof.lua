@@ -1428,21 +1428,6 @@ end
    local AutoLoad = true
    local LastLoadedDefault = "NONE #¤%"
 
-   -- function GetSettingsData(cfg)
-   --    cfg = tostring(cfg)
-   --    local path = ConfigsStorage .. "/" .. cfg .. ".txt"
-   --    local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
-      
-   --    local success, JSONData = pcall(function()
-   --       return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
-   --    end)
-      
-   --    if success then
-   --       return JSONData
-   --    end
-   --    return false
-   -- end
-
    function GetSettingsData(cfg)
       cfg = tostring(cfg)
       local path = ConfigsStorage .. "/" .. cfg .. ".txt"
@@ -3497,14 +3482,16 @@ end
  end
  
 function ContainerItems:Checklist(text, glob, list, callback)
-      local checklistfunc = {}
+      local checklistfunc = {Value = {}}
       callback = callback or function() end
 
       local DropToggled = false
       local FrameSize = 300
 
       local Items = {}
-      checklists[glob] = {Value = {}, Options = list}
+      -- checklists[glob] = {Value = {}, Options = list}
+      checklists[glob] = checklistfunc
+      checklists[glob].Options = list
 
       --------------------------------------------------
       -- UI
@@ -3613,17 +3600,17 @@ function ContainerItems:Checklist(text, glob, list, callback)
       local function updateValue(name, state)
 
          if state then
-               if not table.find(checklists[glob].Value, name) then
-                  table.insert(checklists[glob].Value, name)
-               end
+            if not table.find(checklistfunc.Value, name) then
+                  table.insert(checklistfunc.Value, name)
+            end
          else
-               local index = table.find(checklists[glob].Value, name)
-               if index then
-                  table.remove(checklists[glob].Value, index)
-               end
+            local index = table.find(checklistfunc.Value, name)
+            if index then
+                  table.remove(checklistfunc.Value, index)
+            end
          end
 
-         callback(checklists[glob].Value)
+         callback(checklistfunc.Value)
       end
 
       local function createItem(v)
@@ -3711,29 +3698,26 @@ function ContainerItems:Checklist(text, glob, list, callback)
 
          if type(values) ~= "table" then return end
 
-         checklists[glob].Value = {}
+         checklistfunc.Value = {}
 
          for name,item in pairs(Items) do
 
-               local should = table.find(values,name)
+            local should = table.find(values,name)
+            item.Toggled = should and true or false
 
-               item.Toggled = should and true or false
-
-               if item.Toggled then
-
+            if item.Toggled then
                   item.Frame.BackgroundTransparency = 0
                   item.Stroke.Color = Color3.fromRGB(236,136,36)
-                  table.insert(checklists[glob].Value,name)
 
-               else
-
+                  table.insert(checklistfunc.Value,name)
+            else
                   item.Frame.BackgroundTransparency = 1
                   item.Stroke.Color = Color3.fromRGB(255,255,255)
-
-               end
+            end
          end
 
-         callback(checklists[glob].Value)
+         callback(checklistfunc.Value)
+         return checklistfunc.Value
       end
 
       function checklistfunc:Refresh(newlist)
@@ -3745,7 +3729,7 @@ function ContainerItems:Checklist(text, glob, list, callback)
          end
 
          Items = {}
-         checklists[glob].Value = {}
+         checklistfunc.Value = {}
 
          for _,v in pairs(newlist) do
                createItem(v)
@@ -3779,7 +3763,7 @@ function ContainerItems:Checklist(text, glob, list, callback)
                end
          end
       end)
-
+      
       --------------------------------------------------
       -- load list
       --------------------------------------------------
