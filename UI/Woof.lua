@@ -1424,7 +1424,7 @@ end
    --  local ExecuteFile = CodeStorage.."/".."Exec.lua"
    --  local SaveProgress = CodeStorage.."/".."Saved.lua"
 
-   local Allow_Encoding = true
+   local Allow_Encoding = false
    local AutoLoad = true
    local LastLoadedDefault = "NONE #¤%"
 
@@ -1459,64 +1459,74 @@ end
     
    function Mainholder:LoadCfg(cfg)
       cfg = tostring(cfg)
-      local Data = GetSettingsData(cfg)
 
+      local Data = GetSettingsData(cfg)
       if not Data then
          warn("Failed to load config:", cfg)
          return
       end
-      
+
       for flag, value in pairs(Data) do
-         if flag == "ConfigSettings" then continue end
-         if Mainholder.Flags[flag] then
+         if flag == "ConfigSettings" then
+               continue
+         end
+
+         local Item = Mainholder.Flags[flag]
+
+         if Item then
                task.spawn(function()
-                  Mainholder.Flags[flag]:Set(value)
+                  local success, err = pcall(function()
+                     -- if Item.Set then
+                     --       Item:Set(value)
+                     -- else
+                     --       warn("Flag has no Set method:", flag)
+                     -- end
+                     Item:Set(value)
+                  end)
+
+                  if not success then
+                     warn("Failed to load flag:", flag, err)
+                  end
                end)
          else
-               warn("Unknown flag:", flag, value)
+               warn("Unknown flag in config:", flag)
          end
       end
+
+      if Data.ConfigSettings then
+         LastLoadedDefault = cfg
+         AutoLoad = Data.ConfigSettings.AutoLoad or false
+      end
+
+      print("Loaded config:", cfg)
    end
    
    function Mainholder:SaveCfg(cfg, exp)
       cfg = tostring(cfg)
-      local Data = GetSettingsData(cfg)
 
-      if not Data then
-         print("Failed to get Data")
-         return
-      end
-      
       local content = {}
-      for i,v in pairs(Mainholder.Flags) do
-         content[i] = v.Value
-         if not Data.ConfigSettings then
-            print("New ConfigSettings!")
-            content["ConfigSettings"] = {
-               ["Name"] = cfg,
-               ["AllowExport"] = exp, -- Default Value
-               ["AutoLoad"] = AutoLoad,
-               ["LastLoaded"] = LastLoadedDefault,
-               ["Author"] = tostring(game.Players.LocalPlayer.UserId),
-            }
-         elseif tostring(Data.ConfigSettings.Author) == tostring(game.Players.LocalPlayer.UserId) then
-               content["ConfigSettings"] = {
-                  ["Name"] = cfg,
-                  ["AllowExport"] = exp, -- Default Value
-                  ["AutoLoad"] = AutoLoad,
-                  ["LastLoaded"] = LastLoadedDefault,
-                  ["Author"] = tostring(game.Players.LocalPlayer.UserId),
-               }
 
+      -- save all flags
+      for flag, item in pairs(Mainholder.Flags) do
+         if item and item.Value ~= nil then
+               content[flag] = item.Value
          else
-            print("Changed AllowExport", tostring(exp))
-            Data.ConfigSettings.AllowExport = exp
-            Data.ConfigSettings.AutoLoad = AutoLoad
-            continue
+               warn("Missing Value in flag:", flag)
          end
       end
 
+      -- create config settings
+      content["ConfigSettings"] = {
+         Name = cfg,
+         AllowExport = exp or false,
+         AutoLoad = AutoLoad or false,
+         LastLoaded = LastLoadedDefault or "NONE",
+         Author = tostring(game.Players.LocalPlayer.UserId)
+      }
+
       Save(cfg, content)
+
+      print("Saved config:", cfg)
    end
    
    function Mainholder:CreateCfg(cfg, exp)
@@ -1571,6 +1581,7 @@ end
    end
 
    function Mainholder:SetLastLoaded(cfg)
+      cfg = tostring(cfg)
       for i,v in pairs(listfiles(ConfigsStorage)) do
          local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
          local Data = GetSettingsData(name)
@@ -4966,31 +4977,23 @@ end
       for i,v in pairs(listfiles(ConfigsStorage)) do
          local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
          local Data = GetSettingsData(name)
-         table.foreach(Data.ConfigSettings, print)
          print("-----------------------------------------")
-         if not Data["ConfigSettings"] then
-            Data["ConfigSettings"] = {
-               ["Name"] = name,
-               ["AllowExport"] = true, -- Default Value
-               ["AutoLoad"] = AutoLoad,
-               ["LastLoaded"] = LastLoadedDefault,
-               ["Author"] = tostring(game.Players.LocalPlayer.UserId),
-            }
-         end
-         if not Data.ConfigSettings.Name then
-            Data.ConfigSettings.Name = name
-         end
-         if not Data.ConfigSettings.AllowExport then
-            Data.ConfigSettings.AllowExport = true
-         end
-         if not Data.ConfigSettings.AutoLoad then
-            Data.ConfigSettings.AutoLoad = AutoLoad
-         end
-         if not Data.ConfigSettings.LastLoaded then
-            Data.ConfigSettings.LastLoaded = LastLoadedDefault
-         end
-         if not Data.ConfigSettings.Author then
-            Data.ConfigSettings.Author = tostring(game.Players.LocalPlayer.UserId)
+         if Data then
+            if not Data.ConfigSettings.Name then
+               Data.ConfigSettings.Name = name
+            end
+            if not Data.ConfigSettings.AllowExport then
+               Data.ConfigSettings.AllowExport = true
+            end
+            if not Data.ConfigSettings.AutoLoad then
+               Data.ConfigSettings.AutoLoad = AutoLoad
+            end
+            if not Data.ConfigSettings.LastLoaded then
+               Data.ConfigSettings.LastLoaded = LastLoadedDefault
+            end
+            if not Data.ConfigSettings.Author then
+               Data.ConfigSettings.Author = tostring(game.Players.LocalPlayer.UserId)
+            end
          end
          
          Save(name, Data)
