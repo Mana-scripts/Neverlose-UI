@@ -10,7 +10,7 @@ UtilityModule:Discord("7wZ7vEgWXR")
 
 local TweenService = game:GetService("TweenService")
 
-local Library = UtilityModule.Library() --loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
+local Library = UtilityModule.Library()
 
 local Window = Library:Window(
     UtilityModule.HubName,
@@ -1160,8 +1160,10 @@ spawn(function()
     end
 end)
 
-local queue_on_teleportTest = queue_on_teleport or queueonteleport or function(...) end
+local queue_on_teleportTest = queue_on_teleport or queueonteleport
 
 game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
-    queue_on_teleportTest([[loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Loader.lua"))()]])
+    if queue_on_teleportTest then
+        queue_on_teleportTest([[loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/Pixel%20Blade.lua"))()]])
+    end
 end)
