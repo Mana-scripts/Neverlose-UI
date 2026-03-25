@@ -18,6 +18,14 @@ local Window = Library:Window(
     UtilityModule.Loader
 )
 
+local queue_on_teleportTest = queue_on_teleport or queueonteleport
+
+game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
+    -- if queue_on_teleportTest then
+        queue_on_teleportTest([[loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/Pixel%20Blade.lua"))()]])
+    -- end
+end)
+
 local Combat = Window:Tab("Combat")
 local Legit = Window:Tab("Legit")
 local Fishing = Window:Tab("Fishing")
@@ -1157,13 +1165,5 @@ spawn(function()
                 end
             end)
         end
-    end
-end)
-
-local queue_on_teleportTest = queue_on_teleport or queueonteleport
-
-game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
-    if queue_on_teleportTest then
-        queue_on_teleportTest([[loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/Pixel%20Blade.lua"))()]])
     end
 end)
