@@ -20,6 +20,7 @@ local Window = Library:Window(
 
 local Combat = Window:Tab("Combat")
 local Legit = Window:Tab("Legit")
+local Fishing = Window:Tab("Fishing")
 local Misc = Window:Tab("Misc")
 local Credits = Window:Tab("Credits")
 local Config = Window:Tab("Config")
@@ -192,11 +193,11 @@ function TweenToTarget(target)
 end
 
 
-Combat:Dropdown("Farm Method", {"Legit (Not Working)", "Rage"}, function(t)
-    FarmMethod = t
-end)
+-- Combat:Dropdown("Farm Method", {"Legit (Not Working)", "Rage"}, function(t)
+--     FarmMethod = t
+-- end)
 
-Combat:Toggle("Autofarm", false, function(t)
+local Autofarm_Toggle = Combat:Toggle("Autofarm", false, function(t)
     Autofarm = t
 end)
 
@@ -266,9 +267,9 @@ spawn(function()
         if AllowDespawnSpawn == false then
             pcall(function()
                 task.wait(10)
-                print("Spawn Destroyed!")
+                -- print("Spawn Destroyed!")
                 workspace.Spawn:Destroy()
-                AllowDespawnSpawn = nil
+                AllowDespawnSpawn = true
             end)
         end
     end
@@ -329,18 +330,21 @@ spawn(function()
                                 -- print(v.Name)
                                 local dist = (Player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
                                 if dist < ClosestEnemy then
-                                    -- if FarmMethod == "Rage" then
-                                        TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
-                                    -- elseif FarmMethod == "Legit (Not Working)" then
-                                        -- walkToPart(v.HumanoidRootPart)
-                                    -- end
+                                    TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
                                 end
                             until not Autofarm or not v:FindFirstChild("HumanoidRootPart") or v.Health.Value == 0
+                        else
+                            -- repeat task.wait()
+                                TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,15,0))
+                            -- until not Autofarm or v:FindFirstChild("HumanoidRootPart") or v
                         end
                     end 
+                    -- TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,15,0))
                     return
                 end
-                AllowDespawnSpawn = true
+                
+
+                -- AllowDespawnSpawn = true
                 local ClosestEnemy = math.huge
                 local IsBoss, Boss = CheckBoss()
                 for _,v in pairs(workspace:GetChildren()) do
@@ -358,12 +362,7 @@ spawn(function()
                                 IsBoss, Boss = CheckBoss()
                                 local dist = (Player.Character.HumanoidRootPart.Position - Boss.HumanoidRootPart.Position).Magnitude
                                 if dist < ClosestEnemy then
-                                    if FarmMethod == "Rage" then
-                                        -- print("Targeting Enemies")
-                                        TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
-                                    elseif FarmMethod == "Legit (Not Working)" then
-                                        walkToPart(v.HumanoidRootPart)
-                                    end
+                                    TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
                                 end
                             -- until not Autofarm or v.Health.Value == 0 or not v:FindFirstChild("HumanoidRootPart")
                         else
@@ -373,12 +372,7 @@ spawn(function()
                                 IsBoss, Boss = CheckBoss()
                                 local dist = (Player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
                                 if dist < ClosestEnemy then
-                                    if FarmMethod == "Rage" then
-                                        -- print("Targeting Enemies")
-                                        TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
-                                    elseif FarmMethod == "Legit (Not Working)" then
-                                        walkToPart(v.HumanoidRootPart)
-                                    end
+                                    TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
                                 end
                             until not Autofarm or v.Health.Value == 0 or not v:FindFirstChild("HumanoidRootPart")
                         end
@@ -646,9 +640,11 @@ end)
 --     end
 -- end)
 
-Combat:Toggle("Auto Collect Breakables", false, function(t)
+local AutoCollectBreakables_Toggle = Combat:Toggle("Auto Collect Breakables", false, function(t)
     AutoCollectBreakables = t
 end)
+
+
 
 spawn(function()
     while task.wait() do
@@ -664,9 +660,25 @@ spawn(function()
     end
 end)
 
+local AutoReplay_Toggle = Combat:Toggle("Auto Replay", false, function(t)
+    AutoReplay = t
+end)
+
+spawn(function()
+    while task.wait() do
+        if AutoReplay then
+            pcall(function()
+                if workspace.voting.Value then
+                    game:GetService("ReplicatedStorage").remotes.gameEndVote:FireServer("replay")
+                end
+            end)
+        end
+    end
+end)
+
 Combat:line()
 
-Combat:Toggle("Auto Upgrade", false, function(t)
+local AutoUpgrade_Toggle = Combat:Toggle("Auto Upgrade", false, function(t)
     AutoUpgrade = t
 end)
 
@@ -782,6 +794,105 @@ spawn(function()
     end
 end)
 
+Fishing:Label("IMPORTANT! You need to catch 1 fish manualy before using this Autofarm!")
+
+Fishing:Toggle("Auto Catch Fish", false, function(t)
+    AutoCatchFish = t
+    game:GetService("ReplicatedStorage").remotes.catchFish:InvokeServer()
+end)
+
+local FishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
+
+local LuckCircles = {}
+for i,v in pairs(FishingStats.enchantCircleRanges) do
+	table.insert(LuckCircles, i)
+end
+
+Fishing:Checklist("Target Luck Circles", "LuckCircles", LuckCircles, function(t)
+    TargetLuckCircles = t
+end)
+
+Fishing:Toggle("Disable Popups", false, function(t)
+    DisablePopups = t
+end)
+
+
+local plrData = require(game:GetService("ReplicatedStorage").plrData)
+-- local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
+-- local Rarity_Drops = {}
+-- for i,v in pairs(LootStats.rarityDropValues) do
+--     table.insert(Rarity_Drops, i)
+-- end
+
+local fishCaught = game:GetService("ReplicatedStorage").remotes.fishCaught
+
+spawn(function()
+    while task.wait() do
+        if AutoCatchFish then
+            pcall(function()
+                for i,v in pairs(workspace.FishingCircles:GetChildren()) do
+                    if v:IsA("Part") and v:FindFirstChildOfClass("Part") and table.find(TargetLuckCircles, v.Name) then
+                        fishCaught:FireServer(
+                            v.Position,
+                            -math.huge
+                        )
+                        task.wait(0.005)
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        if DisablePopups then
+            pcall(function()
+                game:GetService("Players").LocalPlayer.PlayerGui.gameUI.Enchant.BackgroundTransparency = 1
+                for i,v in pairs(workspace:GetChildren()) do
+                    if v.Name == "BookReveal" then
+                        v:Destroy()
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+Fishing:line()
+
+local fishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
+local plrData = require(game:GetService("ReplicatedStorage").plrData)
+local sellFishItem = game:GetService("ReplicatedStorage").remotes.sellFishItem
+local FishingDrops = {"All"}
+for i,v in pairs(fishingStats.drops) do
+    table.insert(FishingDrops, i)
+end
+
+Fishing:Toggle("Auto Sell Fish", false, function(t)
+    AutoSellFish = t
+end)
+
+Fishing:Checklist("Select Fish/Items", "SelectFish", FishingDrops, function(t)
+    SelectFish_Items = t
+end)
+
+spawn(function()
+    while task.wait() do
+        if AutoSellFish then
+            pcall(function()
+                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "fishStash")) do
+                    if fishingStats.drops[i] and table.find(SelectFish_Items, i) or table.find(SelectFish_Items, "All") then
+                        sellFishItem:FireServer(
+                            i,
+                            false
+                        )
+                    end
+                end
+            end)
+        end
+    end
+end)
 
 Misc:Toggle("Auto Claim Quests", false, function(t)
     AutoClaimQuests = t
@@ -819,10 +930,24 @@ end)
 
 Misc:line()
 
-Misc:Toggle("Auto Open Chests", false, function(t)
-    AutoOpenChests = t
+Misc:Toggle("Auto Wish", false, function(t)
+    AutoWish = t
 end)
 
+spawn(function()
+    while task.wait() do
+        if AutoWish then
+            pcall(function()
+                game:GetService("ReplicatedStorage").remotes.openWish:InvokeServer()
+                task.wait(0.005)
+            end)
+        end
+    end
+end)
+
+Misc:line()
+
+local plrData = require(game:GetService("ReplicatedStorage").plrData)
 local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
 local Rarity_Drops = {}
 for i,v in pairs(LootStats.rarityDropValues) do
@@ -833,11 +958,70 @@ Misc:Checklist("Chest Rarity", "Chest_Rarity", Rarity_Drops, function(t)
     Rarity_Selected = t
 end)
 
+Misc:Toggle("Auto Open Chests", false, function(t)
+    AutoOpenChests = t
+end)
+
+Misc:line()
+
+local plrData = require(game:GetService("ReplicatedStorage").plrData)
+local WpnStats = require(game:GetService("ReplicatedStorage").constants.wpnStats)
+local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
+local FormatWeaponNames = {"All"}
+for i,v in pairs(WpnStats.values) do
+    if not table.find(FormatWeaponNames, i) then
+        table.insert(FormatWeaponNames, i)
+    end
+end
+
+Misc:Checklist("Select Weapons Rarity", "Weapons_Rarity", Rarity_Drops, function(t)
+    WeaponsRarity = t
+end)
+
+Misc:Checklist("Select Weapons", "Weapons", FormatWeaponNames, function(t)
+    Weapons = t
+end)
+
+Misc:Toggle("Upgrade Weapon", false, function(t)
+    UpgradeWeapon = t
+end)
+
+Misc:line()
+
+local plrData = require(game:GetService("ReplicatedStorage").plrData)
+local armorStatssuccess, armorStats = pcall(function()
+    return require(game:GetService("ReplicatedStorage").constants.armorStats)
+end)
+-- local armorStats = require(game:GetService("ReplicatedStorage").constants.armorStats)
+local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
+local shopStats = require(game:GetService("ReplicatedStorage").constants.shopStats)
+local FormatArmorNames = {"All"}
+
+if armorStatssuccess then
+    for i,v in pairs(armorStats.values) do
+        if not table.find(FormatArmorNames, i) and i ~= "none" then
+            table.insert(FormatArmorNames, i)
+        end
+    end
+end
+
+Misc:Checklist("Select Armor Rarity", "Armor_Rarity", Rarity_Drops, function(t)
+    ArmorRarity = t
+end)
+
+Misc:Checklist("Select Armors", "Armors", FormatArmorNames, function(t)
+    Armors = t
+end)
+
+Misc:Toggle("Upgrade Armor", false, function(t)
+    UpgradeArmor = t
+end)
+
 spawn(function()
     while task.wait() do
         if AutoOpenChests then
             pcall(function()
-                for i,v in pairs(require(game:GetService("ReplicatedStorage").plrData):GetValue(game.Players.LocalPlayer, "ownedItems")) do
+                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
                     if game:GetService("ReplicatedStorage").remotes:FindFirstChild("openLoot") and string.find(i, "Chest") then
                         if table.find(Rarity_Selected, LootStats.values[i].rarity) and v.copies ~= 0 then
                             local Event = game:GetService("ReplicatedStorage").remotes.openLoot
@@ -855,8 +1039,7 @@ spawn(function()
     end
 end)
 
-Misc:line()
-
+-- [[Add to Library later!]] --
 local function TypeText(Label, Text, Speed)
     Speed = Speed or 0.03
 
@@ -878,27 +1061,86 @@ local function TypeText(Label, Text, Speed)
     end
 end
 
-local Update_Label = Misc:Label("Weapon Upgrades Comming Soon!")
-task.spawn(function()
-    while true do
-        TypeText(Update_Label, "Weapon Upgrades Coming Soon!", 0.04)
-        task.wait(1)
-    end
-end)
+-- local Update_Label = Misc:Label("Weapon Upgrades Comming Soon!")
+-- task.spawn(function()
+--     while true do
+--         TypeText(Update_Label, "Weapon Upgrades Coming Soon!", 0.04)
+--         task.wait(1)
+--     end
+-- end)
 
 -- Update_Label:Refresh("Something new!")
 
--- Misc:Toggle("Upgrade Weapon", false, function(t)
---     UpgradeWeapon = t
--- end)
+spawn(function()
+    while task.wait() do
+        if UpgradeArmor then
+            local success, err = pcall(function()
+                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
+                    if armorStats.values[i] and v.copies > 0 then
+                        if (table.find(Armors, i) or table.find(Armors, "All")) and table.find(ArmorRarity, armorStats.values[i].rarity) then
+                            if v.copies >= shopStats.tierCopiesCost[armorStats.values[i].rarity][v.tier+1] then
+                                requestPurchase:FireServer(
+                                    i,
+                                    "itemUpgrade",
+                                    {
+                                        upgradeTier = v.tier+1
+                                    }
+                                )
+                                print(i, " Old Tier: "..v.tier, " New Tier: "..v.tier+1, " Rarity: "..armorStats.values[i].rarity)
+                                task.wait(UpgradeWeapon and 0.3 or 0.2)
+                            end
+                        end
+                    end
+                end
+            end)
+            if not success then
+                warn("Upgrade Armor: "..err)
+            end
+        end
+    end
+end)
 
--- Misc:Checklist("Select Weapons", "Chest_Rarity", Rarity_Drops, function(t)
---     Selected_Weapon = t
--- end)
+spawn(function()
+    while task.wait() do
+        if UpgradeWeapon then
+            local success, err = pcall(function()
+                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
+                    if WpnStats.values[i] then
+                        if (table.find(Weapons, i) or table.find(Weapons, "All")) and table.find(WeaponsRarity, WpnStats.values[i].rarity) then
+                            -- print(i, shopStats.tierCopiesCost[WpnStats.values[i].rarity][v.tier+1])
+                            if v.copies >= shopStats.tierCopiesCost[WpnStats.values[i].rarity][v.tier+1] then
+                                requestPurchase:FireServer(
+                                    i,
+                                    "itemUpgrade",
+                                    {
+                                        upgradeTier = v.tier + 1
+                                    }
+                                )
+                                print(i, " Old Tier: "..v.tier, " New Tier: "..v.tier+1, " Rarity: "..WpnStats.values[i].rarity)
+                                task.wait(UpgradeArmor and 0.3 or 0.2)
+                            end
+                        end
+                    end
+                end
+            end)
+            if not success then
+                warn("Upgrade Weapon: "..err)
+            end
+        end
+    end
+end)
 
--- Misc:Slider("Upgrade Delay", 0, 100, 3, function(t)
---     Upgrade_Delay = t
--- end)
+if game.PlaceId == 18172550962 then
+    Autofarm_Toggle:visibility(false)
+    Autofarm_Toggle:Set(false)
+    AutoCollectBreakables_Toggle:visibility(false)
+    AutoUpgrade_Toggle:visibility(false)
+    AutoReplay_Toggle:visibility(false)
+    -- AutoCollectBreakables_Toggle:visibility(false)
+    -- AutoCollectBreakables_Toggle:visibility(false)
+    -- AutoCollectBreakables_Toggle:visibility(false)
+    -- AutoCollectBreakables_Toggle:visibility(false)
+end
 
 -- FAIL SAFE --
 
