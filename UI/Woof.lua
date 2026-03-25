@@ -1424,7 +1424,7 @@ end
    --  local ExecuteFile = CodeStorage.."/".."Exec.lua"
    --  local SaveProgress = CodeStorage.."/".."Saved.lua"
 
-   local Allow_Encoding = false
+   local Allow_Encoding = true
    local AutoLoad = true
    local LastLoadedDefault = "NONE #¤%"
 
@@ -3581,12 +3581,14 @@ function ContainerItems:Checklist(text, glob, list, callback)
                ChecklistFrame.Visible = true
                ChecklistFrame:TweenSize(UDim2.new(0,346,0,FrameSize),"Out","Quart",0.15,true)
                TweenService:Create(ChecklistArrow,TweenInfo.new(.2),{Rotation = 180}):Play()
+               repeat task.wait() Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5) until ChecklistFrame.Size == UDim2.new(0,346,0,FrameSize)
                Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
          else
                ChecklistFrame:TweenSize(UDim2.new(0,346,0,0),"Out","Quart",0.15,true)
                TweenService:Create(ChecklistArrow,TweenInfo.new(.2),{Rotation = 0}):Play()
                task.wait(.15)
                ChecklistFrame.Visible = false
+               repeat task.wait() Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5) until ChecklistFrame.Size == UDim2.new(0,346,0,0)
                Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
          end
 
@@ -3763,7 +3765,7 @@ function ContainerItems:Checklist(text, glob, list, callback)
                end
          end
       end)
-      
+
       --------------------------------------------------
       -- load list
       --------------------------------------------------
