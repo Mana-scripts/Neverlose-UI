@@ -1424,24 +1424,64 @@ end
    --  local ExecuteFile = CodeStorage.."/".."Exec.lua"
    --  local SaveProgress = CodeStorage.."/".."Saved.lua"
 
-   local Allow_Encoding = true
+   local Allow_Encoding = false
+   local AutoLoad = true
+   local LastLoadedDefault = "NONE #¤%"
+
+   -- function GetSettingsData(cfg)
+   --    cfg = tostring(cfg)
+   --    local path = ConfigsStorage .. "/" .. cfg .. ".txt"
+   --    local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
+      
+   --    local success, JSONData = pcall(function()
+   --       return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
+   --    end)
+      
+   --    if success then
+   --       return JSONData
+   --    end
+   --    return false
+   -- end
+
+   function GetSettingsData(cfg)
+      cfg = tostring(cfg)
+      local path = ConfigsStorage .. "/" .. cfg .. ".txt"
+      local Encoded = readfile(MainFolder .. "/" .. "ConfigsStorage" .. "/" .. cfg .. ".txt")
+
+      local success, JSONData = pcall(function()
+         local data = Encoded
+
+         -- check if decoding is needed
+         if not Allow_Encoding and not string.find(Encoded, "{") then
+               data = Mainholder:decode(Encoded)
+         end
+
+         return Mainholder.HttpService:JSONDecode(data)
+      end)
+
+      if success then
+         return JSONData
+      end
+
+      return false
+   end
+
+   function Save(cfg, content)
+      local Encoded = Allow_Encoding and Mainholder:encode(Mainholder.HttpService:JSONEncode(content)) or Mainholder.HttpService:JSONEncode(content)
+      
+      writefile(ConfigsStorage .. "/" .. cfg .. ".txt", Encoded)
+   end
     
    function Mainholder:LoadCfg(cfg)
       cfg = tostring(cfg)
-      local path = ConfigsStorage .. "/" .. cfg .. ".txt"
+      local Data = GetSettingsData(cfg)
 
-      local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
-
-      local success, JSONData = pcall(function()
-         return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
-      end)
-
-      if not success then
+      if not Data then
          warn("Failed to load config:", cfg)
          return
       end
-
-      for flag, value in pairs(JSONData) do
+      
+      for flag, value in pairs(Data) do
          if flag == "ConfigSettings" then continue end
          if Mainholder.Flags[flag] then
                task.spawn(function()
@@ -1454,42 +1494,44 @@ end
    end
    
    function Mainholder:SaveCfg(cfg, exp)
-
       cfg = tostring(cfg)
-      local path = ConfigsStorage .. "/" .. cfg .. ".txt"
+      local Data = GetSettingsData(cfg)
 
-      local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
-
-      local success, JSONData = pcall(function()
-         return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
-      end)
+      if not Data then
+         print("Failed to get Data")
+         return
+      end
       
       local content = {}
       for i,v in pairs(Mainholder.Flags) do
          content[i] = v.Value
-         if not JSONData.ConfigSettings then
+         if not Data.ConfigSettings then
             print("New ConfigSettings!")
             content["ConfigSettings"] = {
                ["Name"] = cfg,
                ["AllowExport"] = exp, -- Default Value
+               ["AutoLoad"] = AutoLoad,
+               ["LastLoaded"] = LastLoadedDefault,
                ["Author"] = tostring(game.Players.LocalPlayer.UserId),
             }
-         elseif tostring(JSONData.ConfigSettings.Author) == tostring(game.Players.LocalPlayer.UserId) then
+         elseif tostring(Data.ConfigSettings.Author) == tostring(game.Players.LocalPlayer.UserId) then
                content["ConfigSettings"] = {
                   ["Name"] = cfg,
                   ["AllowExport"] = exp, -- Default Value
+                  ["AutoLoad"] = AutoLoad,
+                  ["LastLoaded"] = LastLoadedDefault,
                   ["Author"] = tostring(game.Players.LocalPlayer.UserId),
                }
+
          else
             print("Changed AllowExport", tostring(exp))
-            JSONData.ConfigSettings.AllowExport = exp
+            Data.ConfigSettings.AllowExport = exp
+            Data.ConfigSettings.AutoLoad = AutoLoad
             continue
          end
       end
 
-      local Encoded = Allow_Encoding and Mainholder:encode(Mainholder.HttpService:JSONEncode(content)) or Mainholder.HttpService:JSONEncode(content)
-
-      writefile(ConfigsStorage .. "/" .. cfg .. ".txt", Encoded)
+      Save(cfg, content)
    end
    
    function Mainholder:CreateCfg(cfg, exp)
@@ -1500,13 +1542,13 @@ end
             content["ConfigSettings"] = {
                ["Name"] = cfg,
                ["AllowExport"] = exp, -- Default Value
+               ["AutoLoad"] = AutoLoad,
+               ["LastLoaded"] = LastLoadedDefault,
                ["Author"] = tostring(game.Players.LocalPlayer.UserId),
             }
        end
        
-       local Encoded = Allow_Encoding and Mainholder:encode(Mainholder.HttpService:JSONEncode(content)) or Mainholder.HttpService:JSONEncode(content)
-       
-       writefile(ConfigsStorage .. "/" .. cfg .. ".txt", Encoded)
+       Save(cfg, content)
    end
 
    function Mainholder:ImportCFG(data)
@@ -1519,29 +1561,21 @@ end
          return
       end
 
-      local Encoded = Allow_Encoding and Mainholder:encode(Mainholder.HttpService:JSONEncode(JSONData)) or Mainholder.HttpService:JSONEncode(JSONData)
-
-      writefile(ConfigsStorage .. "/" .. JSONData.ConfigSettings.Name .. ".txt", Encoded)
+      Save(JSONData.ConfigSettings.Name, JSONData)
 
       return {
          Name = JSONData.ConfigSettings.Name,
          Author = JSONData.ConfigSettings.Author,
+         AutoLoad = JSONData.ConfigSettings.AutoLoad,
+         LastLoaded = JSONData.ConfigSettings.LastLoaded,
          AllowExport = JSONData.ConfigSettings.AllowExport,
       }
    end
 
    function Mainholder:CheckExport(cfg)
       cfg = tostring(cfg)
-      local path = ConfigsStorage .. "/" .. cfg .. ".txt"
+      local JSONData = GetSettingsData(cfg)
 
-      local Encoded = readfile(MainFolder.."/".."ConfigsStorage".."/"..cfg..".txt")
-
-      local success, JSONData = pcall(function()
-         return Allow_Encoding and Mainholder.HttpService:JSONDecode(Mainholder:decode(Encoded)) or Mainholder.HttpService:JSONDecode(Encoded)
-      end)
-
-      -- print(JSONData.ConfigSettings.Author, game.Players.LocalPlayer.UserId)
-      
       if tonumber(JSONData.ConfigSettings.Author) == game.Players.LocalPlayer.UserId then
          return true, JSONData.ConfigSettings.AllowExport
       elseif JSONData.ConfigSettings.AllowExport then
@@ -1549,6 +1583,36 @@ end
       end
       
       return false, false
+   end
+
+   function Mainholder:SetLastLoaded(cfg)
+      for i,v in pairs(listfiles(ConfigsStorage)) do
+         local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
+         local Data = GetSettingsData(name)
+         Data.ConfigSettings.LastLoaded = cfg
+         Save(name, Data)
+      end
+   end
+
+   function GetLastLoaded()
+      for i,v in pairs(listfiles(ConfigsStorage)) do
+         local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
+         local Data = GetSettingsData(name)
+         return Data.ConfigSettings.LastLoaded
+      end
+      return nil
+   end
+
+   function Mainholder:CheckAutoLoad()
+      local LastLoaded_CFG = GetLastLoaded()
+      local JSONData = GetSettingsData(LastLoaded_CFG)
+      if not JSONData then
+         print("CheckAutoLoad: Couldn't GetSettingsData")
+         return
+      end
+      if JSONData.ConfigSettings.AutoLoad then
+         Mainholder:LoadCfg(LastLoaded_CFG)
+      end
    end
 
    function Mainholder:ExportCFG(cfg)
@@ -1561,7 +1625,7 @@ end
 
    function Mainholder:GetConfigs(Fullname)
       local Configs = {}
-
+      
       for i, v in pairs(listfiles(ConfigsStorage)) do
          local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "") -- gets last part of path
          table.insert(Configs, name)
@@ -2382,6 +2446,10 @@ end
     Value1.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
     Value1.TextXAlignment = Enum.TextXAlignment.Right
 
+      function Sliderfunc:visibility(vis)
+         Slider.Visible = vis
+      end
+
     -- Fixed: normalize value to 0-1 range
     local function valueToScale(val)
         return (val - min) / (max - min)
@@ -2443,6 +2511,7 @@ end
 end
  
  function ContainerItems:line()
+   local linefunc = {}
     local line = Instance.new("TextButton")
     local lineCorner = Instance.new("UICorner")
  
@@ -2459,8 +2528,13 @@ end
     lineCorner.CornerRadius = UDim.new(0, 5)
     lineCorner.Name = "lineCorner"
     lineCorner.Parent = line
+
+    function linefunc:visibility(val)
+      line.Visible = val
+    end
  
     Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+    return linefunc
  end
  
  
@@ -2596,6 +2670,7 @@ end
     local Labelfunc = {}
  
     local Label = Instance.new("TextButton")
+    local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
     local LabelCorner = Instance.new("UICorner")
  
     Label.Name = text
@@ -2607,6 +2682,10 @@ end
     Label.Text = text
     Label.TextColor3 = getgenv().GUI_Color.TextColor
     Label.TextSize = 15.000
+    Label.TextScaled = true
+
+    UITextSizeConstraint.Parent = Label
+    UITextSizeConstraint.MaxTextSize = 15.000
  
     -- local LabelStroke = Instance.new("UIStroke")
     -- LabelStroke.Parent = Label
@@ -3417,678 +3496,978 @@ end
     return Togglefunc
  end
  
- 
- function ContainerItems:Checklist(text,glob,list,callback)
-    local dropfunc = {}
-    
-    local DropToggled = false
-    local FrameSize = 0
-    local ItemCount = 0
-    local info_table = {}
-    callback = callback or function() end -- this is some stuff lead made some cool stuff
- 
- 
-    local Checklist = Instance.new("TextButton")
-    local ChecklistTitle = Instance.new("TextLabel")
-    local ChecklistCorner = Instance.new("UICorner")
-    local ChecklistArrow = Instance.new("ImageLabel")
-    local ChecklistFrame = Instance.new("Frame")
-    local ChecklistFrameCorner = Instance.new("UICorner")
-    local ChecklistHolder = Instance.new("ScrollingFrame")
-    local ChecklistItemLayout = Instance.new("UIListLayout")
-    local ChecklistItemHolder = Instance.new("UIPadding")
-    local ChecklistItem = Instance.new("TextButton")
-    local ChecklistItemCorner = Instance.new("UICorner")
-    local ChecklistItemCheck = Instance.new("ImageLabel")
-    local ChecklistSearch = Instance.new("TextBox")
-    local ChecklistSearchCorner = Instance.new("UICorner")
- 
- 
-    Checklist.Name = text
-    Checklist.Parent = Container
-    Checklist.BackgroundColor3 = getgenv().GUI_Color.DarkContrast
-    Checklist.Position = UDim2.new(-0.747557044, 0, 0.729113936, 0)
-    Checklist.Size = UDim2.new(0, 405, 0, 40)
-    Checklist.AutoButtonColor = false
-    Checklist.Font = Enum.Font.Gotham
-    Checklist.Text = ""
-    Checklist.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Checklist.TextSize = 15.000
- 
-    -- local ChecklistStroke = Instance.new("UIStroke")
-    -- ChecklistStroke.Parent = Checklist
-    -- ChecklistStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    -- ChecklistStroke.Color = Color3.fromRGB(65, 65, 65)
-    -- ChecklistStroke.Transparency = 0.6
- 
-    ChecklistTitle.Name = "ChecklistTitle"
-    ChecklistTitle.Parent = Checklist
-    ChecklistTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ChecklistTitle.BackgroundTransparency = 1.000
-    ChecklistTitle.Position = UDim2.new(0.0198511165, 0, 0, 0)
-    ChecklistTitle.Size = UDim2.new(0, 192, 0, 40)
-    ChecklistTitle.Font = Enum.Font.Gotham
-    ChecklistTitle.Text = text
-    ChecklistTitle.TextColor3 = getgenv().GUI_Color.TextColor
-    ChecklistTitle.TextSize = 15.000
-    ChecklistTitle.TextXAlignment = Enum.TextXAlignment.Left
- 
-    ChecklistCorner.CornerRadius = UDim.new(0, 6)
-    ChecklistCorner.Name = "ChecklistCorner"
-    ChecklistCorner.Parent = Checklist
- 
-    ChecklistArrow.Name = "ChecklistArrow"
-    ChecklistArrow.Parent = Checklist
-    ChecklistArrow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ChecklistArrow.BackgroundTransparency = 1.000
-    ChecklistArrow.Position = UDim2.new(0.899999976, 0, 0.200000003, 0)
-    ChecklistArrow.Size = UDim2.new(0, 27, 0, 27)
-    ChecklistArrow.Image = "http://www.roblox.com/asset/?id=6034818372"
- 
-    ChecklistFrame.Name = text
-    ChecklistFrame.Parent = Container
-    ChecklistFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
-    ChecklistFrame.BorderSizePixel = 0
-    ChecklistFrame.Position = UDim2.new(0, 0, 0.432717681, 0)
-    ChecklistFrame.Size = UDim2.new(0, 346, 0, 0)
-    -- 0, 346, 0, 100 ^^
-    ChecklistFrame.Visible = false
- 
-    ChecklistFrameCorner.Name = "ChecklistFrameCorner"
-    ChecklistFrameCorner.Parent = ChecklistFrame
- 
-    ChecklistHolder.Name = "ChecklistHolder"
-    ChecklistHolder.Parent = ChecklistFrame
-    ChecklistHolder.Active = true
-    ChecklistHolder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ChecklistHolder.BackgroundTransparency = 1.000
-    ChecklistHolder.BorderSizePixel = 0
-    ChecklistHolder.Position = UDim2.new(0.0263156779, 0, 0.00326599111, 0)
-    ChecklistHolder.Size = UDim2.new(0, 336, 0, 0)
-    -- 0, 336, 0, 100 ^^
-    ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 20)
-    ChecklistHolder.ScrollBarThickness = 3
- 
-    ChecklistItemLayout.Name = "ChecklistItemLayout"
-    ChecklistItemLayout.Parent = ChecklistHolder
-    ChecklistItemLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ChecklistItemLayout.Padding = UDim.new(0, 5)
- 
-    ChecklistItemHolder.Name = "ChecklistItemHolder"
-    ChecklistItemHolder.Parent = ChecklistHolder
-    ChecklistItemHolder.PaddingBottom = UDim.new(0, 5)
-    ChecklistItemHolder.PaddingTop = UDim.new(0, 5)
- 
-    ChecklistSearch.Name = "ChecklistSearch"
-    ChecklistSearch.Parent = Checklist
-    ChecklistSearch.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    ChecklistSearch.Position = UDim2.new(0.454320967, 0, 0.200000003, 0)
-    ChecklistSearch.Size = UDim2.new(0, 172, 0, 27)
-    ChecklistSearch.Font = Enum.Font.Ubuntu
-    ChecklistSearch.PlaceholderColor3 = Color3.fromRGB(115, 115, 115)
-    ChecklistSearch.PlaceholderText = "Search"
-    ChecklistSearch.Text = ""
-    ChecklistSearch.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ChecklistSearch.TextSize = 14.000
-    
-    ChecklistSearchCorner.Name = "ChecklistSearchCorner"
-    ChecklistSearchCorner.Parent = ChecklistSearch
- 
- local SearchBox = ChecklistSearch
- 
- local v2 = {}
- 
- function v2.gettext()
-     return SearchBox.Text
- end
- 
- function v2.GetItems()
-     return ChecklistHolder
- end
- 
- SearchBox.Changed:Connect(function()
-    local search = string.lower(SearchBox.Text)
-     for i,v in pairs(v2.GetItems():GetChildren()) do
-         if v.ClassName == "TextButton" then
-          local item = string.lower(v.Text)
-             if string.find(item, search) then
-                 v.Visible = true
-             else
-                 v.Visible = false
-             end
+function ContainerItems:Checklist(text, glob, list, callback)
+      local checklistfunc = {}
+      callback = callback or function() end
+
+      local DropToggled = false
+      local FrameSize = 300
+
+      local Items = {}
+      checklists[glob] = {Value = {}, Options = list}
+
+      --------------------------------------------------
+      -- UI
+      --------------------------------------------------
+
+      local Checklist = Instance.new("TextButton")
+      local ChecklistCorner = Instance.new("UICorner")
+      local ChecklistTitle = Instance.new("TextLabel")
+      local ChecklistArrow = Instance.new("ImageLabel")
+      local ChecklistFrame = Instance.new("Frame")
+      local ChecklistFrameCorner = Instance.new("UICorner")
+      local ChecklistItemHolder = Instance.new("UIPadding")
+      local ChecklistHolder = Instance.new("ScrollingFrame")
+      local ChecklistLayout = Instance.new("UIListLayout")
+      local ChecklistSearch = Instance.new("TextBox")
+      local ChecklistSearchCorner = Instance.new("UICorner")
+
+      Checklist.Parent = Container
+      Checklist.Size = UDim2.new(0,405,0,40)
+      Checklist.BackgroundColor3 = getgenv().GUI_Color.DarkContrast
+      Checklist.AutoButtonColor = false
+      Checklist.Text = ""
+
+      ChecklistCorner.CornerRadius = UDim.new(0, 6)
+      ChecklistCorner.Name = "ChecklistCorner"
+      ChecklistCorner.Parent = Checklist
+
+      ChecklistTitle.Parent = Checklist
+      ChecklistTitle.Size = UDim2.new(0,200,1,0)
+      ChecklistTitle.BackgroundTransparency = 1
+      ChecklistTitle.Position = UDim2.new(0.0198511165, 0, 0, 0)
+      ChecklistTitle.Text = text
+      ChecklistTitle.Font = Enum.Font.Gotham
+      ChecklistTitle.TextSize = 15
+      ChecklistTitle.TextColor3 = getgenv().GUI_Color.TextColor
+      ChecklistTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+
+      ChecklistArrow.Parent = Checklist
+      ChecklistArrow.Position = UDim2.new(0.9,0,0.2,0)
+      ChecklistArrow.Size = UDim2.new(0,27,0,27)
+      ChecklistArrow.BackgroundTransparency = 1
+      ChecklistArrow.Image = "rbxassetid://6034818372"
+
+      ChecklistFrame.Parent = Container
+      ChecklistFrame.Size = UDim2.new(0,346,0,0)
+      ChecklistFrame.Visible = false
+      ChecklistFrame.BackgroundColor3 = Color3.fromRGB(32,32,32)
+
+      ChecklistFrameCorner.Name = "ChecklistFrameCorner"
+      ChecklistFrameCorner.Parent = ChecklistFrame
+      ChecklistFrameCorner.CornerRadius = UDim.new(0, 6)
+
+      ChecklistHolder.Parent = ChecklistFrame
+      ChecklistHolder.Size = UDim2.new(1,0,1,0)
+      ChecklistHolder.BackgroundTransparency = 1
+      ChecklistHolder.ScrollBarThickness = 3
+
+      ChecklistLayout.Name = "ChecklistLayout"
+      ChecklistLayout.Parent = ChecklistHolder
+      ChecklistLayout.SortOrder = Enum.SortOrder.LayoutOrder
+      ChecklistLayout.Padding = UDim.new(0, 5)
+
+      ChecklistItemHolder.Name = "ChecklistItemHolder"
+      ChecklistItemHolder.Parent = ChecklistHolder
+      ChecklistItemHolder.PaddingBottom = UDim.new(0, 5)
+      ChecklistItemHolder.PaddingTop = UDim.new(0, 5)
+
+      ChecklistSearch.Parent = Checklist
+      ChecklistSearch.Position = UDim2.new(0.45,0,0.2,0)
+      ChecklistSearch.Size = UDim2.new(0,170,0,27)
+      ChecklistSearch.PlaceholderText = "Search"
+      ChecklistSearch.BackgroundColor3 = Color3.fromRGB(40,40,40)
+      ChecklistSearch.TextColor3 = Color3.fromRGB(255,255,255)
+
+      ChecklistSearchCorner.Name = "ChecklistSearchCorner"
+      ChecklistSearchCorner.Parent = ChecklistSearch
+
+      Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+      --------------------------------------------------
+      -- dropdown
+      --------------------------------------------------
+
+      Checklist.MouseButton1Click:Connect(function()
+
+         if not DropToggled then
+               ChecklistFrame.Visible = true
+               ChecklistFrame:TweenSize(UDim2.new(0,346,0,FrameSize),"Out","Quart",0.15,true)
+               TweenService:Create(ChecklistArrow,TweenInfo.new(.2),{Rotation = 180}):Play()
+               Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+         else
+               ChecklistFrame:TweenSize(UDim2.new(0,346,0,0),"Out","Quart",0.15,true)
+               TweenService:Create(ChecklistArrow,TweenInfo.new(.2),{Rotation = 0}):Play()
+               task.wait(.15)
+               ChecklistFrame.Visible = false
+               Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
          end
-     end
- end)
- 
-    Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
- --------------------------------------------------------------------------------------------------
- --[[
-    ChecklistSearch.Changed:Connect(function()
- 
-    ChecklistHolder.Size = UDim2.new(0, 336, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 10)
- 
-    ChecklistFrame.Size = UDim2.new(0, 346, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 10)
-    end)]]
-   
-    Checklist.MouseEnter:Connect(
-       function()
-          TweenService:Create(
-             Checklist,
-             TweenInfo.new(.2, Enum.EasingStyle.Quad),
-             {BackgroundColor3 = Color3.fromRGB(45, 45, 45)}
-          ):Play()
-       end
-    )
-    Checklist.MouseLeave:Connect(
-       function()
-          TweenService:Create(
-             Checklist,
-             TweenInfo.new(.2, Enum.EasingStyle.Quad),
-             {BackgroundColor3 = getgenv().GUI_Color.DarkContrast}
-          ):Play()
-       end
-    )
- 
-    Checklist.MouseButton1Click:Connect(
-       function()
-          if DropToggled == false then
-             ChecklistFrame.Visible = true
-             ChecklistFrame:TweenSize(
-                UDim2.new(0, 346, 0, FrameSize),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quart,
-                0.1,
-                true
-             )
-             ChecklistHolder:TweenSize(
-                UDim2.new(0, 336, 0, FrameSize),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quart,
-                0.1,
-                true
-             )
-             TweenService:Create(
-                ChecklistArrow,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {Rotation = 180}
-             ):Play()
-             repeat
-                wait()
-             until ChecklistFrame.Size == UDim2.new(0, 346, 0, FrameSize)
-             Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
-          else
-             ChecklistFrame:TweenSize(
-                UDim2.new(0, 346, 0, 0),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quart,
-                0.1,
-                true
-             )
-             ChecklistHolder:TweenSize(
-                UDim2.new(0, 336, 0, 0),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quart,
-                0.1,
-                true
-             )
-             TweenService:Create(
-                ChecklistArrow,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {Rotation = 0}
-             ):Play()
-             repeat
-                wait()
-             until ChecklistFrame.Size == UDim2.new(0, 346, 0, 0)
-             ChecklistFrame.Visible = false
-             Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
-          end
-          DropToggled = not DropToggled
-       end
-    )
-    -- test time
-    checklists[glob] = {Value = {}, Toggled = false, Options = list}
-    local OptionPreset = {}
- 
- 
-    
-    for i, v in next, list do
-      task.wait(0.005)
-       FrameSize = 300
- 
-       local ChecklistItem = Instance.new("TextButton")
-       local ChecklistItemCorner = Instance.new("UICorner")
-       -- local ChecklistItemCheck = Instance.new("ImageLabel")
-       local CheckFrame = Instance.new("Frame")
-       local CheckFrameCorner = Instance.new("UICorner")
-       local KeyBoxStroke = Instance.new("UIStroke")
- 
-       ChecklistItem.Name = v
-       ChecklistItem.Parent = ChecklistHolder
-       ChecklistItem.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
-       ChecklistItem.Size = UDim2.new(0, 309, 0, 24)
-       ChecklistItem.AutoButtonColor = false
-       ChecklistItem.Font = Enum.Font.Gotham
-       ChecklistItem.Text = v
-       ChecklistItem.TextColor3 = Color3.fromRGB(255, 255, 255)
-       ChecklistItem.TextSize = 14.000
-    
-       ChecklistItemCorner.Name = "ChecklistItemCorner"
-       ChecklistItemCorner.Parent = ChecklistItem
-    
-       -- ChecklistItemCheck.Name = "ChecklistItemCheck"
-       -- ChecklistItemCheck.Parent = ChecklistItem
-       -- ChecklistItemCheck.BackgroundColor3 = Color3.fromRGB(16, 192, 255)
-       -- ChecklistItemCheck.BackgroundTransparency = 1.000
-       -- ChecklistItemCheck.Position = UDim2.new(0.898372591, 0, 0.0833333358, 0)
-       -- ChecklistItemCheck.Size = UDim2.new(0, 28, 0, 20)
-       -- ChecklistItemCheck.Image = "rbxassetid://6031068420"
-       -- ChecklistItemCheck.ImageColor3 = Color3.fromRGB(236, 136, 36)
- 
-       CheckFrame.Name = "CheckFrame"
-       CheckFrame.Parent = ChecklistItem
-       CheckFrame.BackgroundColor3 = Color3.fromRGB(236, 136, 36)
-       CheckFrame.BackgroundTransparency = 1.000
-       CheckFrame.Position = UDim2.new(0.900849879, 0, 0.120370373, 0)
-       CheckFrame.Size = UDim2.new(0, 22, 0, 20)
-       
-       CheckFrameCorner.CornerRadius = UDim.new(0, 3)
-       CheckFrameCorner.Name = "CheckFrameCorner"
-       CheckFrameCorner.Parent = CheckFrame
- 
-       KeyBoxStroke.Parent = CheckFrame
-       KeyBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-       KeyBoxStroke.Color = Color3.fromRGB(255,255,255)
-       KeyBoxStroke.Thickness = 1
- 
-       ChecklistItem.MouseEnter:Connect(
-          function()
-             TweenService:Create(
-                ChecklistItem,
-                TweenInfo.new(.2, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = Color3.fromRGB(37, 37, 37)}
-             ):Play()
-          end
-       )
-       ChecklistItem.MouseLeave:Connect(
-          function()
-             TweenService:Create(
-                ChecklistItem,
-                TweenInfo.new(.2, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}
-             ):Play()
-          end
-       )
- 
-       ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 20)
- 
-       
-       ChecklistItem.MouseButton1Click:Connect(function()
-       if table.find(checklists[glob].Value, v) then
-         table.remove(checklists[glob].Value, table.find(checklists[glob].Value, v))
-         --ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
-         callback(checklists[glob].Value)
-      else
-         table.insert(checklists[glob].Value, v)
-         --ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
+
+         DropToggled = not DropToggled
+      end)
+
+      --------------------------------------------------
+      -- item creation
+      --------------------------------------------------
+
+      local function updateValue(name, state)
+
+         if state then
+               if not table.find(checklists[glob].Value, name) then
+                  table.insert(checklists[glob].Value, name)
+               end
+         else
+               local index = table.find(checklists[glob].Value, name)
+               if index then
+                  table.remove(checklists[glob].Value, index)
+               end
+         end
+
          callback(checklists[glob].Value)
       end
-    end)
- 
-      local onlol = false
-      ChecklistItem.MouseButton1Click:Connect(function()
-          if onlol == false then
-             TweenService:Create(
-                CheckFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0}
-             ):Play()
-             TweenService:Create(
-                KeyBoxStroke,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {Color = Color3.fromRGB(236, 136, 36)}
-             ):Play()
-             
-             onlol = true
-            --[[
-             table.foreach(list, function(key, value)
-                info_table[ChecklistItem.Text] = onlol
-             end)
- 
-             callback(info_table)]]
-          else
-             TweenService:Create(
-                CheckFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 1}
-             ):Play()
-             TweenService:Create(
-                KeyBoxStroke,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {Color = Color3.fromRGB(255,255,255)}
-             ):Play()
-             onlol = false
- 
-             --[[
-             table.foreach(list, function(key, value)
-                info_table[ChecklistItem.Text] = onlol
-             end)
- 
-             callback(info_table)]]
- 
-             --callback(checklists.Value)
-          end
-             Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
-      end)
-    end
- 
-    function dropfunc:Refresh(newlist)
-       for i,v in next, ChecklistHolder:GetChildren() do
-          if v.ClassName == "TextButton" then
-             v:Destroy()
-          end
-       end
- 
-       for i,v in next, newlist do
-         task.wait(0.005)
-          local ChecklistItem = Instance.new("TextButton")
-          local ChecklistItemCorner = Instance.new("UICorner")
-          -- local ChecklistItemCheck = Instance.new("ImageLabel")
-          local CheckFrame = Instance.new("Frame")
-          local CheckFrameCorner = Instance.new("UICorner")
-          local KeyBoxStroke = Instance.new("UIStroke")
-    
-          ChecklistItem.Name = v
-          ChecklistItem.Parent = ChecklistHolder
-          ChecklistItem.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
-          ChecklistItem.Size = UDim2.new(0, 309, 0, 24)
-          ChecklistItem.AutoButtonColor = false
-          ChecklistItem.Font = Enum.Font.Gotham
-          ChecklistItem.Text = v
-          ChecklistItem.TextColor3 = Color3.fromRGB(255, 255, 255)
-          ChecklistItem.TextSize = 14.000
-       
-          ChecklistItemCorner.Name = "ChecklistItemCorner"
-          ChecklistItemCorner.Parent = ChecklistItem
-       
-          -- ChecklistItemCheck.Name = "ChecklistItemCheck"
-          -- ChecklistItemCheck.Parent = ChecklistItem
-          -- ChecklistItemCheck.BackgroundColor3 = Color3.fromRGB(16, 192, 255)
-          -- ChecklistItemCheck.BackgroundTransparency = 1.000
-          -- ChecklistItemCheck.Position = UDim2.new(0.898372591, 0, 0.0833333358, 0)
-          -- ChecklistItemCheck.Size = UDim2.new(0, 28, 0, 20)
-          -- ChecklistItemCheck.Image = "rbxassetid://6031068420"
-          -- ChecklistItemCheck.ImageColor3 = Color3.fromRGB(236, 136, 36)
-    
-          CheckFrame.Name = "CheckFrame"
-          CheckFrame.Parent = ChecklistItem
-          CheckFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-          CheckFrame.BackgroundTransparency = 1.000
-          CheckFrame.Position = UDim2.new(0.900849879, 0, 0.120370373, 0)
-          CheckFrame.Size = UDim2.new(0, 22, 0, 20)
-          
-          CheckFrameCorner.CornerRadius = UDim.new(0, 3)
-          CheckFrameCorner.Name = "CheckFrameCorner"
-          CheckFrameCorner.Parent = CheckFrame
-    
-          KeyBoxStroke.Parent = CheckFrame
-          KeyBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-          KeyBoxStroke.Color = Color3.fromRGB(255,255,255)
-          KeyBoxStroke.Thickness = 1
-    
-          ChecklistItem.MouseEnter:Connect(
-             function()
-                TweenService:Create(
-                   ChecklistItem,
-                   TweenInfo.new(.2, Enum.EasingStyle.Quad),
-                   {BackgroundColor3 = Color3.fromRGB(37, 37, 37)}
-                ):Play()
-             end
-          )
-          ChecklistItem.MouseLeave:Connect(
-             function()
-                TweenService:Create(
-                   ChecklistItem,
-                   TweenInfo.new(.2, Enum.EasingStyle.Quad),
-                   {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}
-                ):Play()
-             end
-          )
-    
-          ChecklistItem.MouseButton1Click:Connect(function()
-             if table.find(checklists[glob].Value, v) then
-               table.remove(checklists[glob].Value, table.find(checklists[glob].Value, v))
-             --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
-               callback(checklists[glob].Value)
-            else
-               table.insert(checklists[glob].Value, v)
-             --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
-               callback(checklists[glob].Value)
-            end
-          end)
- 
-      local onlol = false
-      ChecklistItem.MouseButton1Click:Connect(function()
-          if onlol == false then
-             TweenService:Create(
-                CheckFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0}
-             ):Play()
-             TweenService:Create(
-                KeyBoxStroke,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {Color = Color3.fromRGB(236, 136, 36)}
-             ):Play()
-             
-             onlol = true
-            --[[
-             table.foreach(list, function(key, value)
-                info_table[ChecklistItem.Text] = onlol
-             end)
- 
-             callback(info_table)]]
-          else
-             TweenService:Create(
-                CheckFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 1}
-             ):Play()
-             TweenService:Create(
-                KeyBoxStroke,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {Color = Color3.fromRGB(255,255,255)}
-             ):Play()
-             onlol = false
- 
-             --[[
-             table.foreach(list, function(key, value)
-                info_table[ChecklistItem.Text] = onlol
-             end)
- 
-             callback(info_table)]]
- 
-             --callback(checklists.Value)
-          end
-             Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
-      end)
-    
-          ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 15)
-       end
- 
-    end
- 
- 
-    function dropfunc:Clear()
-       ChecklistTitle.Text = text
-       FrameSize = 0
-       ItemCount = 0
- 
-       for i,v in next, ChecklistHolder:GetChildren() do
-          if v.Name == "Item" then
-             v:Destroy()
-          end
-       end
-       
-       ChecklistFrame:TweenSize(
-          UDim2.new(0, 403, 0, 0),
-          Enum.EasingDirection.Out,
-          Enum.EasingStyle.Quart,
-          0.1,
-          true
-       )
-       ChecklistHolder:TweenSize(
-          UDim2.new(0, 386, 0, 0),
-          Enum.EasingDirection.Out,
-          Enum.EasingStyle.Quart,
-          0.1,
-          true
-       )
-       TweenService:Create(
-          ChecklistArrow,
-          TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-          {Rotation = 0}
-       ):Play()
-       repeat
-          wait()
-       until ChecklistFrame.Size == UDim2.new(0, 403, 0, 0)
-       ChecklistFrame.Visible = false
-       Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
-    end
- 
-    function dropfunc:Add(toadd)
-       ItemCount = ItemCount + 1
- 
-          FrameSize = 300
- 
-          local ChecklistItem = Instance.new("TextButton")
-          local ChecklistItemCorner = Instance.new("UICorner")
-          -- local ChecklistItemCheck = Instance.new("ImageLabel")
-          local CheckFrame = Instance.new("Frame")
-          local CheckFrameCorner = Instance.new("UICorner")
-          local KeyBoxStroke = Instance.new("UIStroke")
-    
-          ChecklistItem.Name = toadd
-          ChecklistItem.Parent = ChecklistHolder
-          ChecklistItem.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
-          ChecklistItem.Size = UDim2.new(0, 309, 0, 24)
-          ChecklistItem.AutoButtonColor = false
-          ChecklistItem.Font = Enum.Font.Gotham
-          ChecklistItem.Text = toadd
-          ChecklistItem.TextColor3 = Color3.fromRGB(255, 255, 255)
-          ChecklistItem.TextSize = 14.000
-       
-          ChecklistItemCorner.Name = "ChecklistItemCorner"
-          ChecklistItemCorner.Parent = ChecklistItem
-       
-          -- ChecklistItemCheck.Name = "ChecklistItemCheck"
-          -- ChecklistItemCheck.Parent = ChecklistItem
-          -- ChecklistItemCheck.BackgroundColor3 = Color3.fromRGB(16, 192, 255)
-          -- ChecklistItemCheck.BackgroundTransparency = 1.000
-          -- ChecklistItemCheck.Position = UDim2.new(0.898372591, 0, 0.0833333358, 0)
-          -- ChecklistItemCheck.Size = UDim2.new(0, 28, 0, 20)
-          -- ChecklistItemCheck.Image = "rbxassetid://6031068420"
-          -- ChecklistItemCheck.ImageColor3 = Color3.fromRGB(236, 136, 36)
-    
-          CheckFrame.Name = "CheckFrame"
-          CheckFrame.Parent = ChecklistItem
-          CheckFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-          CheckFrame.BackgroundTransparency = 1.000
-          CheckFrame.Position = UDim2.new(0.900849879, 0, 0.120370373, 0)
-          CheckFrame.Size = UDim2.new(0, 22, 0, 20)
-          
-          CheckFrameCorner.CornerRadius = UDim.new(0, 3)
-          CheckFrameCorner.Name = "CheckFrameCorner"
-          CheckFrameCorner.Parent = CheckFrame
-    
-          KeyBoxStroke.Parent = CheckFrame
-          KeyBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-          KeyBoxStroke.Color = Color3.fromRGB(255,255,255)
-          KeyBoxStroke.Thickness = 1
- 
-       ChecklistItem.MouseEnter:Connect(
-          function()
-             TweenService:Create(
-                ChecklistItem,
-                TweenInfo.new(.2, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = Color3.fromRGB(37, 37, 37)}
-             ):Play()
-          end
-       )
-       ChecklistItem.MouseLeave:Connect(
-          function()
-             TweenService:Create(
-                ChecklistItem,
-                TweenInfo.new(.2, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}
-             ):Play()
-          end
-       )
- 
-       ChecklistItem.MouseButton1Click:Connect(function()
-          if table.find(checklists[glob].Value, toadd) then
-            table.remove(checklists[glob].Value, table.find(checklists[glob].Value, toadd))
-          --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
-            callback(checklists[glob].Value)
-         else
-            table.insert(checklists[glob].Value, toadd)
-          --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
-            callback(checklists[glob].Value)
+
+      local function createItem(v)
+
+         local Item = Instance.new("TextButton")
+         local ItemCorner = Instance.new("UICorner")
+         local CheckFrame = Instance.new("Frame")
+         local CheckFrameCorner = Instance.new("UICorner")
+         local Stroke = Instance.new("UIStroke")
+
+         Item.Parent = ChecklistHolder
+         Item.Size = UDim2.new(0, 309, 0, 24)
+         Item.Text = v
+         Item.AutoButtonColor = false
+         Item.Font = Enum.Font.Gotham
+         Item.TextSize = 14
+         Item.BackgroundColor3 = Color3.fromRGB(32,32,32)
+         Item.TextColor3 = Color3.fromRGB(255,255,255)
+         Item.Name = v
+
+         ItemCorner.CornerRadius = UDim.new(0, 6)
+         ItemCorner.Name = "ItemCorner"
+         ItemCorner.Parent = Item
+
+         CheckFrame.Parent = Item
+         CheckFrame.Position = UDim2.new(0.900849879, 0, 0.120370373, 0)
+         CheckFrame.Size = UDim2.new(0, 22, 0, 20)
+         CheckFrame.BackgroundTransparency = 1
+         CheckFrame.BackgroundColor3 = Color3.fromRGB(236,136,36)
+
+
+         CheckFrameCorner.CornerRadius = UDim.new(0, 3)
+         CheckFrameCorner.Name = "CheckFrameCorner"
+         CheckFrameCorner.Parent = CheckFrame
+
+         Stroke.Parent = CheckFrame
+         Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+         Stroke.Color = Color3.fromRGB(255,255,255)
+         Stroke.Thickness = 1
+
+         Items[v] = {
+               Frame = CheckFrame,
+               Stroke = Stroke,
+               Toggled = false
+         }
+
+         Item.MouseButton1Click:Connect(function()
+
+               local item = Items[v]
+
+               item.Toggled = not item.Toggled
+
+               if item.Toggled then
+
+                  TweenService:Create(CheckFrame,TweenInfo.new(.2),{
+                     BackgroundTransparency = 0
+                  }):Play()
+
+                  TweenService:Create(Stroke,TweenInfo.new(.2),{
+                     Color = Color3.fromRGB(236,136,36)
+                  }):Play()
+
+               else
+
+                  TweenService:Create(CheckFrame,TweenInfo.new(.2),{
+                     BackgroundTransparency = 1
+                  }):Play()
+
+                  TweenService:Create(Stroke,TweenInfo.new(.2),{
+                     Color = Color3.fromRGB(255,255,255)
+                  }):Play()
+
+               end
+
+               updateValue(v, item.Toggled)
+
+         end)
+      end
+
+      --------------------------------------------------
+      -- functions
+      --------------------------------------------------
+
+      function checklistfunc:Set(values)
+
+         if type(values) ~= "table" then return end
+
+         checklists[glob].Value = {}
+
+         for name,item in pairs(Items) do
+
+               local should = table.find(values,name)
+
+               item.Toggled = should and true or false
+
+               if item.Toggled then
+
+                  item.Frame.BackgroundTransparency = 0
+                  item.Stroke.Color = Color3.fromRGB(236,136,36)
+                  table.insert(checklists[glob].Value,name)
+
+               else
+
+                  item.Frame.BackgroundTransparency = 1
+                  item.Stroke.Color = Color3.fromRGB(255,255,255)
+
+               end
          end
-       end)
+
+         callback(checklists[glob].Value)
+      end
+
+      function checklistfunc:Refresh(newlist)
+
+         for _,v in pairs(ChecklistHolder:GetChildren()) do
+               if v:IsA("TextButton") then
+                  v:Destroy()
+               end
+         end
+
+         Items = {}
+         checklists[glob].Value = {}
+
+         for _,v in pairs(newlist) do
+               createItem(v)
+         end
+      end
+
+      function checklistfunc:Add(v)
+         createItem(v)
+      end
+
+      function checklistfunc:Clear()
+         checklistfunc:Set({})
+      end
+
+      --------------------------------------------------
+      -- search
+      --------------------------------------------------
+
+      ChecklistSearch:GetPropertyChangedSignal("Text"):Connect(function()
+
+         local search = string.lower(ChecklistSearch.Text)
+
+         for name,item in pairs(Items) do
+
+               local btn = item.Frame.Parent
+
+               if string.find(string.lower(name), search) then
+                  btn.Visible = true
+               else
+                  btn.Visible = false
+               end
+         end
+      end)
+
+      --------------------------------------------------
+      -- load list
+      --------------------------------------------------
+
+      for _,v in pairs(list) do
+         createItem(v)
+      end
+
+      Mainholder.Flags[text] = checklistfunc
+
+      return checklistfunc
+end
  
-       local onlol = false
-       ChecklistItem.MouseButton1Click:Connect(function()
-          if onlol == false then
-             TweenService:Create(
-                CheckFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0}
-             ):Play()
-             TweenService:Create(
-                KeyBoxStroke,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {Color = Color3.fromRGB(236, 136, 36)}
-             ):Play()
+--  function ContainerItems:Checklist(text,glob,list,callback)
+--     local checklistfunc = {}
+    
+--     local DropToggled = false
+--     local FrameSize = 0
+--     local ItemCount = 0
+--     local info_table = {}
+--     callback = callback or function() end -- this is some stuff lead made some cool stuff
+ 
+ 
+--     local Checklist = Instance.new("TextButton")
+--     local ChecklistTitle = Instance.new("TextLabel")
+--     local ChecklistCorner = Instance.new("UICorner")
+--     local ChecklistArrow = Instance.new("ImageLabel")
+--     local ChecklistFrame = Instance.new("Frame")
+--     local ChecklistFrameCorner = Instance.new("UICorner")
+--     local ChecklistHolder = Instance.new("ScrollingFrame")
+--     local ChecklistItemLayout = Instance.new("UIListLayout")
+--     local ChecklistItemHolder = Instance.new("UIPadding")
+--     local ChecklistItem = Instance.new("TextButton")
+--     local ChecklistItemCorner = Instance.new("UICorner")
+--     local ChecklistItemCheck = Instance.new("ImageLabel")
+--     local ChecklistSearch = Instance.new("TextBox")
+--     local ChecklistSearchCorner = Instance.new("UICorner")
+ 
+ 
+--     Checklist.Name = text
+--     Checklist.Parent = Container
+--     Checklist.BackgroundColor3 = getgenv().GUI_Color.DarkContrast
+--     Checklist.Position = UDim2.new(-0.747557044, 0, 0.729113936, 0)
+--     Checklist.Size = UDim2.new(0, 405, 0, 40)
+--     Checklist.AutoButtonColor = false
+--     Checklist.Font = Enum.Font.Gotham
+--     Checklist.Text = ""
+--     Checklist.TextColor3 = Color3.fromRGB(255, 255, 255)
+--     Checklist.TextSize = 15.000
+ 
+--     -- local ChecklistStroke = Instance.new("UIStroke")
+--     -- ChecklistStroke.Parent = Checklist
+--     -- ChecklistStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+--     -- ChecklistStroke.Color = Color3.fromRGB(65, 65, 65)
+--     -- ChecklistStroke.Transparency = 0.6
+ 
+--     ChecklistTitle.Name = "ChecklistTitle"
+--     ChecklistTitle.Parent = Checklist
+--     ChecklistTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+--     ChecklistTitle.BackgroundTransparency = 1.000
+--     ChecklistTitle.Position = UDim2.new(0.0198511165, 0, 0, 0)
+--     ChecklistTitle.Size = UDim2.new(0, 192, 0, 40)
+--     ChecklistTitle.Font = Enum.Font.Gotham
+--     ChecklistTitle.Text = text
+--     ChecklistTitle.TextColor3 = getgenv().GUI_Color.TextColor
+--     ChecklistTitle.TextSize = 15.000
+--     ChecklistTitle.TextXAlignment = Enum.TextXAlignment.Left
+ 
+--     ChecklistCorner.CornerRadius = UDim.new(0, 6)
+--     ChecklistCorner.Name = "ChecklistCorner"
+--     ChecklistCorner.Parent = Checklist
+ 
+--     ChecklistArrow.Name = "ChecklistArrow"
+--     ChecklistArrow.Parent = Checklist
+--     ChecklistArrow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+--     ChecklistArrow.BackgroundTransparency = 1.000
+--     ChecklistArrow.Position = UDim2.new(0.899999976, 0, 0.200000003, 0)
+--     ChecklistArrow.Size = UDim2.new(0, 27, 0, 27)
+--     ChecklistArrow.Image = "http://www.roblox.com/asset/?id=6034818372"
+ 
+--     ChecklistFrame.Name = text
+--     ChecklistFrame.Parent = Container
+--     ChecklistFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+--     ChecklistFrame.BorderSizePixel = 0
+--     ChecklistFrame.Position = UDim2.new(0, 0, 0.432717681, 0)
+--     ChecklistFrame.Size = UDim2.new(0, 346, 0, 0)
+--     -- 0, 346, 0, 100 ^^
+--     ChecklistFrame.Visible = false
+ 
+--     ChecklistFrameCorner.Name = "ChecklistFrameCorner"
+--     ChecklistFrameCorner.Parent = ChecklistFrame
+ 
+--     ChecklistHolder.Name = "ChecklistHolder"
+--     ChecklistHolder.Parent = ChecklistFrame
+--     ChecklistHolder.Active = true
+--     ChecklistHolder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+--     ChecklistHolder.BackgroundTransparency = 1.000
+--     ChecklistHolder.BorderSizePixel = 0
+--     ChecklistHolder.Position = UDim2.new(0.0263156779, 0, 0.00326599111, 0)
+--     ChecklistHolder.Size = UDim2.new(0, 336, 0, 0)
+--     -- 0, 336, 0, 100 ^^
+--     ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 20)
+--     ChecklistHolder.ScrollBarThickness = 3
+ 
+--     ChecklistItemLayout.Name = "ChecklistItemLayout"
+--     ChecklistItemLayout.Parent = ChecklistHolder
+--     ChecklistItemLayout.SortOrder = Enum.SortOrder.LayoutOrder
+--     ChecklistItemLayout.Padding = UDim.new(0, 5)
+ 
+--     ChecklistItemHolder.Name = "ChecklistItemHolder"
+--     ChecklistItemHolder.Parent = ChecklistHolder
+--     ChecklistItemHolder.PaddingBottom = UDim.new(0, 5)
+--     ChecklistItemHolder.PaddingTop = UDim.new(0, 5)
+ 
+--     ChecklistSearch.Name = "ChecklistSearch"
+--     ChecklistSearch.Parent = Checklist
+--     ChecklistSearch.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+--     ChecklistSearch.Position = UDim2.new(0.454320967, 0, 0.200000003, 0)
+--     ChecklistSearch.Size = UDim2.new(0, 172, 0, 27)
+--     ChecklistSearch.Font = Enum.Font.Ubuntu
+--     ChecklistSearch.PlaceholderColor3 = Color3.fromRGB(115, 115, 115)
+--     ChecklistSearch.PlaceholderText = "Search"
+--     ChecklistSearch.Text = ""
+--     ChecklistSearch.TextColor3 = Color3.fromRGB(255, 255, 255)
+--     ChecklistSearch.TextSize = 14.000
+    
+--     ChecklistSearchCorner.Name = "ChecklistSearchCorner"
+--     ChecklistSearchCorner.Parent = ChecklistSearch
+ 
+--  local SearchBox = ChecklistSearch
+ 
+--  local v2 = {}
+ 
+--  function v2.gettext()
+--      return SearchBox.Text
+--  end
+ 
+--  function v2.GetItems()
+--      return ChecklistHolder
+--  end
+ 
+--  SearchBox.Changed:Connect(function()
+--     local search = string.lower(SearchBox.Text)
+--      for i,v in pairs(v2.GetItems():GetChildren()) do
+--          if v.ClassName == "TextButton" then
+--           local item = string.lower(v.Text)
+--              if string.find(item, search) then
+--                  v.Visible = true
+--              else
+--                  v.Visible = false
+--              end
+--          end
+--      end
+--  end)
+ 
+--     Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+--  --------------------------------------------------------------------------------------------------
+--  --[[
+--     ChecklistSearch.Changed:Connect(function()
+ 
+--     ChecklistHolder.Size = UDim2.new(0, 336, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 10)
+ 
+--     ChecklistFrame.Size = UDim2.new(0, 346, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 10)
+--     end)]]
+   
+--     Checklist.MouseEnter:Connect(
+--        function()
+--           TweenService:Create(
+--              Checklist,
+--              TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--              {BackgroundColor3 = Color3.fromRGB(45, 45, 45)}
+--           ):Play()
+--        end
+--     )
+--     Checklist.MouseLeave:Connect(
+--        function()
+--           TweenService:Create(
+--              Checklist,
+--              TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--              {BackgroundColor3 = getgenv().GUI_Color.DarkContrast}
+--           ):Play()
+--        end
+--     )
+ 
+--     Checklist.MouseButton1Click:Connect(
+--        function()
+--           if DropToggled == false then
+--              ChecklistFrame.Visible = true
+--              ChecklistFrame:TweenSize(
+--                 UDim2.new(0, 346, 0, FrameSize),
+--                 Enum.EasingDirection.Out,
+--                 Enum.EasingStyle.Quart,
+--                 0.1,
+--                 true
+--              )
+--              ChecklistHolder:TweenSize(
+--                 UDim2.new(0, 336, 0, FrameSize),
+--                 Enum.EasingDirection.Out,
+--                 Enum.EasingStyle.Quart,
+--                 0.1,
+--                 true
+--              )
+--              TweenService:Create(
+--                 ChecklistArrow,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+--                 {Rotation = 180}
+--              ):Play()
+--              repeat
+--                 wait()
+--              until ChecklistFrame.Size == UDim2.new(0, 346, 0, FrameSize)
+--              Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+--           else
+--              ChecklistFrame:TweenSize(
+--                 UDim2.new(0, 346, 0, 0),
+--                 Enum.EasingDirection.Out,
+--                 Enum.EasingStyle.Quart,
+--                 0.1,
+--                 true
+--              )
+--              ChecklistHolder:TweenSize(
+--                 UDim2.new(0, 336, 0, 0),
+--                 Enum.EasingDirection.Out,
+--                 Enum.EasingStyle.Quart,
+--                 0.1,
+--                 true
+--              )
+--              TweenService:Create(
+--                 ChecklistArrow,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+--                 {Rotation = 0}
+--              ):Play()
+--              repeat
+--                 wait()
+--              until ChecklistFrame.Size == UDim2.new(0, 346, 0, 0)
+--              ChecklistFrame.Visible = false
+--              Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+--           end
+--           DropToggled = not DropToggled
+--        end
+--     )
+--     -- test time
+--     checklists[glob] = {Value = {}, Toggled = false, Options = list}
+--     local OptionPreset = {}
+ 
+--     function checklistfunc:Set(val)
+      
+--     end
+    
+--     for i, v in next, list do
+--       task.wait(0.005)
+--        FrameSize = 300
+ 
+--        local ChecklistItem = Instance.new("TextButton")
+--        local ChecklistItemCorner = Instance.new("UICorner")
+--        -- local ChecklistItemCheck = Instance.new("ImageLabel")
+--        local CheckFrame = Instance.new("Frame")
+--        local CheckFrameCorner = Instance.new("UICorner")
+--        local KeyBoxStroke = Instance.new("UIStroke")
+ 
+--        ChecklistItem.Name = v
+--        ChecklistItem.Parent = ChecklistHolder
+--        ChecklistItem.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+--        ChecklistItem.Size = UDim2.new(0, 309, 0, 24)
+--        ChecklistItem.AutoButtonColor = false
+--        ChecklistItem.Font = Enum.Font.Gotham
+--        ChecklistItem.Text = v
+--        ChecklistItem.TextColor3 = Color3.fromRGB(255, 255, 255)
+--        ChecklistItem.TextSize = 14.000
+    
+--        ChecklistItemCorner.Name = "ChecklistItemCorner"
+--        ChecklistItemCorner.Parent = ChecklistItem
+    
+--        -- ChecklistItemCheck.Name = "ChecklistItemCheck"
+--        -- ChecklistItemCheck.Parent = ChecklistItem
+--        -- ChecklistItemCheck.BackgroundColor3 = Color3.fromRGB(16, 192, 255)
+--        -- ChecklistItemCheck.BackgroundTransparency = 1.000
+--        -- ChecklistItemCheck.Position = UDim2.new(0.898372591, 0, 0.0833333358, 0)
+--        -- ChecklistItemCheck.Size = UDim2.new(0, 28, 0, 20)
+--        -- ChecklistItemCheck.Image = "rbxassetid://6031068420"
+--        -- ChecklistItemCheck.ImageColor3 = Color3.fromRGB(236, 136, 36)
+ 
+--        CheckFrame.Name = "CheckFrame"
+--        CheckFrame.Parent = ChecklistItem
+--        CheckFrame.BackgroundColor3 = Color3.fromRGB(236, 136, 36)
+--        CheckFrame.BackgroundTransparency = 1.000
+--        CheckFrame.Position = UDim2.new(0.900849879, 0, 0.120370373, 0)
+--        CheckFrame.Size = UDim2.new(0, 22, 0, 20)
+       
+--        CheckFrameCorner.CornerRadius = UDim.new(0, 3)
+--        CheckFrameCorner.Name = "CheckFrameCorner"
+--        CheckFrameCorner.Parent = CheckFrame
+ 
+--        KeyBoxStroke.Parent = CheckFrame
+--        KeyBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+--        KeyBoxStroke.Color = Color3.fromRGB(255,255,255)
+--        KeyBoxStroke.Thickness = 1
+ 
+--        ChecklistItem.MouseEnter:Connect(
+--           function()
+--              TweenService:Create(
+--                 ChecklistItem,
+--                 TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--                 {BackgroundColor3 = Color3.fromRGB(37, 37, 37)}
+--              ):Play()
+--           end
+--        )
+--        ChecklistItem.MouseLeave:Connect(
+--           function()
+--              TweenService:Create(
+--                 ChecklistItem,
+--                 TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--                 {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}
+--              ):Play()
+--           end
+--        )
+ 
+--        ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 20)
+ 
+       
+--    --     ChecklistItem.MouseButton1Click:Connect(function()
+--    --     if table.find(checklists[glob].Value, v) then
+--    --       table.remove(checklists[glob].Value, table.find(checklists[glob].Value, v))
+--    --       --ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
+--    --       callback(checklists[glob].Value)
+--    --    else
+--    --       table.insert(checklists[glob].Value, v)
+--    --       --ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
+--    --       callback(checklists[glob].Value)
+--    --    end
+--    --  end)
+
+   
+ 
+--       local onlol = false
+--       ChecklistItem.MouseButton1Click:Connect(function()
+--           if onlol == false then
+--              TweenService:Create(
+--                 CheckFrame,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {BackgroundTransparency = 0}
+--              ):Play()
+--              TweenService:Create(
+--                 KeyBoxStroke,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {Color = Color3.fromRGB(236, 136, 36)}
+--              ):Play()
              
-             onlol = true
- --[[
-             table.foreach(list, function(key, value)
-                info_table[ChecklistItem.Text] = onlol
-             end)
+--              onlol = true
+--             --[[
+--              table.foreach(list, function(key, value)
+--                 info_table[ChecklistItem.Text] = onlol
+--              end)
  
-             callback(info_table)]]
-          else
-             TweenService:Create(
-                CheckFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 1}
-             ):Play()
-             TweenService:Create(
-                KeyBoxStroke,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {Color = Color3.fromRGB(255,255,255)}
-             ):Play()
-             onlol = false
+--              callback(info_table)]]
+--           else
+--              TweenService:Create(
+--                 CheckFrame,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {BackgroundTransparency = 1}
+--              ):Play()
+--              TweenService:Create(
+--                 KeyBoxStroke,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {Color = Color3.fromRGB(255,255,255)}
+--              ):Play()
+--              onlol = false
  
-             --[[
-             table.foreach(list, function(key, value)
-                info_table[ChecklistItem.Text] = onlol
-             end)
+--              --[[
+--              table.foreach(list, function(key, value)
+--                 info_table[ChecklistItem.Text] = onlol
+--              end)
  
-             callback(info_table)]]
+--              callback(info_table)]]
  
-             --callback(checklists.Value)
-          end
-             Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
-          end)
+--              --callback(checklists.Value)
+--           end
+--              Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+--       end)
+--     end
  
-       ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 20)
-       return checklists[glob]
-    end
+--     function checklistfunc:Refresh(newlist)
+--        for i,v in next, ChecklistHolder:GetChildren() do
+--           if v.ClassName == "TextButton" then
+--              v:Destroy()
+--           end
+--        end
  
-    Mainholder.Flags[text] = dropfunc
-    return dropfunc
- end
+--        for i,v in next, newlist do
+--          task.wait(0.005)
+--           local ChecklistItem = Instance.new("TextButton")
+--           local ChecklistItemCorner = Instance.new("UICorner")
+--           -- local ChecklistItemCheck = Instance.new("ImageLabel")
+--           local CheckFrame = Instance.new("Frame")
+--           local CheckFrameCorner = Instance.new("UICorner")
+--           local KeyBoxStroke = Instance.new("UIStroke")
+    
+--           ChecklistItem.Name = v
+--           ChecklistItem.Parent = ChecklistHolder
+--           ChecklistItem.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+--           ChecklistItem.Size = UDim2.new(0, 309, 0, 24)
+--           ChecklistItem.AutoButtonColor = false
+--           ChecklistItem.Font = Enum.Font.Gotham
+--           ChecklistItem.Text = v
+--           ChecklistItem.TextColor3 = Color3.fromRGB(255, 255, 255)
+--           ChecklistItem.TextSize = 14.000
+       
+--           ChecklistItemCorner.Name = "ChecklistItemCorner"
+--           ChecklistItemCorner.Parent = ChecklistItem
+       
+--           -- ChecklistItemCheck.Name = "ChecklistItemCheck"
+--           -- ChecklistItemCheck.Parent = ChecklistItem
+--           -- ChecklistItemCheck.BackgroundColor3 = Color3.fromRGB(16, 192, 255)
+--           -- ChecklistItemCheck.BackgroundTransparency = 1.000
+--           -- ChecklistItemCheck.Position = UDim2.new(0.898372591, 0, 0.0833333358, 0)
+--           -- ChecklistItemCheck.Size = UDim2.new(0, 28, 0, 20)
+--           -- ChecklistItemCheck.Image = "rbxassetid://6031068420"
+--           -- ChecklistItemCheck.ImageColor3 = Color3.fromRGB(236, 136, 36)
+    
+--           CheckFrame.Name = "CheckFrame"
+--           CheckFrame.Parent = ChecklistItem
+--           CheckFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+--           CheckFrame.BackgroundTransparency = 1.000
+--           CheckFrame.Position = UDim2.new(0.900849879, 0, 0.120370373, 0)
+--           CheckFrame.Size = UDim2.new(0, 22, 0, 20)
+          
+--           CheckFrameCorner.CornerRadius = UDim.new(0, 3)
+--           CheckFrameCorner.Name = "CheckFrameCorner"
+--           CheckFrameCorner.Parent = CheckFrame
+    
+--           KeyBoxStroke.Parent = CheckFrame
+--           KeyBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+--           KeyBoxStroke.Color = Color3.fromRGB(255,255,255)
+--           KeyBoxStroke.Thickness = 1
+    
+--           ChecklistItem.MouseEnter:Connect(
+--              function()
+--                 TweenService:Create(
+--                    ChecklistItem,
+--                    TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--                    {BackgroundColor3 = Color3.fromRGB(37, 37, 37)}
+--                 ):Play()
+--              end
+--           )
+--           ChecklistItem.MouseLeave:Connect(
+--              function()
+--                 TweenService:Create(
+--                    ChecklistItem,
+--                    TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--                    {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}
+--                 ):Play()
+--              end
+--           )
+    
+--           ChecklistItem.MouseButton1Click:Connect(function()
+--              if table.find(checklists[glob].Value, v) then
+--                table.remove(checklists[glob].Value, table.find(checklists[glob].Value, v))
+--              --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
+--                callback(checklists[glob].Value)
+--             else
+--                table.insert(checklists[glob].Value, v)
+--              --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
+--                callback(checklists[glob].Value)
+--             end
+--           end)
+ 
+--       local onlol = false
+--       ChecklistItem.MouseButton1Click:Connect(function()
+--           if onlol == false then
+--              TweenService:Create(
+--                 CheckFrame,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {BackgroundTransparency = 0}
+--              ):Play()
+--              TweenService:Create(
+--                 KeyBoxStroke,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {Color = Color3.fromRGB(236, 136, 36)}
+--              ):Play()
+             
+--              onlol = true
+--             --[[
+--              table.foreach(list, function(key, value)
+--                 info_table[ChecklistItem.Text] = onlol
+--              end)
+ 
+--              callback(info_table)]]
+--           else
+--              TweenService:Create(
+--                 CheckFrame,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {BackgroundTransparency = 1}
+--              ):Play()
+--              TweenService:Create(
+--                 KeyBoxStroke,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {Color = Color3.fromRGB(255,255,255)}
+--              ):Play()
+--              onlol = false
+ 
+--              --[[
+--              table.foreach(list, function(key, value)
+--                 info_table[ChecklistItem.Text] = onlol
+--              end)
+ 
+--              callback(info_table)]]
+ 
+--              --callback(checklists.Value)
+--           end
+--              Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+--       end)
+    
+--           ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 15)
+--        end
+ 
+--     end
+ 
+ 
+--     function checklistfunc:Clear()
+--        ChecklistTitle.Text = text
+--        FrameSize = 0
+--        ItemCount = 0
+ 
+--        for i,v in next, ChecklistHolder:GetChildren() do
+--           if v.Name == "Item" then
+--              v:Destroy()
+--           end
+--        end
+       
+--        ChecklistFrame:TweenSize(
+--           UDim2.new(0, 403, 0, 0),
+--           Enum.EasingDirection.Out,
+--           Enum.EasingStyle.Quart,
+--           0.1,
+--           true
+--        )
+--        ChecklistHolder:TweenSize(
+--           UDim2.new(0, 386, 0, 0),
+--           Enum.EasingDirection.Out,
+--           Enum.EasingStyle.Quart,
+--           0.1,
+--           true
+--        )
+--        TweenService:Create(
+--           ChecklistArrow,
+--           TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+--           {Rotation = 0}
+--        ):Play()
+--        repeat
+--           wait()
+--        until ChecklistFrame.Size == UDim2.new(0, 403, 0, 0)
+--        ChecklistFrame.Visible = false
+--        Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+--     end
+ 
+--     function checklistfunc:Add(toadd)
+--        ItemCount = ItemCount + 1
+ 
+--           FrameSize = 300
+ 
+--           local ChecklistItem = Instance.new("TextButton")
+--           local ChecklistItemCorner = Instance.new("UICorner")
+--           -- local ChecklistItemCheck = Instance.new("ImageLabel")
+--           local CheckFrame = Instance.new("Frame")
+--           local CheckFrameCorner = Instance.new("UICorner")
+--           local KeyBoxStroke = Instance.new("UIStroke")
+    
+--           ChecklistItem.Name = toadd
+--           ChecklistItem.Parent = ChecklistHolder
+--           ChecklistItem.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+--           ChecklistItem.Size = UDim2.new(0, 309, 0, 24)
+--           ChecklistItem.AutoButtonColor = false
+--           ChecklistItem.Font = Enum.Font.Gotham
+--           ChecklistItem.Text = toadd
+--           ChecklistItem.TextColor3 = Color3.fromRGB(255, 255, 255)
+--           ChecklistItem.TextSize = 14.000
+       
+--           ChecklistItemCorner.Name = "ChecklistItemCorner"
+--           ChecklistItemCorner.Parent = ChecklistItem
+       
+--           -- ChecklistItemCheck.Name = "ChecklistItemCheck"
+--           -- ChecklistItemCheck.Parent = ChecklistItem
+--           -- ChecklistItemCheck.BackgroundColor3 = Color3.fromRGB(16, 192, 255)
+--           -- ChecklistItemCheck.BackgroundTransparency = 1.000
+--           -- ChecklistItemCheck.Position = UDim2.new(0.898372591, 0, 0.0833333358, 0)
+--           -- ChecklistItemCheck.Size = UDim2.new(0, 28, 0, 20)
+--           -- ChecklistItemCheck.Image = "rbxassetid://6031068420"
+--           -- ChecklistItemCheck.ImageColor3 = Color3.fromRGB(236, 136, 36)
+    
+--           CheckFrame.Name = "CheckFrame"
+--           CheckFrame.Parent = ChecklistItem
+--           CheckFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+--           CheckFrame.BackgroundTransparency = 1.000
+--           CheckFrame.Position = UDim2.new(0.900849879, 0, 0.120370373, 0)
+--           CheckFrame.Size = UDim2.new(0, 22, 0, 20)
+          
+--           CheckFrameCorner.CornerRadius = UDim.new(0, 3)
+--           CheckFrameCorner.Name = "CheckFrameCorner"
+--           CheckFrameCorner.Parent = CheckFrame
+    
+--           KeyBoxStroke.Parent = CheckFrame
+--           KeyBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+--           KeyBoxStroke.Color = Color3.fromRGB(255,255,255)
+--           KeyBoxStroke.Thickness = 1
+ 
+--        ChecklistItem.MouseEnter:Connect(
+--           function()
+--              TweenService:Create(
+--                 ChecklistItem,
+--                 TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--                 {BackgroundColor3 = Color3.fromRGB(37, 37, 37)}
+--              ):Play()
+--           end
+--        )
+--        ChecklistItem.MouseLeave:Connect(
+--           function()
+--              TweenService:Create(
+--                 ChecklistItem,
+--                 TweenInfo.new(.2, Enum.EasingStyle.Quad),
+--                 {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}
+--              ):Play()
+--           end
+--        )
+ 
+--        ChecklistItem.MouseButton1Click:Connect(function()
+--           if table.find(checklists[glob].Value, toadd) then
+--             table.remove(checklists[glob].Value, table.find(checklists[glob].Value, toadd))
+--           --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
+--             callback(checklists[glob].Value)
+--          else
+--             table.insert(checklists[glob].Value, toadd)
+--           --   ChecklistTitle.Text = text .. " - " .. table.concat(checklists[glob].Value, ", ")
+--             callback(checklists[glob].Value)
+--          end
+--        end)
+ 
+--        local onlol = false
+--        ChecklistItem.MouseButton1Click:Connect(function()
+--           if onlol == false then
+--              TweenService:Create(
+--                 CheckFrame,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {BackgroundTransparency = 0}
+--              ):Play()
+--              TweenService:Create(
+--                 KeyBoxStroke,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {Color = Color3.fromRGB(236, 136, 36)}
+--              ):Play()
+             
+--              onlol = true
+--  --[[
+--              table.foreach(list, function(key, value)
+--                 info_table[ChecklistItem.Text] = onlol
+--              end)
+ 
+--              callback(info_table)]]
+--           else
+--              TweenService:Create(
+--                 CheckFrame,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {BackgroundTransparency = 1}
+--              ):Play()
+--              TweenService:Create(
+--                 KeyBoxStroke,
+--                 TweenInfo.new(.3, Enum.EasingStyle.Quad),
+--                 {Color = Color3.fromRGB(255,255,255)}
+--              ):Play()
+--              onlol = false
+ 
+--              --[[
+--              table.foreach(list, function(key, value)
+--                 info_table[ChecklistItem.Text] = onlol
+--              end)
+ 
+--              callback(info_table)]]
+ 
+--              --callback(checklists.Value)
+--           end
+--              Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 5)
+--           end)
+ 
+--        ChecklistHolder.CanvasSize = UDim2.new(0, 0, 0, ChecklistItemLayout.AbsoluteContentSize.Y + 20)
+--        return checklists[glob]
+--     end
+ 
+--     Mainholder.Flags[text] = checklistfunc
+--     return checklistfunc
+--  end
  
  
  
@@ -4597,6 +4976,41 @@ end
     end)
  end
 
+    spawn(function()
+      for i,v in pairs(listfiles(ConfigsStorage)) do
+         local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
+         local Data = GetSettingsData(name)
+         table.foreach(Data.ConfigSettings, print)
+         print("-----------------------------------------")
+         if not Data["ConfigSettings"] then
+            Data["ConfigSettings"] = {
+               ["Name"] = name,
+               ["AllowExport"] = true, -- Default Value
+               ["AutoLoad"] = AutoLoad,
+               ["LastLoaded"] = LastLoadedDefault,
+               ["Author"] = tostring(game.Players.LocalPlayer.UserId),
+            }
+         end
+         if not Data.ConfigSettings.Name then
+            Data.ConfigSettings.Name = name
+         end
+         if not Data.ConfigSettings.AllowExport then
+            Data.ConfigSettings.AllowExport = true
+         end
+         if not Data.ConfigSettings.AutoLoad then
+            Data.ConfigSettings.AutoLoad = AutoLoad
+         end
+         if not Data.ConfigSettings.LastLoaded then
+            Data.ConfigSettings.LastLoaded = LastLoadedDefault
+         end
+         if not Data.ConfigSettings.Author then
+            Data.ConfigSettings.Author = tostring(game.Players.LocalPlayer.UserId)
+         end
+         
+         Save(name, Data)
+      end
+   end)
+
  function Mainholder:ConfigTab(tab)
 
    local ConfigVisual = tab:Label("Selected Config: None")
@@ -4631,22 +5045,47 @@ end
 
    tab:line()
 
+   function CheckConfigIsSelected(CFG)
+      if CFG == nil then
+         Mainholder.UtilityModule:Notify({
+            Title = Mainholder.UtilityModule.HubName,
+            Description = "Select a config first!",
+            Duration = 3
+         })
+         return false
+      end
+      return true
+   end
+
    tab:Button("Load Config", function()
+      if not CheckConfigIsSelected(ConfigName) then return end
       Mainholder.UtilityModule:Notify({
          Title = Mainholder.UtilityModule.HubName,
          Description = "Loaded: "..ConfigName.."!",
          Duration = 3
       })
       Mainholder:LoadCfg(ConfigName)
+      Mainholder:SetLastLoaded(ConfigName)
+   end)
+
+   tab:Toggle("Auto Load Config", false, function(t)
+      AutoLoadConfig = t
    end)
 
    tab:Button("Save Config", function()
+      if not CheckConfigIsSelected(ConfigName) then return end
       Mainholder.UtilityModule:Notify({
          Title = Mainholder.UtilityModule.HubName,
-         Description = "Saved Config: "..ConfigName.."!",
+         Description = "Saved: "..ConfigName.."!",
          Duration = 3
       })
       Mainholder:SaveCfg(ConfigName, Allow_Exports)
+      Mainholder:SetLastLoaded(ConfigName)
+   end)
+   
+   spawn(function()
+      task.wait(2)
+      Mainholder:CheckAutoLoad()
    end)
 
    tab:line()
@@ -4786,7 +5225,7 @@ function Example()
 
    -- <title> <global_name> <table> <callback>
    local Checklist = Tab:Checklist("Checklist", "global_key", {"hi", "Hello", "Test"}, function(value)
-      
+      print(table.concat(value, ","))
    end)
 
    -- <title> <color preset> <callback>
