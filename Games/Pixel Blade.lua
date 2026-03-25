@@ -4,6 +4,10 @@
 --/////////////////////////GUI\\\\\\\\\\\\\\\\\\\\\\\\\\\\--
 ------------------------------------------------------------ 
 
+if game.CoreGui:FindFirstChild("woof") then
+    game.CoreGui.woof:Destroy()
+end
+
 local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
 UtilityModule:Discord("7wZ7vEgWXR")
@@ -128,58 +132,10 @@ Combat:line()
 
 
 local Players = game:GetService("Players")
-local PathfindingService = game:GetService("PathfindingService")
-local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
-local character = player.Character
-local humanoid = character:WaitForChild("Humanoid")
-local rootPart = character:WaitForChild("HumanoidRootPart")
 
-function getClosestEnemy()
-    local closestPart = nil
-    local shortestDistance = math.huge
-    for i, v in pairs(workspace:GetChildren()) do
-        if v ~= player.Character and v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Health") and v.Health.Value ~= 0 then
-            local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                closestPart = v.HumanoidRootPart
-            end
-        end
-    end
-
-    return closestPart
-end
-
-
-function walkToPart(targetPart)
-    if not targetPart then print("no targetpart found!") return end
-
-    local path = PathfindingService:CreatePath({
-        AgentRadius = 2,
-        AgentHeight = 5,
-        AgentCanJump = true,
-        AgentJumpHeight = 10,
-        AgentMaxSlope = 45,
-    })
-
-    path:ComputeAsync(rootPart.Position, targetPart.Position)
-    local waypoints = path:GetWaypoints()
-
-    for _, waypoint in ipairs(waypoints) do
-        if waypoint.Action == Enum.PathWaypointAction.Jump then
-            humanoid.Jump = true
-        end
-        humanoid:MoveTo(waypoint.Position)
-        local reached = humanoid.MoveToFinished:Wait()
-        if not reached then
-            print("Cant reach the destination!")
-            break
-        end
-    end
-end
 
 function TPToTarget(target, otherFrame)
     if not target then warn("no target found!") return end
@@ -738,18 +694,16 @@ function DestroyDoors()
 end
 
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local character = player.Character
 
 function setNoclip(state)
 	if state then
-		for _, part in pairs(character:GetDescendants()) do
+		for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
 			if part:IsA("BasePart") then
 				part.CanCollide = false
 			end
 		end
 	else
-		for _, part in pairs(character:GetDescendants()) do
+		for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
 			if part:IsA("BasePart") then
 				part.CanCollide = true
 			end
