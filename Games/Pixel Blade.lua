@@ -1159,3 +1159,9 @@ spawn(function()
         end
     end
 end)
+
+local queue_on_teleportTest = queue_on_teleport or queueonteleport or function(...) end
+
+game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
+    queue_on_teleportTest([[loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Loader.lua"))()]])
+end)
