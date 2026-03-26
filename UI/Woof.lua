@@ -1433,22 +1433,25 @@ end
       local path = ConfigsStorage .. "/" .. cfg .. ".txt"
       local Encoded = readfile(MainFolder .. "/" .. "ConfigsStorage" .. "/" .. cfg .. ".txt")
 
-      local success, JSONData = pcall(function()
+      -- local success, JSONData = pcall(function()
          local data = Encoded
+         data = Mainholder:decode(Encoded)
+
+         print(data)
 
          -- check if decoding is needed
-         if not Allow_Encoding and not string.find(Encoded, "{") then
-               data = Mainholder:decode(Encoded)
-         end
+         -- if not Allow_Encoding and not string.find(Encoded, "{") then
+         --       data = Mainholder:decode(Encoded)
+         -- end
 
+         -- return Mainholder.HttpService:JSONDecode(data)
+      -- end)
+      
+      -- if success then
          return Mainholder.HttpService:JSONDecode(data)
-      end)
+      -- end
 
-      if success then
-         return JSONData
-      end
-
-      return false
+      -- return false
    end
 
    function Save(cfg, content)
@@ -1582,31 +1585,74 @@ end
 
    function Mainholder:SetLastLoaded(cfg)
       cfg = tostring(cfg)
-      for i,v in pairs(listfiles(ConfigsStorage)) do
-         local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
+
+      for _, file in pairs(listfiles(ConfigsStorage)) do
+
+         if not file:match("%.txt$") then
+               continue
+         end
+
+         -- always extract clean name
+         local name = file:match("[^\\/]+$"):gsub("%.txt$", "")
+         print(name)
          local Data = GetSettingsData(name)
+
+         print(type(Data))
+
+         -- if type(Data) ~= "table" then
+         --       warn("SetLastLoaded: Invalid config", name)
+         --       continue
+         -- end
+
+         Data.ConfigSettings = Data.ConfigSettings or {}
          Data.ConfigSettings.LastLoaded = cfg
+
          Save(name, Data)
       end
    end
 
    function GetLastLoaded()
-      for i,v in pairs(listfiles(ConfigsStorage)) do
-         local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
+
+      for _, file in pairs(listfiles(ConfigsStorage)) do
+         
+         if not file:match("%.txt$") then
+               continue
+         end
+
+         local name = Fullname and file or file:match("[^\\/]+$"):gsub("%.txt$", "")
          local Data = GetSettingsData(name)
-         return Data.ConfigSettings.LastLoaded
+
+         if type(Data) == "table" 
+         and Data.ConfigSettings 
+         and Data.ConfigSettings.LastLoaded then
+               
+               return Data.ConfigSettings.LastLoaded
+         end
       end
+
       return nil
    end
 
    function Mainholder:CheckAutoLoad()
+      
       local LastLoaded_CFG = GetLastLoaded()
+
+      if not LastLoaded_CFG then
+         print("CheckAutoLoad: No LastLoaded config")
+         return
+      end
+      
       local JSONData = GetSettingsData(LastLoaded_CFG)
-      if not JSONData then
+
+      if type(JSONData) ~= "table" then
          print("CheckAutoLoad: Couldn't GetSettingsData")
          return
       end
-      if JSONData.ConfigSettings.AutoLoad then
+
+      if JSONData.ConfigSettings 
+      and JSONData.ConfigSettings.AutoLoad then
+         
+         print("Auto loading:", LastLoaded_CFG)
          Mainholder:LoadCfg(LastLoaded_CFG)
       end
    end
@@ -4973,32 +5019,52 @@ end
     end)
  end
 
-    spawn(function()
-      for i,v in pairs(listfiles(ConfigsStorage)) do
-         local name = Fullname and v or v:match("[^\\/]+$"):gsub("%.txt$", "")
-         local Data = GetSettingsData(name)
-         print("-----------------------------------------")
-         if Data then
-            if not Data.ConfigSettings.Name then
-               Data.ConfigSettings.Name = name
-            end
-            if not Data.ConfigSettings.AllowExport then
-               Data.ConfigSettings.AllowExport = true
-            end
-            if not Data.ConfigSettings.AutoLoad then
-               Data.ConfigSettings.AutoLoad = AutoLoad
-            end
-            if not Data.ConfigSettings.LastLoaded then
-               Data.ConfigSettings.LastLoaded = LastLoadedDefault
-            end
-            if not Data.ConfigSettings.Author then
-               Data.ConfigSettings.Author = tostring(game.Players.LocalPlayer.UserId)
-            end
-         end
-         
-         Save(name, Data)
-      end
-   end)
+task.spawn(function()
+
+    for _, file in pairs(listfiles(ConfigsStorage)) do
+        
+        -- only .txt files
+        if not file:match("%.txt$") then
+            continue
+        end
+
+        local name = Fullname and file or file:match("[^\\/]+$"):gsub("%.txt$", "")
+
+        local success, Data = pcall(function()
+            return GetSettingsData(name)
+        end)
+
+        if not success or not Data then
+            warn("Invalid config:", name)
+            continue
+        end
+
+        print("-----------------------------------------")
+        print("Fixing config:", name)
+
+        -- ensure ConfigSettings exists
+        Data.ConfigSettings = Data.ConfigSettings or {}
+
+        -- safely fill missing values
+        Data.ConfigSettings.Name = Data.ConfigSettings.Name or name
+        Data.ConfigSettings.AllowExport = Data.ConfigSettings.AllowExport ~= false
+        Data.ConfigSettings.AutoLoad = Data.ConfigSettings.AutoLoad or AutoLoad
+        Data.ConfigSettings.LastLoaded = Data.ConfigSettings.LastLoaded or LastLoadedDefault
+        Data.ConfigSettings.Author = Data.ConfigSettings.Author or tostring(game.Players.LocalPlayer.UserId)
+
+        -- save fixed config
+        local saveSuccess, err = pcall(function()
+            Save(name, Data)
+        end)
+
+        if not saveSuccess then
+            warn("Failed to save:", name, err)
+        else
+            print("Fixed:", name)
+        end
+    end
+
+end)
 
  function Mainholder:ConfigTab(tab)
 
