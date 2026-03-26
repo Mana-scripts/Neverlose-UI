@@ -1424,10 +1424,10 @@ end
    --  local ExecuteFile = CodeStorage.."/".."Exec.lua"
    --  local SaveProgress = CodeStorage.."/".."Saved.lua"
 
-   local Allow_Encoding = false
+   local Allow_Encoding = true
    local AutoLoad = true
    local LastLoadedDefault = "NONE #¤%"
-
+    
    function GetSettingsData(cfg)
       cfg = tostring(cfg)
       local path = ConfigsStorage .. "/" .. cfg .. ".txt"
