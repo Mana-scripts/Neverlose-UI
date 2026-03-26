@@ -22,13 +22,13 @@ local Window = Library:Window(
     UtilityModule.Loader
 )
 
-local queue_on_teleportTest = queue_on_teleport or queueonteleport
+-- local queue_on_teleportTest = queue_on_teleport or queueonteleport
 
-game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
-    -- if queue_on_teleportTest then
-        queue_on_teleportTest([[loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/Pixel%20Blade.lua"))()]])
-    -- end
-end)
+-- game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
+--     -- if queue_on_teleportTest then
+--         queue_on_teleportTest([[loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Games/Pixel%20Blade.lua"))()]])
+--     -- end
+-- end)
 
 local Combat = Window:Tab("Combat")
 local Legit = Window:Tab("Legit")
@@ -72,7 +72,7 @@ function CheckBoss()
     return false, BossTable["Name"]
 end
 
-Combat:Toggle("Kill Aura", false, function(t)
+local KillAura_Toggle = Combat:Toggle("Kill Aura", false, function(t)
     KillAura = t
 end)
 
@@ -80,8 +80,6 @@ end)
 local Test = Combat:Slider("KillAura Distance", 1, 100, 30, function(t)
     KillAuraDistance = t
 end)
-
-Test:Set(30)
 
 local GlobalFailSafe = false
 local Boss_Wait_Done = false
@@ -101,7 +99,7 @@ spawn(function()
                     and v.Name ~= "LocalManeater" 
                     and v:GetAttribute("hadEntrance")
                     and (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).magnitude < KillAuraDistance 
-                    and not string.find(v.Name, "Shroom")then
+                    then -- and not string.find(v.Name, "Shroom")
                             local IsBoss, Boss = CheckBoss()
                             if v.Name == "Akuma" and v:FindFirstChild("HealForceFieldFolder") and v:FindFirstChild("HealForceFieldFolder"):FindFirstChildOfClass("Part") then
                                 return
@@ -128,8 +126,7 @@ spawn(function()
     end
 end)
 
-Combat:line()
-
+local Combat_Line1 = Combat:line()
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -392,223 +389,9 @@ spawn(function()
     end
 end)
 
--- spawn(function()
---     while task.wait() do
---         if not Autofarm2 then
---             continue
---         end
---         local success, err = pcall(function()
---         if workspace.inCutscene.Value then return end
-
---         KeepAwayFromAkuma()
-
---         local ClosestEnemy = math.huge
---         local Enemy = nil
-
---         for _,v in pairs(workspace:GetChildren()) do
---             if v ~= Player.Character
---             and v:IsA("Model")
---             and v:FindFirstChild("Health")
---             and v.Health.Value > 0
---             and v:FindFirstChild("HumanoidRootPart")
---             and v:GetAttribute("hadEntrance")
---             and v.Name ~= "LocalManeater" then
-
---                 local dist = (Player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-
---                 if dist < ClosestEnemy then
---                     ClosestEnemy = dist
---                     Enemy = v
---                 end
---             else
---                 EnemyNotAlive = true
---             end
---         end
-        
---         if Enemy and not FailSafe then
---             if EnemyNotAlive then
---                 -- print("Enemy Alive")
---                 lastEnemyTime = tick()
---                 EnemyNotAlive = false
---                 --FailSafe = false
---             end
-            
---             local IsBoss, Boss = CheckBoss()
---             print(IsBoss)
---             -- FailSafeFunc(8, false) -- If things go really wrong
---             -- pcall(function()
---                 if FarmMethod == "Rage" then
---                     repeat task.wait()
---                         FailSafeFunc(workspace.worldType.Value == "CrimsonAbyss" and 3 or 5, IsBoss)
---                         if GlobalFailSafe or FailSafe then
---                             print("GlobalFailSafe: "..tostring(GlobalFailSafe),"FailSafe: "..tostring(FailSafe))
---                             --TPToTarget(game.Players.LocalPlayer.Character.HumanoidRootPart, CFrame.new(0,30,0))
---                             game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,30,0)
---                             repeat task.wait()
---                                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
---                             until not Autofarm or not GlobalFailSafe or not FailSafe
---                         else
---                             -- if Enemy.Name == "Akuma" and v:FindFirstChild("HealForceFieldFolder") and not v:FindFirstChild("HealForceFieldFolder"):FindFirstChildOfClass("Part") then
---                             IsBoss, Boss = CheckBoss()
---                             local EnemyHealthBar = game:GetService("Players").LocalPlayer.PlayerGui.gameUI.Enemy.Healthbar
---                             -- print(IsBoss, Boss)
---                             if IsBoss then
---                                 EnemyHealthBar.Visible = true
---                                 if Boss.Name == "Akuma" then
---                                     -- if Boss == BossTitles.Akuma then
---                                     TPToTarget(workspace.Akuma.HumanoidRootPart, CFrame.new(0,0,-40))
---                                     print("Wating 5 sec")
---                                     task.wait(IsBoss and 3 or 1)
---                                     -- KillAuraDistance = 55
---                                     print("Waited 5 sec")
---                                     print("Trying to Target Akumas subordinates")
---                                     for i,v in pairs(workspace:GetChildren()) do
---                                         if v ~= Player.Character and v.Name ~= "Akuma"
---                                         and v:IsA("Model")
---                                         and v:FindFirstChild("Health")
---                                         and v.Health.Value ~= 0
---                                         and v:FindFirstChild("HumanoidRootPart") then
---                                             repeat task.wait()
---                                                 TPToTarget(workspace.Akuma.HumanoidRootPart, CFrame.new(0,0,-50))
---                                                 FailSafeFunc(7)
---                                             until not Autofarm or v.Health.Value == 0 or FailSafe
---                                         end
---                                     end
---                                     if not workspace.Akuma:FindFirstChild("HealForceFieldFolder"):FindFirstChildOfClass("Part") then
---                                         TPToTarget(workspace.Akuma.HumanoidRootPart, CFrame.new(0,0,10))
---                                     end
-
---                                     elseif workspace:FindFirstChild("InfestedBeast") then -- Bee Boss (can not be regular Enemies!)
---                                         TPToTarget(workspace:FindFirstChild("InfestedBeast").HumanoidRootPart, CFrame.new(0,0,10))
-
---                                         print("Wating 5 sec")
---                                         task.wait(IsBoss and 5 or 1)
---                                         print("Waited 5 sec")
---                                         repeat task.wait() until not Autofarm or FailSafe or game:GetService("Players").LocalPlayer.PlayerGui.gameUI.Enemy.Healthbar.Visible
---                                         repeat task.wait()
---                                             TPToTarget(workspace:FindFirstChild("InfestedBeast").HumanoidRootPart, CFrame.new(0,0,10))
---                                             FailSafeFunc(7)
---                                         until not Autofarm or FailSafe or not workspace:FindFirstChild("InfestedBeast") or not workspace:FindFirstChild("InfestedBeast"):FindFirstChild("HumanoidRootPart")
---                                         -- workspace.Maneater
-
-                                        
-                                
---                                     -- elseif workspace:FindFirstChild("Atticus") then
---                                     elseif Boss.Name == "Atticus" then
---                                         print("#Atticus")
---                                         TPToTarget(workspace.Vault.ClydeSpawn, CFrame.new(0,0,10))
---                                         print("Wating 5 sec")
---                                         task.wait(IsBoss and 5 or 1)
---                                         print("Waited 5 sec")
---                                         repeat task.wait()
---                                             TPToTarget(workspace:FindFirstChild("Atticus").HumanoidRootPart, CFrame.new(0,0,10))
---                                             FailSafeFunc(15)
---                                         until not Autofarm or FailSafe or not workspace:FindFirstChild("Atticus")
-                                    
---                                     elseif Boss.Name == "Maneater" then
---                                         TPToTarget(workspace.TheDen.introPositions.pos1_1, CFrame.new(0,5,0))
---                                         print("Wating 5 sec")
---                                         task.wait(IsBoss and 3 or 1)
---                                         print("Waited 5 sec")
-
---                                         repeat task.wait()
---                                             game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("onHit"):FireServer(Boss.Humanoid, -math.huge, {}, 0)
---                                             TPToTarget(Boss.HumanoidRootPart, CFrame.new(0,0,10))
---                                             FailSafeFunc(7)
---                                         until not Autofarm or FailSafe or not workspace:FindFirstChild(Boss.Name)
-
-
---                                     elseif workspace:FindFirstChild("ThroneRoom") and workspace:FindFirstChild("ThroneRoom"):FindFirstChild("TheDamned") then
---                                         -- workspace.ThroneRoom.BookHand
---                                         print("Wating 5 sec")
---                                         task.wait(IsBoss and 5 or 1)
---                                         print("Waited 5 sec")
---                                         if workspace.ThroneRoom.BookHand:FindFirstChild("basehitbox") and workspace.ThroneRoom.BookHand:FindFirstChild("Humanoid") then
---                                             TPToTarget(workspace.ThroneRoom.BookHand.basehitbox, CFrame.new(0,0,10))
---                                             for i,v in pairs(workspace.ThroneRoom:GetChildren()) do
---                                                 if v.Name == "BookHand" and v.Health.Value ~= 0 then
---                                                     game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("onHit"):FireServer(v.Humanoid, -math.huge, {}, 0)
---                                                 end
---                                             end
---                                         end
-                                        
---                                         TPToTarget(Enemy.HumanoidRootPart, CFrame.new(0,0,25))
---                                 else
---                                     FailSafeFunc(workspace.worldType.Value == "CrimsonAbyss" and 3 or 5)
---                                     -- KillAuraDistance = KillAuraDistance or 30
---                                     -- TPToTarget(Enemy.HumanoidRootPart, CFrame.new(0,math.random(0, 10),math.random(-15, 15)))
---                                     TPToTarget(Enemy.HumanoidRootPart, CFrame.new(0,10,5))
---                                 end
---                             else
---                                 EnemyHealthBar.Visible = false
---                                 FailSafeFunc(workspace.worldType.Value == "CrimsonAbyss" and 3 or 5, IsBoss) -- "Active if no improvement after 5 sec"
---                                 -- KillAuraDistance = KillAuraDistance or 30
---                                 -- TPToTarget(Enemy.HumanoidRootPart, CFrame.new(0,math.random(0, 10),math.random(-15, 15)))
---                                 TPToTarget(Enemy.HumanoidRootPart, CFrame.new(0,10,5))
---                             end
---                         end
---                     until not Autofarm or Enemy.Health.Value == 0 or FailSafe or not Enemy:FindFirstChild("HumanoidRootPart")
-                    
---                 elseif FarmMethod == "Legit (Not Working)" then
---                     walkToPart(Enemy.HumanoidRootPart)
---                 end
---             -- end)
---         else
---             IsBoss, Boss = CheckBoss()
---             -- if IsBoss and FailSafe then
---             --     print("Boss")
---             --     -- for i = 1,3 do
---             --         for _,v in pairs(workspace:GetDescendants()) do
---             --             if v:FindFirstChild("fightZone") then
---             --                 TPToTarget(v.fightZone, CFrame.new(math.random(-30, 30),math.random(-30, 30),math.random(-30, 30)))
---             --                 task.wait(0.1)
---             --             end
---             --         end
---             --     -- end
---             --     -- workspace.Vault.fightZone
---             --     FailSafe = false
---             --     return
---             -- end
---             -- print("NotBoss")
---                 for _,v in pairs(workspace:GetDescendants()) do
---                     if v:FindFirstChild("ExitZoneEnemyBarrier") and v:FindFirstChild("fightZone") then
---                         if game:GetService("Players").LocalPlayer.PlayerGui.gameUI.HUD.stageMarker.stageUpdate.Visible or FailSafe then
---                             TPToTarget(v.ExitZoneEnemyBarrier, CFrame.new(math.random(-30, 30),-1,math.random(-30, 30)))
---                             task.wait(0.02)
---                             TPToTarget(v.fightZone, CFrame.new(0,0,0))
---                             task.wait(0.4)
---                         else
---                             -- print("Stuff")
---                             FailSafeFunc(5, false)
---                             TPToTarget(v.ExitZoneEnemyBarrier, CFrame.new(0,-1,0))
---                             task.wait()
---                             TPToTarget(v.fightZone, CFrame.new(0,0,0))
---                             -- task.wait(0.07)
---                         end
---                     end
---                     if v:FindFirstChild("clydeStart") then -- Sand World Boss Start!
---                         TPToTarget(v.clydeStart, CFrame.new(0,0,0))
---                     end
---                     if v:FindFirstChild("TheDamned") then -- workspace:FindFirstChild("ThroneRoom"):FindFirstChild("TheDamned")
---                         TPToTarget(v.TheDamned, CFrame.new(0,0,0))
---                     end
---                 end
---                 FailSafe = false -- "Deactivated"
---                 -- task.wait(0.4)
---             -- end
---         end
---         end)
---         if not success then
---             warn("AutoFarm:", err)
---         end
---     end
--- end)
-
 local AutoCollectBreakables_Toggle = Combat:Toggle("Auto Collect Breakables", false, function(t)
     AutoCollectBreakables = t
 end)
-
-
 
 spawn(function()
     while task.wait() do
@@ -640,7 +423,7 @@ spawn(function()
     end
 end)
 
-Combat:line()
+local Combat_Line2 = Combat:line()
 
 local AutoUpgrade_Toggle = Combat:Toggle("Auto Upgrade", false, function(t)
     AutoUpgrade = t
@@ -756,348 +539,362 @@ spawn(function()
     end
 end)
 
-Fishing:Label("IMPORTANT! You need to catch 1 fish manualy before using this Autofarm!")
+-- [[Stabalize]] --
+local Stabalize_success, Stabalize_err = pcall(function()
 
-Fishing:Toggle("Auto Catch Fish", false, function(t)
-    AutoCatchFish = t
-    game:GetService("ReplicatedStorage").remotes.catchFish:InvokeServer()
-end)
+    Fishing:Label("IMPORTANT! You need to catch 1 fish manualy before using this Autofarm!")
 
-local FishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
+    Fishing:Toggle("Auto Catch Fish", false, function(t)
+        AutoCatchFish = t
+        game:GetService("ReplicatedStorage").remotes.catchFish:InvokeServer()
+    end)
 
-local LuckCircles = {}
-for i,v in pairs(FishingStats.enchantCircleRanges) do
-	table.insert(LuckCircles, i)
-end
+    local FishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
 
-Fishing:Checklist("Target Luck Circles", "LuckCircles", LuckCircles, function(t)
-    TargetLuckCircles = t
-end)
-
-Fishing:Toggle("Disable Popups", false, function(t)
-    DisablePopups = t
-end)
-
-
-local plrData = require(game:GetService("ReplicatedStorage").plrData)
--- local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
--- local Rarity_Drops = {}
--- for i,v in pairs(LootStats.rarityDropValues) do
---     table.insert(Rarity_Drops, i)
--- end
-
-local fishCaught = game:GetService("ReplicatedStorage").remotes.fishCaught
-
-spawn(function()
-    while task.wait() do
-        if AutoCatchFish then
-            pcall(function()
-                for i,v in pairs(workspace.FishingCircles:GetChildren()) do
-                    if v:IsA("Part") and v:FindFirstChildOfClass("Part") and table.find(TargetLuckCircles, v.Name) then
-                        fishCaught:FireServer(
-                            v.Position,
-                            -math.huge
-                        )
-                        task.wait(0.005)
-                    end
-                end
-            end)
-        end
+    local LuckCircles = {}
+    for i,v in pairs(FishingStats.enchantCircleRanges) do
+        table.insert(LuckCircles, i)
     end
-end)
 
-spawn(function()
-    while task.wait() do
-        if DisablePopups then
-            pcall(function()
-                game:GetService("Players").LocalPlayer.PlayerGui.gameUI.Enchant.BackgroundTransparency = 1
-                for i,v in pairs(workspace:GetChildren()) do
-                    if v.Name == "BookReveal" then
-                        v:Destroy()
-                    end
-                end
-            end)
-        end
-    end
-end)
+    Fishing:Checklist("Target Luck Circles", "LuckCircles", LuckCircles, function(t)
+        TargetLuckCircles = t
+    end)
 
-Fishing:line()
+    Fishing:Toggle("Disable Popups", false, function(t)
+        DisablePopups = t
+    end)
 
-local fishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
-local plrData = require(game:GetService("ReplicatedStorage").plrData)
-local sellFishItem = game:GetService("ReplicatedStorage").remotes.sellFishItem
-local FishingDrops = {"All"}
-for i,v in pairs(fishingStats.drops) do
-    table.insert(FishingDrops, i)
-end
 
-Fishing:Toggle("Auto Sell Fish", false, function(t)
-    AutoSellFish = t
-end)
+    local plrData = require(game:GetService("ReplicatedStorage").plrData)
+    -- local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
+    -- local Rarity_Drops = {}
+    -- for i,v in pairs(LootStats.rarityDropValues) do
+    --     table.insert(Rarity_Drops, i)
+    -- end
 
-Fishing:Checklist("Select Fish/Items", "SelectFish", FishingDrops, function(t)
-    SelectFish_Items = t
-end)
+    local success, fishCaught = pcall(function()
+        return game:GetService("ReplicatedStorage").remotes.fishCaught
+    end)
 
-spawn(function()
-    while task.wait() do
-        if AutoSellFish then
-            pcall(function()
-                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "fishStash")) do
-                    if fishingStats.drops[i] and table.find(SelectFish_Items, i) or table.find(SelectFish_Items, "All") then
-                        sellFishItem:FireServer(
-                            i,
-                            false
-                        )
-                    end
-                end
-            end)
-        end
-    end
-end)
-
-Misc:Toggle("Auto Claim Quests", false, function(t)
-    AutoClaimQuests = t
-end)
-
-Misc:Toggle("Auto Claim Achievements", false, function(t)
-    AutoClaimAchievements = t
-end)
-
-spawn(function()
-    while task.wait() do
-        if AutoClaimQuests then
-            pcall(function()
-                for i = 1,3 do
-                    ClaimQuest(i, 1)
-                    ClaimQuest(i, 2)
-                    ClaimQuest(i, 3)
-                end
-            end)
-        end
-    end
-end)
-
-spawn(function()
-    while task.wait() do
-        if AutoClaimAchievements then
-            pcall(function()
-                for i,v in pairs(questData.Achievements) do
-                    ClaimAchievement(v.id)
-                end
-            end)
-        end
-    end
-end)
-
-Misc:line()
-
-Misc:Toggle("Auto Wish", false, function(t)
-    AutoWish = t
-end)
-
-spawn(function()
-    while task.wait() do
-        if AutoWish then
-            pcall(function()
-                game:GetService("ReplicatedStorage").remotes.openWish:InvokeServer()
-                task.wait(0.005)
-            end)
-        end
-    end
-end)
-
-Misc:line()
-
-local plrData = require(game:GetService("ReplicatedStorage").plrData)
-local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
-local Rarity_Drops = {}
-for i,v in pairs(LootStats.rarityDropValues) do
-    table.insert(Rarity_Drops, i)
-end
-
-Misc:Checklist("Chest Rarity", "Chest_Rarity", Rarity_Drops, function(t)
-    Rarity_Selected = t
-end)
-
-Misc:Toggle("Auto Open Chests", false, function(t)
-    AutoOpenChests = t
-end)
-
-Misc:line()
-
-local plrData = require(game:GetService("ReplicatedStorage").plrData)
-local WpnStats = require(game:GetService("ReplicatedStorage").constants.wpnStats)
-local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
-local FormatWeaponNames = {"All"}
-for i,v in pairs(WpnStats.values) do
-    if not table.find(FormatWeaponNames, i) then
-        table.insert(FormatWeaponNames, i)
-    end
-end
-
-Misc:Checklist("Select Weapons Rarity", "Weapons_Rarity", Rarity_Drops, function(t)
-    WeaponsRarity = t
-end)
-
-Misc:Checklist("Select Weapons", "Weapons", FormatWeaponNames, function(t)
-    Weapons = t
-end)
-
-Misc:Toggle("Upgrade Weapon", false, function(t)
-    UpgradeWeapon = t
-end)
-
-Misc:line()
-
-local plrData = require(game:GetService("ReplicatedStorage").plrData)
-local armorStatssuccess, armorStats = pcall(function()
-    return require(game:GetService("ReplicatedStorage").constants.armorStats)
-end)
--- local armorStats = require(game:GetService("ReplicatedStorage").constants.armorStats)
-local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
-local shopStats = require(game:GetService("ReplicatedStorage").constants.shopStats)
-local FormatArmorNames = {"All"}
-
-if armorStatssuccess then
-    for i,v in pairs(armorStats.values) do
-        if not table.find(FormatArmorNames, i) and i ~= "none" then
-            table.insert(FormatArmorNames, i)
-        end
-    end
-end
-
-Misc:Checklist("Select Armor Rarity", "Armor_Rarity", Rarity_Drops, function(t)
-    ArmorRarity = t
-end)
-
-Misc:Checklist("Select Armors", "Armors", FormatArmorNames, function(t)
-    Armors = t
-end)
-
-Misc:Toggle("Upgrade Armor", false, function(t)
-    UpgradeArmor = t
-end)
-
-spawn(function()
-    while task.wait() do
-        if AutoOpenChests then
-            pcall(function()
-                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
-                    if game:GetService("ReplicatedStorage").remotes:FindFirstChild("openLoot") and string.find(i, "Chest") then
-                        if table.find(Rarity_Selected, LootStats.values[i].rarity) and v.copies ~= 0 then
-                            local Event = game:GetService("ReplicatedStorage").remotes.openLoot
-                            Event:InvokeServer(
-                                i,
-                                v.copies
+    spawn(function()
+        while task.wait() do
+            if AutoCatchFish then
+                pcall(function()
+                    for i,v in pairs(workspace.FishingCircles:GetChildren()) do
+                        if v:IsA("Part") and v:FindFirstChildOfClass("Part") and table.find(TargetLuckCircles, v.Name) then
+                            fishCaught:FireServer(
+                                v.Position,
+                                -math.huge
                             )
-                            task.wait(0.02)
-                            print("opend Chest!", i, v.copies)
+                            task.wait(0.005)
                         end
                     end
-                end
-            end)
+                end)
+            end
+        end
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if DisablePopups then
+                pcall(function()
+                    game:GetService("Players").LocalPlayer.PlayerGui.gameUI.Enchant.BackgroundTransparency = 1
+                    for i,v in pairs(workspace:GetChildren()) do
+                        if v.Name == "BookReveal" then
+                            v:Destroy()
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+
+    Fishing:line()
+
+    local fishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
+    local plrData = require(game:GetService("ReplicatedStorage").plrData)
+    local sellFishItem = game:GetService("ReplicatedStorage").remotes.sellFishItem
+    local FishingDrops = {"All"}
+    for i,v in pairs(fishingStats.drops) do
+        table.insert(FishingDrops, i)
+    end
+
+    Fishing:Toggle("Auto Sell Fish", false, function(t)
+        AutoSellFish = t
+    end)
+
+    Fishing:Checklist("Select Fish/Items", "SelectFish", FishingDrops, function(t)
+        SelectFish_Items = t
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if AutoSellFish then
+                pcall(function()
+                    for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "fishStash")) do
+                        if fishingStats.drops[i] and table.find(SelectFish_Items, i) or table.find(SelectFish_Items, "All") then
+                            sellFishItem:FireServer(
+                                i,
+                                false
+                            )
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+
+    Misc:Toggle("Auto Claim Quests", false, function(t)
+        AutoClaimQuests = t
+    end)
+
+    Misc:Toggle("Auto Claim Achievements", false, function(t)
+        AutoClaimAchievements = t
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if AutoClaimQuests then
+                pcall(function()
+                    for i = 1,3 do
+                        ClaimQuest(i, 1)
+                        ClaimQuest(i, 2)
+                        ClaimQuest(i, 3)
+                    end
+                end)
+            end
+        end
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if AutoClaimAchievements then
+                pcall(function()
+                    for i,v in pairs(questData.Achievements) do
+                        ClaimAchievement(v.id)
+                    end
+                end)
+            end
+        end
+    end)
+
+    Misc:line()
+
+    Misc:Toggle("Auto Wish", false, function(t)
+        AutoWish = t
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if AutoWish then
+                pcall(function()
+                    game:GetService("ReplicatedStorage").remotes.openWish:InvokeServer()
+                    task.wait(0.005)
+                end)
+            end
+        end
+    end)
+
+    Misc:line()
+
+    local plrData = require(game:GetService("ReplicatedStorage").plrData)
+    local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
+    local Rarity_Drops = {}
+    for i,v in pairs(LootStats.rarityDropValues) do
+        table.insert(Rarity_Drops, i)
+    end
+
+    Misc:Checklist("Chest Rarity", "Chest_Rarity", Rarity_Drops, function(t)
+        Rarity_Selected = t
+    end)
+
+    Misc:Toggle("Auto Open Chests", false, function(t)
+        AutoOpenChests = t
+    end)
+
+    Misc:line()
+
+    local plrData = require(game:GetService("ReplicatedStorage").plrData)
+    local WpnStats = require(game:GetService("ReplicatedStorage").constants.wpnStats)
+    local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
+    local FormatWeaponNames = {"All"}
+    for i,v in pairs(WpnStats.values) do
+        if not table.find(FormatWeaponNames, i) then
+            table.insert(FormatWeaponNames, i)
         end
     end
+
+    Misc:Checklist("Select Weapons Rarity", "Weapons_Rarity", Rarity_Drops, function(t)
+        WeaponsRarity = t
+    end)
+
+    Misc:Checklist("Select Weapons", "Weapons", FormatWeaponNames, function(t)
+        Weapons = t
+    end)
+
+    Misc:Toggle("Upgrade Weapon", false, function(t)
+        UpgradeWeapon = t
+    end)
+
+    Misc:line()
+
+    local plrData = require(game:GetService("ReplicatedStorage").plrData)
+    local armorStatssuccess, armorStats = pcall(function()
+        return require(game:GetService("ReplicatedStorage").constants.armorStats)
+    end)
+    -- local armorStats = require(game:GetService("ReplicatedStorage").constants.armorStats)
+    local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
+    local shopStats = require(game:GetService("ReplicatedStorage").constants.shopStats)
+    local FormatArmorNames = {"All"}
+
+    if armorStatssuccess then
+        for i,v in pairs(armorStats.values) do
+            if not table.find(FormatArmorNames, i) and i ~= "none" then
+                table.insert(FormatArmorNames, i)
+            end
+        end
+    end
+
+    Misc:Checklist("Select Armor Rarity", "Armor_Rarity", Rarity_Drops, function(t)
+        ArmorRarity = t
+    end)
+
+    Misc:Checklist("Select Armors", "Armors", FormatArmorNames, function(t)
+        Armors = t
+    end)
+
+    Misc:Toggle("Upgrade Armor", false, function(t)
+        UpgradeArmor = t
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if AutoOpenChests then
+                pcall(function()
+                    for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
+                        if game:GetService("ReplicatedStorage").remotes:FindFirstChild("openLoot") and string.find(i, "Chest") then
+                            if table.find(Rarity_Selected, LootStats.values[i].rarity) and v.copies ~= 0 then
+                                local Event = game:GetService("ReplicatedStorage").remotes.openLoot
+                                Event:InvokeServer(
+                                    i,
+                                    v.copies
+                                )
+                                task.wait(0.02)
+                                print("opend Chest!", i, v.copies)
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+
+    -- [[Add to Library later!]] --
+    local function TypeText(Label, Text, Speed)
+        Speed = Speed or 0.03
+
+        -- erase current text
+        local current = "Weapon Upgrades Comming Soon!"
+        for i = #current, 1, -1 do
+            Label:Refresh(current:sub(1, i))
+            task.wait(Speed / 2)
+        end
+
+        Label:Refresh("")
+
+        task.wait(0.4)
+
+        -- type new text
+        for i = 1, #Text do
+            Label:Refresh(Text:sub(1, i))
+            task.wait(Speed)
+        end
+    end
+
+    -- local Update_Label = Misc:Label("Weapon Upgrades Comming Soon!")
+    -- task.spawn(function()
+    --     while true do
+    --         TypeText(Update_Label, "Weapon Upgrades Coming Soon!", 0.04)
+    --         task.wait(1)
+    --     end
+    -- end)
+
+    -- Update_Label:Refresh("Something new!")
+
+    spawn(function()
+        while task.wait() do
+            if UpgradeArmor then
+                local success, err = pcall(function()
+                    for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
+                        if armorStats.values[i] and v.copies > 0 then
+                            if (table.find(Armors, i) or table.find(Armors, "All")) and table.find(ArmorRarity, armorStats.values[i].rarity) then
+                                if v.copies >= shopStats.tierCopiesCost[armorStats.values[i].rarity][v.tier+1] then
+                                    requestPurchase:FireServer(
+                                        i,
+                                        "itemUpgrade",
+                                        {
+                                            upgradeTier = v.tier+1
+                                        }
+                                    )
+                                    print(i, " Old Tier: "..v.tier, " New Tier: "..v.tier+1, " Rarity: "..armorStats.values[i].rarity)
+                                    task.wait(UpgradeWeapon and 0.3 or 0.2)
+                                end
+                            end
+                        end
+                    end
+                end)
+                if not success then
+                    warn("Upgrade Armor: "..err)
+                end
+            end
+        end
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if UpgradeWeapon then
+                local success, err = pcall(function()
+                    for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
+                        if WpnStats.values[i] then
+                            if (table.find(Weapons, i) or table.find(Weapons, "All")) and table.find(WeaponsRarity, WpnStats.values[i].rarity) then
+                                -- print(i, shopStats.tierCopiesCost[WpnStats.values[i].rarity][v.tier+1])
+                                if v.copies >= shopStats.tierCopiesCost[WpnStats.values[i].rarity][v.tier+1] then
+                                    requestPurchase:FireServer(
+                                        i,
+                                        "itemUpgrade",
+                                        {
+                                            upgradeTier = v.tier + 1
+                                        }
+                                    )
+                                    print(i, " Old Tier: "..v.tier, " New Tier: "..v.tier+1, " Rarity: "..WpnStats.values[i].rarity)
+                                    task.wait(UpgradeArmor and 0.3 or 0.2)
+                                end
+                            end
+                        end
+                    end
+                end)
+                if not success then
+                    warn("Upgrade Weapon: "..err)
+                end
+            end
+        end
+    end)
 end)
 
--- [[Add to Library later!]] --
-local function TypeText(Label, Text, Speed)
-    Speed = Speed or 0.03
-
-    -- erase current text
-    local current = "Weapon Upgrades Comming Soon!"
-    for i = #current, 1, -1 do
-        Label:Refresh(current:sub(1, i))
-        task.wait(Speed / 2)
-    end
-
-    Label:Refresh("")
-
-    task.wait(0.4)
-
-    -- type new text
-    for i = 1, #Text do
-        Label:Refresh(Text:sub(1, i))
-        task.wait(Speed)
-    end
+if not Stabalize_success then
+    warn("Stabalizer: ",Stabalize_err)
 end
-
--- local Update_Label = Misc:Label("Weapon Upgrades Comming Soon!")
--- task.spawn(function()
---     while true do
---         TypeText(Update_Label, "Weapon Upgrades Coming Soon!", 0.04)
---         task.wait(1)
---     end
--- end)
-
--- Update_Label:Refresh("Something new!")
-
-spawn(function()
-    while task.wait() do
-        if UpgradeArmor then
-            local success, err = pcall(function()
-                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
-                    if armorStats.values[i] and v.copies > 0 then
-                        if (table.find(Armors, i) or table.find(Armors, "All")) and table.find(ArmorRarity, armorStats.values[i].rarity) then
-                            if v.copies >= shopStats.tierCopiesCost[armorStats.values[i].rarity][v.tier+1] then
-                                requestPurchase:FireServer(
-                                    i,
-                                    "itemUpgrade",
-                                    {
-                                        upgradeTier = v.tier+1
-                                    }
-                                )
-                                print(i, " Old Tier: "..v.tier, " New Tier: "..v.tier+1, " Rarity: "..armorStats.values[i].rarity)
-                                task.wait(UpgradeWeapon and 0.3 or 0.2)
-                            end
-                        end
-                    end
-                end
-            end)
-            if not success then
-                warn("Upgrade Armor: "..err)
-            end
-        end
-    end
-end)
-
-spawn(function()
-    while task.wait() do
-        if UpgradeWeapon then
-            local success, err = pcall(function()
-                for i,v in pairs(plrData:GetValue(game.Players.LocalPlayer, "ownedItems")) do
-                    if WpnStats.values[i] then
-                        if (table.find(Weapons, i) or table.find(Weapons, "All")) and table.find(WeaponsRarity, WpnStats.values[i].rarity) then
-                            -- print(i, shopStats.tierCopiesCost[WpnStats.values[i].rarity][v.tier+1])
-                            if v.copies >= shopStats.tierCopiesCost[WpnStats.values[i].rarity][v.tier+1] then
-                                requestPurchase:FireServer(
-                                    i,
-                                    "itemUpgrade",
-                                    {
-                                        upgradeTier = v.tier + 1
-                                    }
-                                )
-                                print(i, " Old Tier: "..v.tier, " New Tier: "..v.tier+1, " Rarity: "..WpnStats.values[i].rarity)
-                                task.wait(UpgradeArmor and 0.3 or 0.2)
-                            end
-                        end
-                    end
-                end
-            end)
-            if not success then
-                warn("Upgrade Weapon: "..err)
-            end
-        end
-    end
-end)
 
 if game.PlaceId == 18172550962 then
     Autofarm_Toggle:visibility(false)
     Autofarm_Toggle:Set(false)
+    KillAura_Toggle:visibility(false)
+    KillAura_Toggle:Set(false)
     AutoCollectBreakables_Toggle:visibility(false)
     AutoUpgrade_Toggle:visibility(false)
     AutoReplay_Toggle:visibility(false)
+    Combat_Line1:visibility(false)
+    Combat_Line2:visibility(false)
     -- AutoCollectBreakables_Toggle:visibility(false)
     -- AutoCollectBreakables_Toggle:visibility(false)
     -- AutoCollectBreakables_Toggle:visibility(false)
