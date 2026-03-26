@@ -40,6 +40,7 @@ Library:ConfigTab(Config)
 
 Credits:Button("Mana", function()
     UtilityModule:Discord("7wZ7vEgWXR")
+    setclipboard("https://discord.gg/7wZ7vEgWXR")
 end)
 
 for i, v in pairs(workspace:GetChildren()) do
@@ -85,7 +86,7 @@ local GlobalFailSafe = false
 local Boss_Wait_Done = false
 
 -- workspace.KoriBossFight.Crossbow1 | Just a test to see if its fucking with the game.
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if KillAura then
             local success, err = pcall(function()
@@ -99,7 +100,7 @@ spawn(function()
                     and v.Name ~= "LocalManeater" 
                     and v:GetAttribute("hadEntrance")
                     and (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).magnitude < KillAuraDistance 
-                    then -- and not string.find(v.Name, "Shroom")
+                    and not string.find(v.Name, "Shroom") then
                             local IsBoss, Boss = CheckBoss()
                             if v.Name == "Akuma" and v:FindFirstChild("HealForceFieldFolder") and v:FindFirstChild("HealForceFieldFolder"):FindFirstChildOfClass("Part") then
                                 return
@@ -115,6 +116,7 @@ spawn(function()
                                     Boss_Wait_Done = false
                                 end
                                 game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("onHit"):FireServer(v.Humanoid, -math.huge, {}, 0)
+                                task.wait()
                             end
                     end
                 end
@@ -613,7 +615,10 @@ local Stabalize_success, Stabalize_err = pcall(function()
 
     local fishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
     local plrData = require(game:GetService("ReplicatedStorage").plrData)
-    local sellFishItem = game:GetService("ReplicatedStorage").remotes.sellFishItem
+    local sellFishItem_success, sellFishItem = pcall(function()
+        return game:GetService("ReplicatedStorage").remotes.sellFishItem
+    end)
+
     local FishingDrops = {"All"}
     for i,v in pairs(fishingStats.drops) do
         table.insert(FishingDrops, i)
@@ -699,9 +704,21 @@ local Stabalize_success, Stabalize_err = pcall(function()
 
     local plrData = require(game:GetService("ReplicatedStorage").plrData)
     local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
-    local Rarity_Drops = {}
-    for i,v in pairs(LootStats.rarityDropValues) do
-        table.insert(Rarity_Drops, i)
+    function Get_Rarity_Drops(Table)
+        local Rarity_Drops = {}
+        for i,v in pairs(Table.rarityDropValues) do
+            table.insert(Rarity_Drops, i)
+        end
+        return Rarity_Drops
+    end
+
+    local Rarity_Drops_success, Rarity_Drops = pcall(function()
+        local LootStats = require(game:GetService("ReplicatedStorage").constants.lootStats)
+        return Get_Rarity_Drops(LootStats)
+    end)
+
+    if not Rarity_Drops_success then
+        Rarity_Drops = {}
     end
 
     Misc:Checklist("Chest Rarity", "Chest_Rarity", Rarity_Drops, function(t)
@@ -714,13 +731,16 @@ local Stabalize_success, Stabalize_err = pcall(function()
 
     Misc:line()
 
-    local plrData = require(game:GetService("ReplicatedStorage").plrData)
-    local WpnStats = require(game:GetService("ReplicatedStorage").constants.wpnStats)
-    local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
+    local WpnStatssuccess, WpnStats = pcall(function()
+        return require(game:GetService("ReplicatedStorage").constants.wpnStats)
+    end)
+
     local FormatWeaponNames = {"All"}
-    for i,v in pairs(WpnStats.values) do
-        if not table.find(FormatWeaponNames, i) then
-            table.insert(FormatWeaponNames, i)
+    if WpnStatssuccess then
+        for i,v in pairs(WpnStats.values) do
+            if not table.find(FormatWeaponNames, i) then
+                table.insert(FormatWeaponNames, i)
+            end
         end
     end
 
@@ -738,13 +758,10 @@ local Stabalize_success, Stabalize_err = pcall(function()
 
     Misc:line()
 
-    local plrData = require(game:GetService("ReplicatedStorage").plrData)
     local armorStatssuccess, armorStats = pcall(function()
         return require(game:GetService("ReplicatedStorage").constants.armorStats)
     end)
-    -- local armorStats = require(game:GetService("ReplicatedStorage").constants.armorStats)
-    local requestPurchase = game:GetService("ReplicatedStorage").remotes.requestPurchase
-    local shopStats = require(game:GetService("ReplicatedStorage").constants.shopStats)
+
     local FormatArmorNames = {"All"}
 
     if armorStatssuccess then
@@ -766,6 +783,15 @@ local Stabalize_success, Stabalize_err = pcall(function()
     Misc:Toggle("Upgrade Armor", false, function(t)
         UpgradeArmor = t
     end)
+    
+    local plrData = require(game:GetService("ReplicatedStorage").plrData)
+    local WpnStats = require(game:GetService("ReplicatedStorage").constants.wpnStats)
+    local requestPurchase_success, requestPurchase = pcall(function()
+        return game:GetService("ReplicatedStorage").remotes.requestPurchase
+    end)
+
+    -- local armorStats = require(game:GetService("ReplicatedStorage").constants.armorStats)
+    local shopStats = require(game:GetService("ReplicatedStorage").constants.shopStats)
 
     spawn(function()
         while task.wait() do
