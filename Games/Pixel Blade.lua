@@ -30,7 +30,13 @@ local Window = Library:Window(
 --     -- end
 -- end)
 
-local Combat = Window:Tab("Combat")
+local Combat
+local Patched_Combat = true
+
+if not Patched_Combat then
+    Combat = Window:Tab("Combat")
+end
+
 local Legit = Window:Tab("Legit")
 local Fishing = Window:Tab("Fishing")
 local Misc = Window:Tab("Misc")
@@ -73,399 +79,408 @@ function CheckBoss()
     return false, BossTable["Name"]
 end
 
-local KillAura_Toggle = Combat:Toggle("Kill Aura", false, function(t)
-    KillAura = t
-end)
+if not Patched_Combat then -- [[Autofarm Patched!]]
+    local KillAura_Toggle = Combat:Toggle("Kill Aura", false, function(t)
+        KillAura = t
+    end)
 
--- local KillAuraDistance = 30
-local Test = Combat:Slider("KillAura Distance", 1, 100, 30, function(t)
-    KillAuraDistance = t
-end)
+    -- local KillAuraDistance = 30
+    local Test = Combat:Slider("KillAura Distance", 1, 100, 30, function(t)
+        KillAuraDistance = t
+    end)
 
-local GlobalFailSafe = false
-local Boss_Wait_Done = false
+    local GlobalFailSafe = false
+    local Boss_Wait_Done = false
 
--- workspace.KoriBossFight.Crossbow1 | Just a test to see if its fucking with the game.
-task.spawn(function()
-    while task.wait() do
-        if KillAura then
-            local success, err = pcall(function()
-                if workspace.inCutscene.Value then return end
-                for i, v in pairs(workspace:GetChildren()) do
-                    if v ~= game.Players.LocalPlayer.Character and
-                    v:FindFirstChild("Health")
-                    and v.Health.Value ~= 0 and
-                    v:IsA("Model") and v:FindFirstChild("Humanoid") and
-                    v:FindFirstChild("HumanoidRootPart")
-                    and v.Name ~= "LocalManeater" 
-                    and v:GetAttribute("hadEntrance")
-                    and (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).magnitude < KillAuraDistance 
-                    and not string.find(v.Name, "Shroom") then
-                            local IsBoss, Boss = CheckBoss()
-                            if v.Name == "Akuma" and v:FindFirstChild("HealForceFieldFolder") and v:FindFirstChild("HealForceFieldFolder"):FindFirstChildOfClass("Part") then
-                                return
-                            else
-                                if IsBoss and not Boss_Wait_Done then
-                                    print("KA Boss")
-                                    task.wait(3)
-                                    Boss_Wait_Done = true
-                                    repeat task.wait(0.02)
-                                        print(v.Name)
-                                        game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("onHit"):FireServer(v.Humanoid, -math.huge, {}, 0)
-                                    until not KillAura or not IsBoss
-                                    Boss_Wait_Done = false
+    -- workspace.KoriBossFight.Crossbow1 | Just a test to see if its fucking with the game.
+    task.spawn(function()
+        while task.wait() do
+            if KillAura then
+                local success, err = pcall(function()
+                    if workspace.inCutscene.Value then return end
+                    for i, v in pairs(workspace:GetChildren()) do
+                        if v ~= game.Players.LocalPlayer.Character and
+                        v:FindFirstChild("Health")
+                        and v.Health.Value ~= 0 and
+                        v:IsA("Model") and v:FindFirstChild("Humanoid") and
+                        v:FindFirstChild("HumanoidRootPart")
+                        and v.Name ~= "LocalManeater" 
+                        and v:GetAttribute("hadEntrance")
+                        and (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).magnitude < KillAuraDistance 
+                        and not string.find(v.Name, "Shroom") then
+                                local IsBoss, Boss = CheckBoss()
+                                if v.Name == "Akuma" and v:FindFirstChild("HealForceFieldFolder") and v:FindFirstChild("HealForceFieldFolder"):FindFirstChildOfClass("Part") then
+                                    return
+                                else
+                                    if IsBoss and not Boss_Wait_Done then
+                                        print("KA Boss")
+                                        task.wait(3)
+                                        Boss_Wait_Done = true
+                                        repeat task.wait(0.02)
+                                            print(v.Name)
+                                            game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("onHit"):FireServer(v.Humanoid, -math.huge, {}, 0)
+                                        until not KillAura or not IsBoss
+                                        Boss_Wait_Done = false
+                                    end
+                                    game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("onHit"):FireServer(v.Humanoid, -math.huge, {}, 0)
+                                    task.wait()
                                 end
-                                game:GetService("ReplicatedStorage"):WaitForChild("remotes"):WaitForChild("onHit"):FireServer(v.Humanoid, -math.huge, {}, 0)
-                                task.wait()
-                            end
+                        end
                     end
+                end)
+                if not success then
+                    print("[+] KillAura - ", err)
                 end
-            end)
-            if not success then
-                print("[+] KillAura - ", err)
             end
         end
+    end)
+
+    local Combat_Line1 = Combat:line()
+
+    local Players = game:GetService("Players")
+    local Workspace = game:GetService("Workspace")
+
+    local player = Players.LocalPlayer
+
+
+    function TPToTarget(target, otherFrame)
+        if not target then warn("no target found!") return end
+        otherFrame = otherFrame or CFrame.new(0,0,-5)
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.CFrame * otherFrame
     end
-end)
 
-local Combat_Line1 = Combat:line()
+    function TweenToTarget(target)
+        if not target then warn("no target found!") return end
+        local Distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - target.Position).Magnitude
+        local Speed = 100
+        -- local Tween = TweenService:Create(
+        --     game.Players.LocalPlayer.Character.HumanoidRootPart,
+        --     TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+        --     {CFrame = target.CFrame * CFrame.new(0,30,-5)}
+        -- ):Play()
 
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-
-local player = Players.LocalPlayer
-
-
-function TPToTarget(target, otherFrame)
-    if not target then warn("no target found!") return end
-    otherFrame = otherFrame or CFrame.new(0,0,-5)
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.CFrame * otherFrame
-end
-
-function TweenToTarget(target)
-    if not target then warn("no target found!") return end
-    local Distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - target.Position).Magnitude
-    local Speed = 100
-    -- local Tween = TweenService:Create(
-    --     game.Players.LocalPlayer.Character.HumanoidRootPart,
-    --     TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-    --     {CFrame = target.CFrame * CFrame.new(0,30,-5)}
-    -- ):Play()
-
-    return Distance, Speed
-end
-
-
--- Combat:Dropdown("Farm Method", {"Legit (Not Working)", "Rage"}, function(t)
---     FarmMethod = t
--- end)
-
-local Autofarm_Toggle = Combat:Toggle("Autofarm", false, function(t)
-    Autofarm = t
-end)
-
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-
-local Player = Players.LocalPlayer
-
-function KeepAwayFromAkuma()
-    local Akuma = workspace:FindFirstChild("Akuma")
-    local Character = Player.Character
-    if not Akuma or not Character then return end
-
-    local AkumaHumanoidRootPart = Akuma:FindFirstChild("HumanoidRootPart")
-    local ChHumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
-    if not AkumaHumanoidRootPart or not ChHumanoidRootPart then return end
-    
-    local dist = (ChHumanoidRootPart.Position - AkumaHumanoidRootPart.Position).Magnitude
-
-    if dist < 15 then
-        print("Too Close!")
-        local dir = (ChHumanoidRootPart.Position - AkumaHumanoidRootPart.Position)
-        if dir.Magnitude == 0 then
-            dir = Vector3.new(0,0,1)
-        end
-
-        dir = dir.Unit
-        local safePos = AkumaHumanoidRootPart.Position + dir * 15
-
-        ChHumanoidRootPart.CFrame = CFrame.new(safePos.X, ChHumanoidRootPart.Position.Y, safePos.Z)
+        return Distance, Speed
     end
-end
--- workspace.Nekros.entrance
 
 
-local BossTitles = {
-    Akuma = "akumaTitle",
-    Atticus = "atticusTitle",
-    Gatekeeper = "gatekeeperTitle",
-    Giantgoblin = "giantgoblinTitle",
-    InfestedBeast = "infestedBeastTitle",
-    Kingslayer = "kingslayerTitle",
-    Kori = "koriTitle",
-    Korth = "korthTitle",
-    Lumberjack = "lumberjackTitle",
-    Maneater = "maneaterTitle",
-    QueenSlime = "queenSlimeTitle",
-    Nekros = "nekrosTitle",
-    ShimBombo = "shimBomboTitle",
-}
+    -- Combat:Dropdown("Farm Method", {"Legit (Not Working)", "Rage"}, function(t)
+    --     FarmMethod = t
+    -- end)
 
-local EnemyNotAlive, FailSafe = true, false
+    local Autofarm_Toggle = Combat:Toggle("Autofarm", false, function(t)
+        Autofarm = t
+    end)
 
-local lastEnemyTime = tick()
-function FailSafeFunc(time, allow) -- Default 5 sec
-    allow = allow or false
-    if allow then return end
-    -- print("Fired")
-    time = time or 5
-    if tick() - lastEnemyTime >= time then
-        FailSafe = true -- "Activated"
-    end
-end
-local AllowDespawnSpawn = false
-spawn(function()
-    while task.wait() do
-        if AllowDespawnSpawn == false then
-            pcall(function()
-                task.wait(10)
-                -- print("Spawn Destroyed!")
-                workspace.Spawn:Destroy()
-                AllowDespawnSpawn = true
-            end)
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+
+    local Player = Players.LocalPlayer
+
+    function KeepAwayFromAkuma()
+        local Akuma = workspace:FindFirstChild("Akuma")
+        local Character = Player.Character
+        if not Akuma or not Character then return end
+
+        local AkumaHumanoidRootPart = Akuma:FindFirstChild("HumanoidRootPart")
+        local ChHumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+        if not AkumaHumanoidRootPart or not ChHumanoidRootPart then return end
+        
+        local dist = (ChHumanoidRootPart.Position - AkumaHumanoidRootPart.Position).Magnitude
+
+        if dist < 15 then
+            print("Too Close!")
+            local dir = (ChHumanoidRootPart.Position - AkumaHumanoidRootPart.Position)
+            if dir.Magnitude == 0 then
+                dir = Vector3.new(0,0,1)
+            end
+
+            dir = dir.Unit
+            local safePos = AkumaHumanoidRootPart.Position + dir * 15
+
+            ChHumanoidRootPart.CFrame = CFrame.new(safePos.X, ChHumanoidRootPart.Position.Y, safePos.Z)
         end
     end
-end)
-
--- cs:GetTagged("station") Important
+    -- workspace.Nekros.entrance
 
 
+    local BossTitles = {
+        Akuma = "akumaTitle",
+        Atticus = "atticusTitle",
+        Gatekeeper = "gatekeeperTitle",
+        Giantgoblin = "giantgoblinTitle",
+        InfestedBeast = "infestedBeastTitle",
+        Kingslayer = "kingslayerTitle",
+        Kori = "koriTitle",
+        Korth = "korthTitle",
+        Lumberjack = "lumberjackTitle",
+        Maneater = "maneaterTitle",
+        QueenSlime = "queenSlimeTitle",
+        Nekros = "nekrosTitle",
+        ShimBombo = "shimBomboTitle",
+    }
 
---[[ 
-    Pixel Blade Raid Defense Data
-    workspace.RaidArena.UpgradeVoting.playerZone2
+    local EnemyNotAlive, FailSafe = true, false
 
-    local Event = game:GetService("ReplicatedStorage").remotes.openWish
-    local Result = Event:InvokeServer()
+    local lastEnemyTime = tick()
+    function FailSafeFunc(time, allow) -- Default 5 sec
+        allow = allow or false
+        if allow then return end
+        -- print("Fired")
+        time = time or 5
+        if tick() - lastEnemyTime >= time then
+            FailSafe = true -- "Activated"
+        end
+    end
+    local AllowDespawnSpawn = false
+    spawn(function()
+        while task.wait() do
+            if AllowDespawnSpawn == false then
+                pcall(function()
+                    task.wait(10)
+                    -- print("Spawn Destroyed!")
+                    workspace.Spawn:Destroy()
+                    AllowDespawnSpawn = true
+                end)
+            end
+        end
+    end)
 
-    local ExpectedResult = table.unpack({
-        {
+    -- cs:GetTagged("station") Important
+
+
+
+    --[[ 
+        Pixel Blade Raid Defense Data
+        workspace.RaidArena.UpgradeVoting.playerZone2
+
+        local Event = game:GetService("ReplicatedStorage").remotes.openWish
+        local Result = Event:InvokeServer()
+
+        local ExpectedResult = table.unpack({
             {
-                "Vaulted",
-                "Vaulted",
-                "Vaulted",
-                "Vaulted",
-                "Vaulted"
-            },
-            "Shamshir",
-            1
-        }
-    })
+                {
+                    "Vaulted",
+                    "Vaulted",
+                    "Vaulted",
+                    "Vaulted",
+                    "Vaulted"
+                },
+                "Shamshir",
+                1
+            }
+        })
 
 
-]] 
+    ]] 
 
-spawn(function()
-    while task.wait() do
-        if Autofarm then
-            local success, err = pcall(function()
-                if game.PlaceId == 133884972346775 then
-                    if game:GetService("Players").LocalPlayer.PlayerGui.gameUI.HUD.startInfo.TextTransparency == 0 then
-                        TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,0,0))
-                        return
-                    elseif workspace.RaidArena.UpgradeVoting.inVotePhase.Value then
-                        local Chosen = math.random(1,3)
-                        repeat task.wait()
-                            TPToTarget(workspace.RaidArena.UpgradeVoting["playerZone"..tostring(Chosen)], CFrame.new(0,0,0))
-                        until not Autofarm or workspace.RaidArena.UpgradeVoting.inVotePhase.Value == false
+    spawn(function()
+        while task.wait() do
+            if Autofarm then
+                local success, err = pcall(function()
+                    if game.PlaceId == 133884972346775 then
+                        if game:GetService("Players").LocalPlayer.PlayerGui.gameUI.HUD.startInfo.TextTransparency == 0 then
+                            TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,0,0))
+                            return
+                        elseif workspace.RaidArena.UpgradeVoting.inVotePhase.Value then
+                            local Chosen = math.random(1,3)
+                            repeat task.wait()
+                                TPToTarget(workspace.RaidArena.UpgradeVoting["playerZone"..tostring(Chosen)], CFrame.new(0,0,0))
+                            until not Autofarm or workspace.RaidArena.UpgradeVoting.inVotePhase.Value == false
+                            return
+                        end
+                        local ClosestEnemy = math.huge
+                        for _,v in pairs(workspace:GetChildren()) do
+                            if v ~= Player.Character
+                            and v:IsA("Model")
+                            and v:FindFirstChild("Health")
+                            and v.Health.Value ~= 0
+                            and v:FindFirstChild("HumanoidRootPart")
+                            and not string.find(v.Name, "Shroom") then
+                                repeat task.wait()
+                                    -- print(v.Name)
+                                    local dist = (Player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                                    if dist < ClosestEnemy then
+                                        TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
+                                    end
+                                until not Autofarm or not v:FindFirstChild("HumanoidRootPart") or v.Health.Value == 0
+                            else
+                                -- repeat task.wait()
+                                    TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,15,0))
+                                -- until not Autofarm or v:FindFirstChild("HumanoidRootPart") or v
+                            end
+                        end 
+                        -- TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,15,0))
                         return
                     end
+                    
+
+                    -- AllowDespawnSpawn = true
                     local ClosestEnemy = math.huge
+                    local IsBoss, Boss = CheckBoss()
                     for _,v in pairs(workspace:GetChildren()) do
                         if v ~= Player.Character
                         and v:IsA("Model")
                         and v:FindFirstChild("Health")
                         and v.Health.Value ~= 0
                         and v:FindFirstChild("HumanoidRootPart")
-                        and not string.find(v.Name, "Shroom") then
-                            repeat task.wait()
-                                -- print(v.Name)
-                                local dist = (Player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-                                if dist < ClosestEnemy then
-                                    TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
-                                end
-                            until not Autofarm or not v:FindFirstChild("HumanoidRootPart") or v.Health.Value == 0
-                        else
-                            -- repeat task.wait()
-                                TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,15,0))
-                            -- until not Autofarm or v:FindFirstChild("HumanoidRootPart") or v
-                        end
-                    end 
-                    -- TPToTarget(workspace.RaidArena.CrystalTree.Root, CFrame.new(0,15,0))
-                    return
-                end
-                
-
-                -- AllowDespawnSpawn = true
-                local ClosestEnemy = math.huge
-                local IsBoss, Boss = CheckBoss()
-                for _,v in pairs(workspace:GetChildren()) do
-                    if v ~= Player.Character
-                    and v:IsA("Model")
-                    and v:FindFirstChild("Health")
-                    and v.Health.Value ~= 0
-                    and v:FindFirstChild("HumanoidRootPart")
-                    and v:GetAttribute("hadEntrance") then
-                        
-                        if IsBoss and Boss then
-                            task.wait(0.5)
-                            -- v.Name ~= "LocalManeater"
-                            -- repeat task.wait()
-                                IsBoss, Boss = CheckBoss()
-                                local dist = (Player.Character.HumanoidRootPart.Position - Boss.HumanoidRootPart.Position).Magnitude
-                                if dist < ClosestEnemy then
-                                    TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
-                                end
-                            -- until not Autofarm or v.Health.Value == 0 or not v:FindFirstChild("HumanoidRootPart")
-                        else
-                            EnemyNotAlive = false
-                        -- if v:GetAttribute("hadEntrance") then
-                            repeat task.wait()
-                                IsBoss, Boss = CheckBoss()
-                                local dist = (Player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-                                if dist < ClosestEnemy then
-                                    TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
-                                end
-                            until not Autofarm or v.Health.Value == 0 or not v:FindFirstChild("HumanoidRootPart")
-                        end
-                        -- else
-                            -- EnemyNotAlive = true
-                        -- end
-                    else
-                        EnemyNotAlive = true
-                    end
-                end
-
-                if EnemyNotAlive then
-                    IsBoss, Boss = CheckBoss()
-                    for _,v in pairs(workspace:GetDescendants()) do
-                        if IsBoss then
-                            -- print("Boss")
-                            -- if v:FindFirstChild("clydeStart") then -- Sand World Final Boss Start!
-                            --     TPToTarget(v.clydeStart, CFrame.new(0,0,0))
-                            -- end
-                            -- if v:FindFirstChild("TheDamned") then -- workspace:FindFirstChild("ThroneRoom"):FindFirstChild("TheDamned")
-                            --     TPToTarget(v.TheDamned, CFrame.new(0,0,0))
-                            -- end
-                            -- if v:FindFirstChild("ExitZoneEnemyBarrier") then
-                            --     TPToTarget(v.ExitZoneEnemyBarrier, CFrame.new(0,-1,0))
-                            -- end
-                            -- task.wait(0.1)
-                            if v:FindFirstChild("fightZone") then
-                                task.wait(.2)
-                                -- IsBoss, Boss = CheckBoss()
-                                TPToTarget(v.fightZone, CFrame.new(0,-1,0))
-                                return
+                        and v:GetAttribute("hadEntrance") then
+                            
+                            if IsBoss and Boss then
+                                task.wait(0.5)
+                                -- v.Name ~= "LocalManeater"
+                                -- repeat task.wait()
+                                    IsBoss, Boss = CheckBoss()
+                                    local dist = (Player.Character.HumanoidRootPart.Position - Boss.HumanoidRootPart.Position).Magnitude
+                                    if dist < ClosestEnemy then
+                                        TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
+                                    end
+                                -- until not Autofarm or v.Health.Value == 0 or not v:FindFirstChild("HumanoidRootPart")
+                            else
+                                EnemyNotAlive = false
+                            -- if v:GetAttribute("hadEntrance") then
+                                repeat task.wait()
+                                    IsBoss, Boss = CheckBoss()
+                                    local dist = (Player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                                    if dist < ClosestEnemy then
+                                        TPToTarget(v.HumanoidRootPart, CFrame.new(0,10,5))
+                                    end
+                                until not Autofarm or v.Health.Value == 0 or not v:FindFirstChild("HumanoidRootPart")
                             end
-                            -- return
+                            -- else
+                                -- EnemyNotAlive = true
+                            -- end
                         else
-                            if Boss.Name ~= "Atticus" and v:FindFirstChild("fightZone") and v:FindFirstChild("ExitZoneEnemyBarrier") then -- 
-                                -- if game:GetService("Players").LocalPlayer.PlayerGui.gameUI.HUD.stageMarker.stageUpdate.Visible then
-                                    TPToTarget(v.fightZone, CFrame.new(0,-1,0))
-                                    task.wait(0.02) -- Trying to find max speed until it breaks lower than 0.00 is breakeable and should not be used!
-                                    TPToTarget(v.ExitZoneEnemyBarrier, CFrame.new(0,-1,0))
+                            EnemyNotAlive = true
+                        end
+                    end
 
-                                    -- TPToTarget(v.fightZone, CFrame.new(0,0,0))
-                                    -- task.wait(0.4)
+                    if EnemyNotAlive then
+                        IsBoss, Boss = CheckBoss()
+                        for _,v in pairs(workspace:GetDescendants()) do
+                            if IsBoss then
+                                -- print("Boss")
+                                -- if v:FindFirstChild("clydeStart") then -- Sand World Final Boss Start!
+                                --     TPToTarget(v.clydeStart, CFrame.new(0,0,0))
                                 -- end
+                                -- if v:FindFirstChild("TheDamned") then -- workspace:FindFirstChild("ThroneRoom"):FindFirstChild("TheDamned")
+                                --     TPToTarget(v.TheDamned, CFrame.new(0,0,0))
+                                -- end
+                                -- if v:FindFirstChild("ExitZoneEnemyBarrier") then
+                                --     TPToTarget(v.ExitZoneEnemyBarrier, CFrame.new(0,-1,0))
+                                -- end
+                                -- task.wait(0.1)
+                                if v:FindFirstChild("fightZone") then
+                                    task.wait(.2)
+                                    -- IsBoss, Boss = CheckBoss()
+                                    TPToTarget(v.fightZone, CFrame.new(0,-1,0))
+                                    return
+                                end
+                                -- return
+                            else
+                                if Boss.Name ~= "Atticus" and v:FindFirstChild("fightZone") and v:FindFirstChild("ExitZoneEnemyBarrier") then -- 
+                                    -- if game:GetService("Players").LocalPlayer.PlayerGui.gameUI.HUD.stageMarker.stageUpdate.Visible then
+                                        TPToTarget(v.fightZone, CFrame.new(0,-1,0))
+                                        task.wait(0.02) -- Trying to find max speed until it breaks lower than 0.00 is breakeable and should not be used!
+                                        TPToTarget(v.ExitZoneEnemyBarrier, CFrame.new(0,-1,0))
+
+                                        -- TPToTarget(v.fightZone, CFrame.new(0,0,0))
+                                        -- task.wait(0.4)
+                                    -- end
+                                end
                             end
                         end
                     end
+                end)
+                if not success then
+                    warn(err)
                 end
-            end)
-            if not success then
-                warn(err)
             end
         end
-    end
-end)
+    end)
 
-local AutoCollectBreakables_Toggle = Combat:Toggle("Auto Collect Breakables", false, function(t)
-    AutoCollectBreakables = t
-end)
+    local AutoCollectBreakables_Toggle = Combat:Toggle("Auto Collect Breakables", false, function(t)
+        AutoCollectBreakables = t
+    end)
 
-spawn(function()
-    while task.wait() do
-        if AutoCollectBreakables then
-            pcall(function()
-                for i,v in pairs(workspace:GetChildren()) do
-                    if string.find(v.Name:lower(), "breakable") and (v:FindFirstChildOfClass("Part") or v:FindFirstChildOfClass("MeshPart")) then
-                        game:GetService("ReplicatedStorage").remotes.onHit:FireServer(v.Humanoid,-math.huge,{},0)
+    spawn(function()
+        while task.wait() do
+            if AutoCollectBreakables then
+                pcall(function()
+                    for i,v in pairs(workspace:GetChildren()) do
+                        if string.find(v.Name:lower(), "breakable") and (v:FindFirstChildOfClass("Part") or v:FindFirstChildOfClass("MeshPart")) then
+                            game:GetService("ReplicatedStorage").remotes.onHit:FireServer(v.Humanoid,-math.huge,{},0)
+                        end
                     end
-                end
-            end)
+                end)
+            end
+        end
+    end)
+
+    local AutoReplay_Toggle = Combat:Toggle("Auto Replay", false, function(t)
+        AutoReplay = t
+    end)
+
+    spawn(function()
+        while task.wait() do
+            if AutoReplay then
+                pcall(function()
+                    if workspace.voting.Value then
+                        game:GetService("ReplicatedStorage").remotes.gameEndVote:FireServer("replay")
+                    end
+                end)
+            end
+        end
+    end)
+
+    local Combat_Line2 = Combat:line()
+
+    local AutoUpgrade_Toggle = Combat:Toggle("Auto Upgrade", false, function(t)
+        AutoUpgrade = t
+    end)
+
+    function disableUpgradePopUps(bool)
+        if bool then
+            game:GetService("Lighting").deathBlur.Size = 0
+            game:GetService("Players").LocalPlayer.PlayerGui.gameUI.upgradeFrame.Position = UDim2.new(0, 0, -1.1, 0)
         end
     end
-end)
 
-local AutoReplay_Toggle = Combat:Toggle("Auto Replay", false, function(t)
-    AutoReplay = t
-end)
-
-spawn(function()
-    while task.wait() do
-        if AutoReplay then
-            pcall(function()
-                if workspace.voting.Value then
-                    game:GetService("ReplicatedStorage").remotes.gameEndVote:FireServer("replay")
-                end
-            end)
+    spawn(function()
+        while task.wait() do
+            if AutoUpgrade then
+                pcall(function()
+                    repeat task.wait() until not AutoUpgrade or not GlobalFailSafe or game:GetService("Players").LocalPlayer.PlayerGui.gameUI.upgradeFrame.Visible
+                    local Event = game:GetService("ReplicatedStorage").remotes.plrUpgrade
+                    Event:FireServer(
+                        math.random(1,3)
+                    )
+                    --task.wait(0.3)
+                end)
+            end
         end
-    end
-end)
+    end)
 
-local Combat_Line2 = Combat:line()
+    spawn(function()
+        while task.wait() do
+            if AutoUpgrade then
+                pcall(function()
+                    disableUpgradePopUps(true)
+                end)
+            end
+        end
+    end)
 
-local AutoUpgrade_Toggle = Combat:Toggle("Auto Upgrade", false, function(t)
-    AutoUpgrade = t
-end)
-
-function disableUpgradePopUps(bool)
-    if bool then
-        game:GetService("Lighting").deathBlur.Size = 0
-        game:GetService("Players").LocalPlayer.PlayerGui.gameUI.upgradeFrame.Position = UDim2.new(0, 0, -1.1, 0)
-    end
+    Combat:Toggle("NoClip", false, function(t)
+        NoClip = t
+    end)
+    
+else
+    Library.UtilityModule:Notify({
+        Title = Library.UtilityModule.HubName,
+	    Duration = 5,
+	    Description = "Autofarming has been patched."
+    })
 end
-
-spawn(function()
-    while task.wait() do
-        if AutoUpgrade then
-            pcall(function()
-                repeat task.wait() until not AutoUpgrade or not GlobalFailSafe or game:GetService("Players").LocalPlayer.PlayerGui.gameUI.upgradeFrame.Visible
-                local Event = game:GetService("ReplicatedStorage").remotes.plrUpgrade
-                Event:FireServer(
-                    math.random(1,3)
-                )
-                --task.wait(0.3)
-            end)
-        end
-    end
-end)
-
-spawn(function()
-    while task.wait() do
-        if AutoUpgrade then
-            pcall(function()
-                disableUpgradePopUps(true)
-            end)
-        end
-    end
-end)
-
-Combat:Toggle("NoClip", false, function(t)
-    NoClip = t
-end)
 
 function DestroyDoors()
     for i,v in pairs(workspace:GetDescendants()) do
@@ -548,7 +563,6 @@ local Stabalize_success, Stabalize_err = pcall(function()
 
     Fishing:Toggle("Auto Catch Fish", false, function(t)
         AutoCatchFish = t
-        game:GetService("ReplicatedStorage").remotes.catchFish:InvokeServer()
     end)
 
     local FishingStats = require(game:GetService("ReplicatedStorage").constants.fishingStats)
@@ -783,7 +797,7 @@ local Stabalize_success, Stabalize_err = pcall(function()
     Misc:Toggle("Upgrade Armor", false, function(t)
         UpgradeArmor = t
     end)
-    
+
     local plrData = require(game:GetService("ReplicatedStorage").plrData)
     local WpnStats = require(game:GetService("ReplicatedStorage").constants.wpnStats)
     local requestPurchase_success, requestPurchase = pcall(function()
@@ -911,21 +925,21 @@ if not Stabalize_success then
     warn("Stabalizer: ",Stabalize_err)
 end
 
-if game.PlaceId == 18172550962 then
-    Autofarm_Toggle:visibility(false)
-    Autofarm_Toggle:Set(false)
-    KillAura_Toggle:visibility(false)
-    KillAura_Toggle:Set(false)
-    AutoCollectBreakables_Toggle:visibility(false)
-    AutoUpgrade_Toggle:visibility(false)
-    AutoReplay_Toggle:visibility(false)
-    Combat_Line1:visibility(false)
-    Combat_Line2:visibility(false)
-    -- AutoCollectBreakables_Toggle:visibility(false)
-    -- AutoCollectBreakables_Toggle:visibility(false)
-    -- AutoCollectBreakables_Toggle:visibility(false)
-    -- AutoCollectBreakables_Toggle:visibility(false)
-end
+-- if game.PlaceId == 18172550962 then
+--     Autofarm_Toggle:visibility(false)
+--     Autofarm_Toggle:Set(false)
+--     KillAura_Toggle:visibility(false)
+--     KillAura_Toggle:Set(false)
+--     AutoCollectBreakables_Toggle:visibility(false)
+--     AutoUpgrade_Toggle:visibility(false)
+--     AutoReplay_Toggle:visibility(false)
+--     Combat_Line1:visibility(false)
+--     Combat_Line2:visibility(false)
+--     -- AutoCollectBreakables_Toggle:visibility(false)
+--     -- AutoCollectBreakables_Toggle:visibility(false)
+--     -- AutoCollectBreakables_Toggle:visibility(false)
+--     -- AutoCollectBreakables_Toggle:visibility(false)
+-- end
 
 -- FAIL SAFE --
 
