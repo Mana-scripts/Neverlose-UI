@@ -5,6 +5,7 @@ return function(Load)
     end
 
     local Animation = Instance.new("ScreenGui")
+    local HolderFrame = Instance.new("Frame")
     local Frame1 = Instance.new("ImageLabel")
     local LoadButton = Instance.new("TextButton")
     local LoadButtonCorner = Instance.new("UICorner")
@@ -24,13 +25,23 @@ return function(Load)
     Animation.Parent = game.CoreGui
     Animation.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+    HolderFrame.Name = "HolderFrame"
+    HolderFrame.Parent = Animation
+    HolderFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    HolderFrame.BackgroundTransparency = 1.000
+    HolderFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    HolderFrame.BorderSizePixel = 0
+    HolderFrame.ClipsDescendants = true
+    HolderFrame.Position = UDim2.new(0.384467274, 0, 0.265765756, 0)
+    HolderFrame.Size = UDim2.new(0, 432, 0, 265)
+
     Frame1.Name = "Frame1"
-    Frame1.Parent = Animation
+    Frame1.Parent = HolderFrame
     Frame1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Frame1.BackgroundTransparency = 1.000
     Frame1.BorderColor3 = Color3.fromRGB(0, 0, 0)
     Frame1.BorderSizePixel = 0
-    Frame1.Position = UDim2.new(0.384999961, 0, 0.266000003, 0)
+    Frame1.Position = UDim2.new(-0.9, 0, 0, 0)
     Frame1.Size = UDim2.new(0, 432, 0, 265)
     Frame1.ZIndex = 5
     Frame1.Image = "rbxassetid://116342860199829"
@@ -96,12 +107,12 @@ return function(Load)
     UICorner.Parent = Frame1
 
     Frame2.Name = "Frame2"
-    Frame2.Parent = Animation
+    Frame2.Parent = HolderFrame
     Frame2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Frame2.BackgroundTransparency = 1.000
     Frame2.BorderColor3 = Color3.fromRGB(0, 0, 0)
     Frame2.BorderSizePixel = 0
-    Frame2.Position = UDim2.new(0.384999961, 0, 0.266000003, 0)
+    Frame2.Position = UDim2.new(0.9, 0, 0, 0)
     Frame2.Size = UDim2.new(0, 432, 0, 265)
     Frame2.Image = "rbxassetid://116342860199829"
 
@@ -113,12 +124,12 @@ return function(Load)
     UICorner_2.CornerRadius = UDim.new(0, 3)
     UICorner_2.Parent = Frame2
         
-    Frame1.ImageTransparency = 1
-    Frame2.ImageTransparency = 1
-    Frame1.Size = UDim2.new(0,0,0,265)
+    -- Frame1.ImageTransparency = 1
+    -- Frame2.ImageTransparency = 1
+    -- Frame1.Size = UDim2.new(0,0,0,265)
 
-    Frame2.Size = UDim2.new(0,0,0,265)
-    Frame2.Position = UDim2.new(0.662, 0, 0.266, 0)
+    -- Frame2.Size = UDim2.new(0,0,0,265)
+    -- Frame2.Position = UDim2.new(0.662, 0, 0.266, 0)
 
     for i,v in pairs(Frame1:GetChildren()) do
         if not v:IsA("UIGradient") and not v:IsA("UICorner") then
@@ -126,7 +137,7 @@ return function(Load)
         end
     end
 
-    task.wait(1.5)
+    task.wait(0.67)
 
     local TweenService = game:GetService("TweenService")
     --{0.624, 0},{0.266, 0} -- Start Frame2 Pos
@@ -134,40 +145,48 @@ return function(Load)
 
     local Speed = 1
 
-    TweenService:Create(
-        Frame1,
-        TweenInfo.new(Speed, Enum.EasingStyle.Quad),
-        {Size = UDim2.new(0, 432, 0, 265)}
-    ):Play()
+    -- TweenService:Create(
+    --     Frame1,
+    --     TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+    --     {Size = UDim2.new(0, 432, 0, 265)}
+    -- ):Play()
 
-    -- task.wait(0.4)
+    -- -- task.wait(0.4)
 
+    -- local Tween = TweenService:Create(
+    --     Frame2,
+    --     TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+    --     {Size = UDim2.new(0, 432, 0, 265)}
+    -- )
+
+    -- Tween:Play()
     local Tween = TweenService:Create(
         Frame2,
         TweenInfo.new(Speed, Enum.EasingStyle.Quad),
-        {Size = UDim2.new(0, 432, 0, 265)}
+        {Position = UDim2.new(0, 0, 0, 0)}
     )
 
     Tween:Play()
-    TweenService:Create(
-        Frame2,
-        TweenInfo.new(Speed, Enum.EasingStyle.Quad),
-        {Position = UDim2.new(0.385, 0, 0.266, 0)}
-    ):Play()
-
-    task.wait(0.2)
-
-    TweenService:Create(
-        Frame2,
-        TweenInfo.new(0.5, Enum.EasingStyle.Quad),
-        {ImageTransparency = 0}
-    ):Play()
 
     TweenService:Create(
         Frame1,
-        TweenInfo.new(0.5, Enum.EasingStyle.Quad),
-        {ImageTransparency = 0}
+        TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+        {Position = UDim2.new(0, 0, 0, 0)}
     ):Play()
+
+    -- task.wait(0.2)
+
+    -- TweenService:Create(
+    --     Frame2,
+    --     TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+    --     {ImageTransparency = 0}
+    -- ):Play()
+
+    -- TweenService:Create(
+    --     Frame1,
+    --     TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+    --     {ImageTransparency = 0}
+    -- ):Play()
 
 
     Tween.Completed:Wait()
@@ -214,6 +233,7 @@ return function(Load)
     LoadLine()
 
     function Unload()
+        HolderFrame.ClipsDescendants = false
         TweenService:Create(
             LoadButton,
             TweenInfo.new(0.3, Enum.EasingStyle.Quad),
@@ -242,26 +262,19 @@ return function(Load)
 
         local Speed = 0.6
 
-        TweenService:Create(
-            Frame1,
-            TweenInfo.new(Speed, Enum.EasingStyle.Quad),
-            {Size = UDim2.new(0,0,0,265)}
-        ):Play()
-
-        -- task.wait(0.4)
-
         local Tween = TweenService:Create(
             Frame2,
             TweenInfo.new(Speed, Enum.EasingStyle.Quad),
-            {Size = UDim2.new(0,0,0,265)}
+            {Position = UDim2.new(0.3, 0, 0, 0)}
         )
 
-        Tween:Play()
         TweenService:Create(
-            Frame2,
+            Frame1,
             TweenInfo.new(Speed, Enum.EasingStyle.Quad),
-            {Position = UDim2.new(0.662, 0, 0.266, 0)}
+            {Position = UDim2.new(-0.3, 0, 0, 0)}
         ):Play()
+
+        Tween:Play()
 
         TweenService:Create(
             Frame1,
