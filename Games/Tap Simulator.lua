@@ -233,7 +233,7 @@ Misc:Toggle("Infinite Jump", false, function(t)
 end)
 
 Misc:Button("Credit: Mana", function()
-    
+    UtilityModule:Discord("7wZ7vEgWXR")
 end)
 
 function CorrectRebirth(num)
