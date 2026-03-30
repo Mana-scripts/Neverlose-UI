@@ -70,8 +70,6 @@ local AutoFarm = Window:Tab("Autofarm")
 local Auto_Open = Window:Tab("Eggs")
 local Auto_Gold = Window:Tab("Auto Craft")
 local Misc = Window:Tab("Misc")
-local Config = Window:Tab("Config")
-Library:ConfigTab(Config)
 
 local TweenService = game:GetService("TweenService")
 
