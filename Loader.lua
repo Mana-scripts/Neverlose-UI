@@ -17,6 +17,7 @@ local Games = {
 	[130247632398296] = EncodeSpaces("Anime Fighting Simulator.lua"),
 	[76285745979410] = EncodeSpaces("Anime Card Collection.lua"),
 	[75992362647444] = EncodeSpaces("Tap Simulator.lua"),
+	[111187356770616] = EncodeSpaces("Tap Simulator.lua"), 
 	[74260430392611] = EncodeSpaces("Rebirth Champions Ultimate.lua"),
 	[2753915549] = EncodeSpaces("Blox Fruits.lua"), -- World 1
 	[4442272183] = EncodeSpaces("Blox Fruits.lua"), -- World 2
