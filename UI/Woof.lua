@@ -1,4 +1,5 @@
 
+
 for i,v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do
     v:Disable()
 end
@@ -37,6 +38,8 @@ end
 
       UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 }
+
+ loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))()(Mainholder.UtilityModule.Loader) -- Mainholder.UtilityModule.Loader
 
  Mainholder.UtilityModule:Discord("7wZ7vEgWXR")
  
