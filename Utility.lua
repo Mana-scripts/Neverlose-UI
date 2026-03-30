@@ -28,7 +28,7 @@ end
 Module.HubName = "Qyrix"
 Module.Loader = false
 
-Module.Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))
+Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
 
 function Module:TapSimulatorRemoteBypass()
     local tables = {}
@@ -209,7 +209,7 @@ function Module:Notify(options)
 
     UICorner_2.CornerRadius = UDim.new(0, 10)
     UICorner_2.Parent = TimeFrame
-    
+
     -- Start Settings -- 
 
     NotificationFrame.BackgroundTransparency = 1
