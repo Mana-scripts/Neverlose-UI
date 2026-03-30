@@ -46,10 +46,10 @@ Conversions.BigNumToNumber = function(value)
 	return isNegative and -result or result
 end
 
-print(Conversions.BigNumToNumber("$1.1K"))
-print(Conversions.BigNumToNumber("-$5M"))
-print(Conversions.BigNumToNumber("$1,200K"))
-print(Conversions.BigNumToNumber("1k"))
+-- print(Conversions.BigNumToNumber("$1.1K"))
+-- print(Conversions.BigNumToNumber("-$5M"))
+-- print(Conversions.BigNumToNumber("$1,200K"))
+-- print(Conversions.BigNumToNumber("1k"))
 
 local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
@@ -68,8 +68,6 @@ local AutoFarm = Window:Tab("Autofarm")
 local GradingTab = Window:Tab("Grading")
 local UpgradeTab = Window:Tab("Upgrades")
 local TowerTab = Window:Tab("Tower")
-local Config = Window:Tab("Config")
-Library:ConfigTab(Config)
 
 local TweenService = game:GetService("TweenService")
 local CardRemote = game:GetService("ReplicatedStorage").Remotes.Card
@@ -225,7 +223,7 @@ spawn(function()
     end
 end)
 
-TowerTab:Checklist("Select Card", "Trait_Card", Cards(), function(t)
+TowerTab:Checklist("Select Card", "Trait_Card", Cards("All"), function(t)
     TraitCard = t
 end)
 
@@ -241,14 +239,27 @@ spawn(function()
     while task.wait(0.1) do
         if AutoTrait and TraitCard and Selected_Traits then
             pcall(function()
-                
-                for i, v in pairs(TraitCard) do
-                    local cardData = DataModule().ReplicatedData.GetData("Cards", v)
-                    local currentTrait = cardData and cardData.Trait
+                if table.find(TraitCard, "All") then
+                    for i, v in pairs(Cards()) do
+                        local cardData = DataModule().ReplicatedData.GetData("Cards", v)
+                        local currentTrait = cardData and cardData.Trait
+                        
+                        if not currentTrait or not (table.find(Selected_Traits, currentTrait)) then
+                            game:GetService("ReplicatedStorage").Remotes.Tower:FireServer("Roll", v)
+                            print("Rolling", v, currentTrait)
+                            task.wait(0.005)
+                        end
+                    end
+                else
+                    for i, v in pairs(TraitCard) do
+                        local cardData = DataModule().ReplicatedData.GetData("Cards", v)
+                        local currentTrait = cardData and cardData.Trait
 
-                    if not currentTrait or not table.find(Selected_Traits, currentTrait) then
-                        game:GetService("ReplicatedStorage").Remotes.Tower:FireServer("Roll", v)
-                        print("Rolling", v, currentTrait)
+                        if not currentTrait or not (table.find(Selected_Traits, currentTrait)) then
+                            game:GetService("ReplicatedStorage").Remotes.Tower:FireServer("Roll", v)
+                            print("Rolling", v, currentTrait)
+                            task.wait(0.005)
+                        end
                     end
                 end
             end)
@@ -313,6 +324,10 @@ AutoFarm:Toggle("Auto Collect", false, function(t)
     AutoCollect = t
 end)
 
+-- AutoFarm:Slider("Collect Time", 0, 10, function(t)
+--     AutoCollect_Wait = t
+-- end)
+
 AutoFarm:Toggle("Auto Collect Tokens", false, function(t)
     AutoCollect_Tokens = t
 end)
@@ -342,6 +357,7 @@ spawn(function()
                     end
                     task.wait(0.1)
                 end
+                --task.wait(AutoCollect_Wait)
             end)
         end
     end
@@ -360,14 +376,12 @@ spawn(function()
                 end
 
                 if Flip then
-                    local Event = game:GetService("ReplicatedStorage").Remotes.Card
-                    Event:FireServer(
+                    CardRemote:FireServer(
                         "Page",
                         "LeftArrow"
                     )
                 else
-                    local Event = game:GetService("ReplicatedStorage").Remotes.Card
-                    Event:FireServer(
+                    CardRemote:FireServer(
                         "Page",
                         "RightArrow"
                     )
@@ -376,6 +390,7 @@ spawn(function()
                 Page = Page + 1
 
                 task.wait(0.05)
+                --task.wait(AutoCollect_Wait)
             end)
         end
     end
@@ -415,9 +430,11 @@ for i,v in pairs(game:GetService("ReplicatedStorage").Assets.Packs:GetChildren()
 end
 
 local Rarities = {"All", "Normal"}
+local Rarities_AutoPlace = {"Normal"}
 for i,v in pairs(require(game:GetService("ReplicatedStorage").Modules.Config.Core.PackExchange)) do
     if not table.find(Rarities, i) then
         table.insert(Rarities, i)
+        table.insert(Rarities_AutoPlace, i)
     end
 end
 
@@ -489,6 +506,7 @@ AutoFarm:Toggle("Allow TP", false, function(t)
     PacksTp = t
 end)
 
+local Opening = false
 local OldPosition = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
 spawn(function()
     while task.wait() do
@@ -498,14 +516,16 @@ spawn(function()
                     for i,v in pairs(v:GetChildren()) do
                         if v:FindFirstChildOfClass("ProximityPrompt") and v.PackTimer.Timer.Text == "Ready!" then
                             if PacksTp then
+                                Opening = true
                                 OldPosition = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
-                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame * CFrame.new(0, 2, 0)
+                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame * CFrame.new(0, 5, 0)
                                 fireproximitypromptfunc(v.ProximityPrompt, 1, true, 9e9)
                                 task.wait(.1)
-                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = OldPosition
+                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = OldPosition * CFrame.new(0,1,0)
                             end
                             task.wait()
                             fireproximitypromptfunc(v.ProximityPrompt, 1, true, 9e9)
+                            Opening = false
                         end
                     end
                 end
@@ -514,31 +534,129 @@ spawn(function()
     end
 end)
 
-AutoFarm:Toggle("Auto Place Packs (Work in progress)", false, function(t)
+local Players = game:GetService("Players")
+local RS = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+
+local plot = workspace.Plots[GetPlot()]
+local floor = plot.Misc.Floor
+local packs = plot.Packs
+local misc = plot.Misc
+
+local floorSize = floor.Size
+local floorCFrame = floor.CFrame
+
+local spacing = 8
+local centerMultiplier = 0.4
+
+local function isFarFromMisc(pos)
+    for _, obj in pairs(misc:GetChildren()) do
+        if obj ~= floor then
+            if obj:IsA("Model") then
+                local part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if part then
+                    if (part.Position - pos).Magnitude < spacing then
+                        return false
+                    end
+                end
+            elseif obj:IsA("BasePart") then
+                if (obj.Position - pos).Magnitude < spacing then
+                    return false
+                end
+            end
+        end
+    end
+    return true
+end
+
+-- check packs
+local function isFarFromPacks(pos)
+    for _, pack in pairs(packs:GetChildren()) do
+        if pack:FindFirstChild("Bottom") then
+            if (pack.Bottom.Position - pos).Magnitude < spacing then
+                return false
+            end
+        end
+    end
+    return true
+end
+
+local function findPosition()
+    local attempts = 0
+
+    while attempts < 150 do
+        attempts += 1
+
+        local x = math.random(
+            -floorSize.X * centerMultiplier,
+             floorSize.X * centerMultiplier
+        )
+
+        local z = math.random(
+            -floorSize.Z * centerMultiplier,
+             floorSize.Z * centerMultiplier
+        )
+
+        local pos = (floorCFrame * CFrame.new(x, 2, z)).Position
+
+        if isFarFromPacks(pos) and isFarFromMisc(pos) then
+            return pos
+        end
+    end
+end
+
+function GetEquipedPack()
+    return game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChildOfClass("Model").Name
+end
+
+-- AutoFarm:Checklist("Select Auto Place Pack", "AutoPlacePacks", Packs, function(t)
+--     Selected_Auto_Pack = t
+-- end)
+
+AutoFarm:line()
+
+AutoFarm:Dropdown("Auto Equip Pack", Packs, function(t)
+    Selected_Auto_Pack = t
+end)
+
+AutoFarm:Dropdown("Pack Rarity", Rarities_AutoPlace, function(t)
+    Rarity = t
+end)
+
+AutoFarm:Toggle("Auto Place Packs", false, function(t)
     AutoPlace = t
 end)
 
+local OldPack = ""
 spawn(function()
     while task.wait() do
         if AutoPlace then
-            pcall(function()
-                for i,v in pairs(workspace.Plots[GetPlot()].Packs:GetChildren()) do
-                    -- if v:IsA("Model") then
-                        for i,v in pairs(v:GetChildren()) do
-                            if v.Name ~= "Bottom" and v.Name ~= "Top" then
-                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame * CFrame.new(0, 3, 6)
-                                for i,v in pairs(CardConfigModule.List) do
-                                    CardRemote:FireServer(
-                                        "Place",
-                                        v
-                                    )
-                                    task.wait(0.1)
-                                end
-                            end
-                        end
-                    -- end
+            local success, err = pcall(function()
+                local placePos = findPosition()
+                if placePos then
+                    if Opening then return end
+                    if not player.Character.HumanoidRootPart:FindFirstChild(Rarity == "Normal" and Selected_Auto_Pack or Selected_Auto_Pack.."-"..Rarity) then
+                        CardRemote:FireServer(
+                            "Unequip",
+                            GetEquipedPack()
+                        )
+                        task.wait(0.1)
+                        CardRemote:FireServer(
+                            "Equip",
+                            Rarity == "Normal" and Selected_Auto_Pack or Selected_Auto_Pack.."-"..Rarity
+                        )
+                    end
+                    player.Character.HumanoidRootPart.CFrame = CFrame.new(placePos)
+                    task.wait(0.4)
+                    -- CardRemote:FireServer("Place", GetEquipedPack())
+                    CardRemote:FireServer("Place", Rarity == "Normal" and Selected_Auto_Pack or Selected_Auto_Pack.."-"..Rarity)
+
                 end
             end)
+            if not success then
+                warn("AutoPlace: ", err)
+            end
         end
     end
 end)
