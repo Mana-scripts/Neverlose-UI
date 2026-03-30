@@ -211,6 +211,26 @@ end
  local woof = Instance.new("ScreenGui")
  woof.Name = "woof"
  woof.Parent = game.CoreGui
+
+ 
+
+   local OpenButton = Instance.new("ImageButton")
+   local UICorner = Instance.new("UICorner")
+
+
+   OpenButton.Name = "OpenButton"
+   OpenButton.Parent = woof
+   OpenButton.AnchorPoint = Vector2.new(0.5, 0.5)
+   OpenButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+   OpenButton.BackgroundTransparency = 1.000
+   OpenButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+   OpenButton.BorderSizePixel = 0
+   OpenButton.Position = UDim2.new(0.504977405, 0, 0.0858930126, 0)
+   OpenButton.Size = UDim2.new(0, 28, 0, 28)
+   OpenButton.Image = "rbxassetid://116342860199829"
+
+   UICorner.CornerRadius = UDim.new(0, 3)
+   UICorner.Parent = OpenButton
  
  -- or Color3.fromRGB(27, 27, 27),
  -- or Color3.fromRGB(35, 35, 35)
@@ -223,6 +243,14 @@ end
     DarkContrast = Color3.fromRGB(35, 35, 35),
     TextColor = Color3.fromRGB(255, 255, 255)
  }
+
+ function Mainholder:Notify(options)
+   Mainholder.UtilityModule:Notify({
+      Title = options.Title,
+      Description = options.Description,
+      Duration = options.Duration
+   })
+ end
  
  function Mainholder:Window(hubname, gamename, _Intro)
     local FirstTab = false
@@ -1070,94 +1098,113 @@ end
              local a, b = UIS.InputBegan:Wait()
              keybind_data:SetKeybind(a.KeyCode)
      end)
+        -- Function to toggle main UI visibility
+   local function ToggleUI()
+      MainFrame.Visible = not MainFrame.Visible
+   end
+
+     OpenButton.MouseButton1Click:Connect(function()
+      ToggleUI()
+     end)
+
+   -- Menu button click toggles everything
+   -- MenuBtn.MouseButton1Click:Connect(ToggleUI)
+
+   -- Key press toggles everything
+   UserInputService.InputBegan:Connect(function(input, gameProcessed)
+      if gameProcessed then return end
+      if input.KeyCode == Enum.KeyCode[BText.Text] then
+         ToggleUI()
+      end
+   end)
  
      local settingsToggled = nil
      MenuBtn.MouseButton1Click:Connect(function()
        settingsToggled = false
     end)
-     local uitoggled = false
-   UserInputService.InputBegan:Connect(
-    function(io, p)
-       if io.KeyCode == Enum.KeyCode[BText.Text] then
-          if uitoggled == false then
-             spawn(function()
-                if settingsToggled == false then
-                   MainSettingsContainer.Visible = false
-                   MainSettingsTitle.Visible = false
-                   MainSettingsFrameClose.Visible = false
-                   TweenService:Create(
-                      MainSettingsFrame,
-                      TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                      {BackgroundTransparency = 1}
-                   ):Play()
+   --   local uitoggled = false
+   -- UserInputService.InputBegan:Connect(
+   --  function(io, p)
+   --     if io.KeyCode == Enum.KeyCode[BText.Text] then
+   --        if uitoggled == false then
+   --           spawn(function()
+   --              if settingsToggled == false then
+   --                 MainSettingsContainer.Visible = false
+   --                 MainSettingsTitle.Visible = false
+   --                 MainSettingsFrameClose.Visible = false
+   --                 TweenService:Create(
+   --                    MainSettingsFrame,
+   --                    TweenInfo.new(.3, Enum.EasingStyle.Quad),
+   --                    {BackgroundTransparency = 1}
+   --                 ):Play()
        
-                   repeat wait() until MainSettingsFrame.BackgroundTransparency == 1
-                   MainSettingsFrame.Visible = false
-                   settingsToggled = true
-                end
-             end)
+   --                 repeat wait() until MainSettingsFrame.BackgroundTransparency == 1
+   --                 MainSettingsFrame.Visible = false
+   --                 settingsToggled = true
+   --              end
+   --           end)
  
-             ContainerHold.Visible = false
-             MainFrameholder.Visible = false
-             LeftFrame.Visible = false
-             GameTitle.Visible = false
-             MainTitle.Visible = false
-             MainFrameSearch.Visible = false
-             MainFrameSearchBox.Visible = false
+   --           ContainerHold.Visible = false
+   --           MainFrameholder.Visible = false
+   --           LeftFrame.Visible = false
+   --           GameTitle.Visible = false
+   --           MainTitle.Visible = false
+   --           MainFrameSearch.Visible = false
+   --           MainFrameSearchBox.Visible = false
  
-             TweenService:Create(
-                MainFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 1}
-             ):Play()
+   --           TweenService:Create(
+   --              MainFrame,
+   --              TweenInfo.new(.3, Enum.EasingStyle.Quad),
+   --              {BackgroundTransparency = 1}
+   --           ):Play()
  
-             repeat wait() until MainFrame.BackgroundTransparency == 1
-             MainFrame.Visible = false
-             uitoggled = true
-          else
+   --           repeat wait() until MainFrame.BackgroundTransparency == 1
+   --           MainFrame.Visible = false
+   --           uitoggled = true
+   --        else
  
-             spawn(function()
-                if settingsToggled == true then
-                   MainSettingsFrame.Visible = true
-                   TweenService:Create(
-                      MainSettingsFrame,
-                      TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                      {BackgroundTransparency = 0}
-                   ):Play()
+   --           spawn(function()
+   --              if settingsToggled == true then
+   --                 MainSettingsFrame.Visible = true
+   --                 TweenService:Create(
+   --                    MainSettingsFrame,
+   --                    TweenInfo.new(.3, Enum.EasingStyle.Quad),
+   --                    {BackgroundTransparency = 0}
+   --                 ):Play()
        
-                   repeat wait() until MainSettingsFrame.BackgroundTransparency == 0
-                   MainSettingsContainer.Visible = true
-                   MainSettingsTitle.Visible = true
-                   MainSettingsFrameClose.Visible = true
-                   settingsToggled = false
-                end
-             end)
+   --                 repeat wait() until MainSettingsFrame.BackgroundTransparency == 0
+   --                 MainSettingsContainer.Visible = true
+   --                 MainSettingsTitle.Visible = true
+   --                 MainSettingsFrameClose.Visible = true
+   --                 settingsToggled = false
+   --              end
+   --           end)
  
-             MainFrame.Visible = true
+   --           MainFrame.Visible = true
  
-             TweenService:Create(
-                MainFrame,
-                TweenInfo.new(.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0}
-             ):Play()
+   --           TweenService:Create(
+   --              MainFrame,
+   --              TweenInfo.new(.3, Enum.EasingStyle.Quad),
+   --              {BackgroundTransparency = 0}
+   --           ):Play()
  
-             repeat wait() until MainFrame.BackgroundTransparency == 0
-             ContainerHold.Visible = true
-             MainFrameholder.Visible = true
-             LeftFrame.Visible = true
-             GameTitle.Visible = true
-             MainTitle.Visible = true
-             MainFrameSearch.Visible = true
-             if MainFrameSearchBox.Visible == false then
-             else
-                MainFrameSearchBox.Visible = true
-             end
+   --           repeat wait() until MainFrame.BackgroundTransparency == 0
+   --           ContainerHold.Visible = true
+   --           MainFrameholder.Visible = true
+   --           LeftFrame.Visible = true
+   --           GameTitle.Visible = true
+   --           MainTitle.Visible = true
+   --           MainFrameSearch.Visible = true
+   --           if MainFrameSearchBox.Visible == false then
+   --           else
+   --              MainFrameSearchBox.Visible = true
+   --           end
              
  
-             uitoggled = false
-          end
-          end
-          end)
+   --           uitoggled = false
+   --        end
+   --        end
+   --        end)
  
  
           MenuBtn.MouseButton1Click:Connect(function()
