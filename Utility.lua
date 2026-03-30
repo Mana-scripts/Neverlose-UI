@@ -28,7 +28,7 @@ end
 Module.HubName = "Qyrix"
 Module.Loader = false
 
-Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
+Module.Library = loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))
 
 function Module:TapSimulatorRemoteBypass()
     local tables = {}
@@ -190,11 +190,11 @@ function Module:Notify(options)
     Time.Size = UDim2.new(0.0942330807, 0, 0.318181932, 0)
     Time.Font = Enum.Font.SourceSans
     Time.Text = "1"
-    Time.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Time.TextColor3 = Color3.fromRGB(111, 111, 111)
     Time.TextScaled = true
     Time.TextSize = 14.000
     Time.TextWrapped = true
-
+    
     UITextSizeConstraint_3.Parent = Time
     UITextSizeConstraint_3.MaxTextSize = 17
 
@@ -209,7 +209,7 @@ function Module:Notify(options)
 
     UICorner_2.CornerRadius = UDim.new(0, 10)
     UICorner_2.Parent = TimeFrame
-
+    
     -- Start Settings -- 
 
     NotificationFrame.BackgroundTransparency = 1
@@ -300,5 +300,17 @@ function Module:Notify(options)
         Instance = FakeNotificationFrame
     }
 end
+
+Module:Notify({
+    Title = Module.HubName,
+    Duration = 5,
+    Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
+})
+
+Module:Notify({
+    Title = Module.HubName,
+    Duration = 6,
+    Description = "Loading Script!"
+})
 
 return Module
