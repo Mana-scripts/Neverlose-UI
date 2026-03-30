@@ -213,7 +213,7 @@ return function(Load)
 
     LoadLine()
 
-    LoadButton.MouseButton1Click:Connect(function()
+    function Unload()
         TweenService:Create(
             LoadButton,
             TweenInfo.new(0.3, Enum.EasingStyle.Quad),
@@ -278,6 +278,17 @@ return function(Load)
         Tween.Completed:Wait()
 
         Animation:Destroy()
+    end
+    local Loading = false
+    LoadButton.MouseButton1Click:Connect(function()
+        Loading = true
+        Unload()
+    end)
+    
+    spawn(function()
+        task.wait(6.7)
+        if Loading then return end
+        Unload()
     end)
 
     repeat task.wait() until not game.CoreGui:FindFirstChild("Animation")
