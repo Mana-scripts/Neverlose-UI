@@ -1,5 +1,5 @@
 return function(Load)
-    if not Load then continue end
+    if not Load then return end
     if game.CoreGui:FindFirstChild("Animation") then
         game.CoreGui.Animation:Destroy()
     end
