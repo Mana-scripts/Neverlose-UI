@@ -255,7 +255,7 @@ local function Tap()
 end
 
 local function AutoEgg(Egg, EggAmount)
-    Network:InvokeServer("OpenEgg", Egg, tonumber(EggAmount), {})
+    Network:InvokeServer("OpenEgg", Egg, tonumber(EggAmount))
 end
 
 local function AutoRebirth(Amount)
@@ -396,6 +396,7 @@ spawn(function()
     while task.wait() do
         if Auto_Claim_Rank_Rewards then
             pcall(AutoClaimRankRewards)
+            task.wait(0.3)
         end
     end
 end)
@@ -404,6 +405,7 @@ spawn(function()
     while task.wait() do
         if Auto_Open_Toggled then
             pcall(AutoEgg, Select_Egg, Select_Egg_Amount)
+            task.wait(0.3)
         end
     end
 end)
@@ -420,6 +422,7 @@ spawn(function()
     while task.wait() do
         if AutoEquipBestPets then
             pcall(AutoEquipBestPetsfunc)
+            task.wait(0.3)
         end
     end
 end)
@@ -453,6 +456,7 @@ spawn(function()
     while task.wait() do
         if Auto_Craft then
             pcall(AutoGolden, Select_Pet_Amount, Select_Pet_To_Craft)
+            task.wait(0.3)
         end
     end
 end)
