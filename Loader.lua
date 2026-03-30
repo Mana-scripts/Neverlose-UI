@@ -1,3 +1,4 @@
+
 local Data = {
 	Owner = "Mana",
 	Library = "Neverlose-UI"
@@ -10,7 +11,7 @@ local function EncodeSpaces(str)
 end
 
 local Games = {
-	[18172550962] = EncodeSpaces("Pixel Blade.lua"),
+	[18172550962] = EncodeSpaces("Pixel Blade.lua"), -- Spawn
 	[18172553902] = EncodeSpaces("Pixel Blade.lua"),
 	[133884972346775] = EncodeSpaces("Pixel Blade.lua"),
 	[130247632398296] = EncodeSpaces("Anime Fighting Simulator.lua"),
@@ -29,7 +30,7 @@ function LoadScript(id)
 		warn("Game not supported:", id)
 		return
 	end
-    
+	
 	print("Loading:", url)
 
 	local scriptSource = game:HttpGetAsync(url)
@@ -40,5 +41,5 @@ end
 
 LoadScript(game.PlaceId)
 
-print(game.PlaceId)
-setclipboard(tostring(game.PlaceId))
+-- print(game.PlaceId)
+-- setclipboard(tostring(game.PlaceId))
