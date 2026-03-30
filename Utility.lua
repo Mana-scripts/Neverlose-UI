@@ -301,16 +301,21 @@ function Module:Notify(options)
     }
 end
 
-Module:Notify({
-    Title = Module.HubName,
-    Duration = 5,
-    Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
-})
+if not getgenv().Qyrix_Loaded then
+    Module:Notify({
+        Title = Module.HubName,
+        Duration = 5,
+        Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
+    })
 
-Module:Notify({
-    Title = Module.HubName,
-    Duration = 6,
-    Description = "Loading Script!"
-})
+    Module:Notify({
+        Title = Module.HubName,
+        Duration = 6,
+        Description = "Loading Script!"
+    })
+    getgenv().Qyrix_Loaded = {
+        Loaded = true
+    }
+end
 
 return Module
