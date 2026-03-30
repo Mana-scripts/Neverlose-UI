@@ -135,18 +135,6 @@ return function(Load)
     local Speed = 1
 
     TweenService:Create(
-        Frame2,
-        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-        {ImageTransparency = 0}
-    ):Play()
-
-    TweenService:Create(
-        Frame1,
-        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-        {ImageTransparency = 0}
-    ):Play()
-
-    TweenService:Create(
         Frame1,
         TweenInfo.new(Speed, Enum.EasingStyle.Quad),
         {Size = UDim2.new(0, 432, 0, 265)}
@@ -165,6 +153,20 @@ return function(Load)
         Frame2,
         TweenInfo.new(Speed, Enum.EasingStyle.Quad),
         {Position = UDim2.new(0.385, 0, 0.266, 0)}
+    ):Play()
+
+    task.wait(0.2)
+
+    TweenService:Create(
+        Frame2,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+        {ImageTransparency = 0}
+    ):Play()
+
+    TweenService:Create(
+        Frame1,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+        {ImageTransparency = 0}
     ):Play()
 
 
