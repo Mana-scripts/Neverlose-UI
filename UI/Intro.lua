@@ -1,5 +1,6 @@
-return function(Load)
+function LoadGui(Load)
     if not Load then return end
+
     if game.CoreGui:FindFirstChild("Animation") then
         game.CoreGui.Animation:Destroy()
     end
@@ -124,8 +125,8 @@ return function(Load)
     UICorner_2.CornerRadius = UDim.new(0, 3)
     UICorner_2.Parent = Frame2
         
-    -- Frame1.ImageTransparency = 1
-    -- Frame2.ImageTransparency = 1
+    Frame1.ImageTransparency = 1
+    Frame2.ImageTransparency = 1
     -- Frame1.Size = UDim2.new(0,0,0,265)
 
     -- Frame2.Size = UDim2.new(0,0,0,265)
@@ -142,8 +143,23 @@ return function(Load)
     local TweenService = game:GetService("TweenService")
     --{0.624, 0},{0.266, 0} -- Start Frame2 Pos
     --{0.385, 0},{0.266, 0} -- End Frame2 Pos
+    spawn(function()
+        local Speed = 0.4
+        task.wait(0.15)
+        TweenService:Create(
+            Frame2,
+            TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+            {ImageTransparency = 0}
+        ):Play()
 
-    local Speed = 1
+        TweenService:Create(
+            Frame1,
+            TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+            {ImageTransparency = 0}
+        ):Play()
+    end)
+
+    local Speed = 0.5
 
     -- TweenService:Create(
     --     Frame1,
@@ -162,31 +178,18 @@ return function(Load)
     -- Tween:Play()
     local Tween = TweenService:Create(
         Frame2,
-        TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+        TweenInfo.new(Speed, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
         {Position = UDim2.new(0, 0, 0, 0)}
     )
-
     Tween:Play()
 
     TweenService:Create(
         Frame1,
-        TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+        TweenInfo.new(Speed, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
         {Position = UDim2.new(0, 0, 0, 0)}
     ):Play()
 
     -- task.wait(0.2)
-
-    -- TweenService:Create(
-    --     Frame2,
-    --     TweenInfo.new(0.5, Enum.EasingStyle.Quad),
-    --     {ImageTransparency = 0}
-    -- ):Play()
-
-    -- TweenService:Create(
-    --     Frame1,
-    --     TweenInfo.new(0.5, Enum.EasingStyle.Quad),
-    --     {ImageTransparency = 0}
-    -- ):Play()
 
 
     Tween.Completed:Wait()
@@ -264,13 +267,13 @@ return function(Load)
 
         local Tween = TweenService:Create(
             Frame2,
-            TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+            TweenInfo.new(Speed, Enum.EasingStyle.Back),
             {Position = UDim2.new(0.3, 0, 0, 0)}
         )
 
         TweenService:Create(
             Frame1,
-            TweenInfo.new(Speed, Enum.EasingStyle.Quad),
+            TweenInfo.new(Speed, Enum.EasingStyle.Back),
             {Position = UDim2.new(-0.3, 0, 0, 0)}
         ):Play()
 
@@ -305,4 +308,15 @@ return function(Load)
     end)
 
     repeat task.wait() until not game.CoreGui:FindFirstChild("Animation")
+
+end
+
+local Example = false
+
+if Example then
+    LoadGui(Example)
+end
+
+return function(Load)
+    LoadGui(Load)
 end
