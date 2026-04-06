@@ -29,6 +29,42 @@ Module.HubName = "Qyrix"
 Module.Loader = false
 
 Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
+Module.Visual_Loader = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))()
+
+function Module:waitForCondition(time, conditionFunc)
+    spawn(function()
+        local waited = 0
+        local success = false
+
+        -- Wait up to 5 seconds
+        while waited < time do
+            if conditionFunc() then
+                success = true
+                break
+            end
+            task.wait(0.1)  -- check every 0.1s
+            waited = waited + 0.1
+        end
+
+        if success then
+            -- Condition became true
+            getgenv().UtilityModule:Notify({
+                Title = "Success",
+                Duration = 3,
+                Description = "Condition met!"
+            })
+        else
+            getgenv().UtilityModule:Notify({
+                Title = "Error",
+                Duration = 3,
+                Description = "Rejoining Game: HttpError"
+            })
+            task.wait(3.1)
+            -- Condition never became true → Rejoin the game
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+        end
+    end)
+end
 
 function Module:TapSimulatorRemoteBypass()
     local tables = {}
@@ -73,13 +109,13 @@ function Module:TapSimulatorRemoteBypass()
 
   return EventsFolder, FunctionsFolder, Remotes
 end
-    
+
 
 local NotificationsFrame
 local NotificationsGUI
 
 if not game.CoreGui:FindFirstChild("NotificationsGUI") then
-    local NotificationsGUI = Instance.new("ScreenGui")
+    NotificationsGUI = Instance.new("ScreenGui")
     NotificationsGUI.Name = "NotificationsGUI"
     NotificationsGUI.Parent = game.CoreGui
     local UIListLayout = Instance.new("UIListLayout")
