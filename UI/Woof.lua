@@ -8,6 +8,13 @@ if game.CoreGui:FindFirstChild("woof") then
    game.CoreGui:FindFirstChild("woof"):Destroy()
 end
 
+local Loaded = false
+if getgenv().UtilityModule then
+   getgenv().UtilityModule:waitForCondition(11, function()
+      return Loaded == true
+   end)
+end
+
 -- if not getgenv().UtilityModule then
    getgenv().UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 -- end
@@ -5028,7 +5035,7 @@ end)
  end
  return Tabs
  end
-
+Loaded = true
 function Example()
    local Window = Mainholder:Window(
       "Mango",
