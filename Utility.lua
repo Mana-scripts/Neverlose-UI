@@ -26,7 +26,7 @@ function Module:Discord(code)
 end
 
 Module.HubName = "Qyrix"
-Module.Loader = true
+Module.Loader = false
 
 Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
 
@@ -302,20 +302,21 @@ function Module:Notify(options)
 end
 
 if not getgenv().Qyrix_Loaded then
-    Module:Notify({
-        Title = Module.HubName,
-        Duration = 5,
-        Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
-    })
-
-    Module:Notify({
-        Title = Module.HubName,
-        Duration = 6,
-        Description = "Loading Script!"
-    })
     getgenv().Qyrix_Loaded = {
         Loaded = true
     }
 end
+
+Module:Notify({
+    Title = Module.HubName,
+    Duration = 5,
+    Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
+})
+
+Module:Notify({
+    Title = Module.HubName,
+    Duration = 6,
+    Description = "Loading Script!"
+})
 
 return Module
