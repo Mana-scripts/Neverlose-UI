@@ -26,7 +26,7 @@ function Module:Discord(code)
 end
 
 Module.HubName = "Qyrix"
-Module.Loader = false
+Module.Loader = true
 
 Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
 Module.Visual_Loader = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))
