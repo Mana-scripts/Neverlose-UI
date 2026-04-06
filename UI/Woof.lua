@@ -3424,6 +3424,10 @@ function ContainerItems:Checklist(text, glob, list, callback)
       -- dropdown
       --------------------------------------------------
 
+      function checklistfunc:visibility(vis)
+         Checklist.Visible = vis
+      end
+
       Checklist.MouseButton1Click:Connect(function()
 
          if not DropToggled then
