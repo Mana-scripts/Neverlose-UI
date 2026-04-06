@@ -51,23 +51,31 @@ end
 -- print(Conversions.BigNumToNumber("$1,200K"))
 -- print(Conversions.BigNumToNumber("1k"))
 
-local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+local Loaded = false
+if getgenv().UtilityModule then
+   getgenv().UtilityModule:waitForCondition(11, function()
+      return Loaded == true
+   end)
+end
 
-UtilityModule:Discord("7wZ7vEgWXR")
+local Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))()
 
-
-local Library = UtilityModule.Library() --loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
+Loaded = true
 
 local Window = Library:Window(
-    UtilityModule.HubName,
+    getgenv().UtilityModule.HubName,
     "Anime Card Collection",
-    UtilityModule.Loader
+    getgenv().UtilityModule.Loader
 )
+
+getgenv().UtilityModule:Discord("7wZ7vEgWXR")
 
 local AutoFarm = Window:Tab("Autofarm")
 local GradingTab = Window:Tab("Grading")
 local UpgradeTab = Window:Tab("Upgrades")
 local TowerTab = Window:Tab("Tower")
+local Market = Window:Tab("Market")
+local Easter = Window:Tab("Easter")
 
 local TweenService = game:GetService("TweenService")
 local CardRemote = game:GetService("ReplicatedStorage").Remotes.Card
@@ -429,12 +437,14 @@ for i,v in pairs(game:GetService("ReplicatedStorage").Assets.Packs:GetChildren()
     end
 end
 
+local Pack_Rarities = {"Regular"}
 local Rarities = {"All", "Normal"}
 local Rarities_AutoPlace = {"Normal"}
 for i,v in pairs(require(game:GetService("ReplicatedStorage").Modules.Config.Core.PackExchange)) do
-    if not table.find(Rarities, i) then
+    if not table.find(Rarities, i) and i ~= "Downgrade" then
         table.insert(Rarities, i)
         table.insert(Rarities_AutoPlace, i)
+        table.insert(Pack_Rarities, i)
     end
 end
 
@@ -744,3 +754,252 @@ spawn(function()
         end
     end
 end)
+
+
+Market:Toggle("Auto Buy Pet Packs", false, function(t)
+    Auto_Buy_Pet_Packs = t
+end)
+
+local PetsConfig = require(game:GetService("ReplicatedStorage").Modules.Config.Core.PetConfig)
+local PetPacks = {}
+for i,v in pairs(PetsConfig.Eggs) do
+    table.insert(PetPacks, i)
+end
+
+Market:Checklist("Pet Packs", "PetPacks", PetPacks, function(t)
+    Selected_Pet_Packs = t
+end)
+
+spawn(function()
+    while task.wait(0.5) do
+        if Auto_Buy_Pet_Packs and Selected_Pet_Packs then
+            pcall(function()
+                for i,v in pairs(Selected_Pet_Packs) do
+                    if PetsConfig.Eggs[v].Price > DataModule().ReplicatedData.GetData("PetTokens") then
+                        game:GetService("ReplicatedStorage").Remotes.Pet:FireServer(
+                            "Roll",
+                            v
+                        )
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+Market:line()
+
+local MarketPack_Checklist, MarketPack_From_Checklist, MarketPack_To_Checklist
+Market:Dropdown("Exchange Method", {"Upgrade", "Downgrade"}, function(t)
+    ExchangeMethod = t
+    -- if ExchangeMethod == "Upgrade" then
+    --     MarketPack_Checklist:visibility(true)
+    --     MarketPack_From_Checklist:visibility(false)
+    --     MarketPack_To_Checklist:visibility(false)
+    -- elseif ExchangeMethod == "Downgrade" then
+    --     MarketPack_Checklist:visibility(false)
+    --     MarketPack_From_Checklist:visibility(true)
+    --     MarketPack_To_Checklist:visibility(true)
+    -- end
+end)
+
+MarketPack_Checklist = Market:Checklist("Select Market Pack", "Packs_Market", Packs, function(t)
+    Selected_Market_Pack = t
+end)
+
+Market:Checklist("Select Pack Rarity", "Pack_Rarities", Pack_Rarities, function(t)
+    Selected_Pack_Rarities = t
+end)
+
+-- MarketPack_Checklist:visibility(true)
+
+-- MarketPack_From_Checklist = Market:Checklist("Select From Pack", "Packs_Market", Cards(), function(t)
+--     MarketPack_From_Pack = t
+-- end)
+
+-- MarketPack_To_Checklist = Market:Checklist("Select To Pack", "Packs_Market", Cards(), function(t)
+--     MarketPack_To_Pack = t
+-- end)
+
+-- MarketPack_From_Checklist:visibility(false)
+-- MarketPack_To_Checklist:visibility(false)
+
+Market:Toggle("Pack Exchanging", false, function(t)
+    Pack_Exchanging = t
+end)
+
+local PackExchangeConfig = require(game:GetService("ReplicatedStorage").Modules.Config.Core.PackExchange)
+-- local PackExchange = {}
+-- for i,v in pairs(PackExchange.Downgrade) do
+--     table.insert(PetPacks, i)
+-- end
+
+spawn(function()
+    while task.wait() do
+        if Pack_Exchanging then -- and ExchangeMethod and Selected_Pack_Rarities and Selected_Market_Pack -- (Selected_Market_Pack or (MarketPack_From_Pack and MarketPack_To_Pack))
+            pcall(function()
+                if ExchangeMethod == "Upgrade" then
+                    for i,v in pairs(Selected_Market_Pack) do
+                        for i2, v2 in pairs(Selected_Pack_Rarities) do
+                            if v2 == "Regular" then
+                                game:GetService("ReplicatedStorage").Remotes.Card:FireServer(
+                                    "Exchange",
+                                    v,
+                                    "Regular",
+                                    "Gold"
+                                )
+                                task.wait(0.2)
+                            else
+                                game:GetService("ReplicatedStorage").Remotes.Card:FireServer(
+                                    "Exchange",
+                                    v,
+                                    PackExchangeConfig.Downgrade[v2].Pack,
+                                    v2
+                                )
+                                task.wait(0.2)
+                            end
+                        end
+                    end
+                elseif ExchangeMethod == "Downgrade" then
+                    for i,v in pairs(Selected_Market_Pack) do
+                        for i2, v2 in pairs(Selected_Pack_Rarities) do
+                            game:GetService("ReplicatedStorage").Remotes.Card:FireServer(
+                                "Downgrade",
+                                v,
+                                v2
+                            )
+                            task.wait(0.2)
+                        end
+                    end
+
+                end
+            end)
+        end
+        task.wait(0.5)
+    end
+end)
+
+
+
+-- local Event = game:GetService("ReplicatedStorage").Remotes.Potion
+-- Event:FireServer(
+--     "Craft",
+--     "Luck1"
+-- )
+
+Market:line()
+
+local Consumables = require(game:GetService("ReplicatedStorage").Modules.Config.Core.Consumables)
+local Potions = {}
+for i,v in pairs(Consumables) do
+    table.insert(Potions, i)
+end
+
+Market:Checklist("Select Potion", "Potions", Potions, function(t)
+    Selected_Potions = t
+end)
+
+Market:Toggle("Auto Craft Potion", false, function(t)
+    Auto_Craft_Potion = t
+end)
+
+function RemoveNotifications(text)
+    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Notifications.TopNotification:GetChildren()) do
+        if v:IsA("Frame") and v:FindFirstChildOfClass("TextLabel") and v:FindFirstChild("Label") and v.Label.Text == text then
+            v.Visible = false
+        end
+    end
+end
+
+spawn(function()
+    while task.wait() do
+        if Auto_Craft_Potion then -- and ExchangeMethod and Selected_Pack_Rarities and Selected_Market_Pack -- (Selected_Market_Pack or (MarketPack_From_Pack and MarketPack_To_Pack))
+            pcall(function()
+                task.spawn(RemoveNotifications, "Requirements not met!")
+                for i,v in pairs(Selected_Potions) do
+                    for i2,v2 in pairs(Consumables[v].Requirements) do
+                        if tonumber(DataModule().ReplicatedData.GetReplica().Data.Packs[tostring(i2)]) > v2 then
+                            game:GetService("ReplicatedStorage").Remotes.Potion:FireServer(
+                                "Craft",
+                                v
+                            )
+                            task.wait(0.1)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+local Easter_Eggs_Label = Easter:Label("Easter Eggs: 0")
+-- Requirements not met! 
+Easter:Toggle("Auto Collect Easter Eggs", false, function(t)
+    Easter_Collect = t
+end)
+
+Easter:Toggle("Notify Collection", false, function(t)
+    Notify_When_Collected = t
+end)
+
+spawn(function()
+    local collect = 0
+    while task.wait(0.5) do
+        Easter_Eggs_Label:Refresh("Easter Eggs: "..DataModule().ReplicatedData.GetData("EasterEggs"))
+        if Easter_Collect then
+            pcall(function()
+                for i,v in pairs(workspace.VFX:GetChildren()) do
+                    if string.find(v.Name, "Egg") then
+                        local number = v.Name:match("^(%d+)%-%a+$")
+                        game:GetService("ReplicatedStorage").Remotes.Easter:FireServer(
+                            "Collect",
+                            tostring(number)
+                        )
+                        if Notify_When_Collected then
+                            getgenv().UtilityModule:Notify({
+                                Title = "Easter Eggs",
+                                Duration = 3,
+                                Description = "Collected a Easter Eggs!"
+                            })
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+Easter:line()
+
+local Easter_Module_Config = require(game:GetService("ReplicatedStorage").Modules.Config.Core.EasterConfig)
+local Easter_Items = {}
+for i,v in pairs(Easter_Module_Config) do
+    table.insert(Easter_Items, i)
+end
+
+Easter:Checklist("Selected Easter Shop", "AutoBuyEaster", Easter_Items, function(t)
+    Selected_Auto_Buy_Easter = t
+end)
+
+Easter:Toggle("Easter Auto Buy", false, function(t)
+    Easter_Auto_Buy = t
+end)
+
+spawn(function()
+    while task.wait() do
+        if Easter_Auto_Buy then
+            pcall(function()
+                for i,v in pairs(Selected_Auto_Buy_Easter) do
+                    if Easter_Module_Config[v].Price < DataModule().ReplicatedData.GetData("EasterEggs") then -- DataModule().ReplicatedData.GetReplica().Data.EasterEggs
+                        game:GetService("ReplicatedStorage").Remotes.Easter:FireServer(
+                            "Buy",
+                            v
+                        )
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+print("Hello world!")
