@@ -7,6 +7,10 @@ end
 if game.CoreGui:FindFirstChild("woof") then
    game.CoreGui:FindFirstChild("woof"):Destroy()
 end
+
+-- if not getgenv().UtilityModule then
+   getgenv().UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+-- end
  
 --  if game:GetService("CoreGui"):FindFirstChild("Notifaction") then
 --     game:GetService("CoreGui").Notifaction:Destroy();
@@ -35,13 +39,11 @@ end
       Client = game:GetService("Players").LocalPlayer,
       HttpService = game:GetService("HttpService"),
       Mouse = game:GetService("Players").LocalPlayer:GetMouse(),
-
-      UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 }
 
- loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))()(Mainholder.UtilityModule.Loader) -- Mainholder.UtilityModule.Loader
+ getgenv().UtilityModule.Visual_Loader()(true)
 
- Mainholder.UtilityModule:Discord("7wZ7vEgWXR")
+ getgenv().UtilityModule:Discord("7wZ7vEgWXR")
  
  coroutine.wrap(
      function()
@@ -248,7 +250,7 @@ end
  }
 
  function Mainholder:Notify(options)
-   Mainholder.UtilityModule:Notify({
+   getgenv().UtilityModule:Notify({
       Title = options.Title,
       Description = options.Description,
       Duration = options.Duration
@@ -4886,8 +4888,8 @@ end)
    end)
 
    -- tab:Button("Refresh Configs", function()
-   --    Mainholder.UtilityModule:Notify({
-   --       Title = Mainholder.UtilityModule.HubName,
+   --    getgenv().UtilityModule:Notify({
+   --       Title = getgenv().UtilityModule.HubName,
    --       Description = "Updated Configs List!",
    --       Duration = 3
    --    })
@@ -4898,8 +4900,8 @@ end)
 
    function CheckConfigIsSelected(CFG)
       if CFG == nil then
-         Mainholder.UtilityModule:Notify({
-            Title = Mainholder.UtilityModule.HubName,
+         getgenv().UtilityModule:Notify({
+            Title = getgenv().UtilityModule.HubName,
             Description = "Select a config first!",
             Duration = 3
          })
@@ -4910,8 +4912,8 @@ end)
 
    tab:Button("Load Config", function()
       if not CheckConfigIsSelected(ConfigName) then return end
-      Mainholder.UtilityModule:Notify({
-         Title = Mainholder.UtilityModule.HubName,
+      getgenv().UtilityModule:Notify({
+         Title = getgenv().UtilityModule.HubName,
          Description = "Loaded: "..ConfigName.."!",
          Duration = 3
       })
@@ -4925,8 +4927,8 @@ end)
 
    tab:Button("Save Config", function()
       if not CheckConfigIsSelected(ConfigName) then return end
-      Mainholder.UtilityModule:Notify({
-         Title = Mainholder.UtilityModule.HubName,
+      getgenv().UtilityModule:Notify({
+         Title = getgenv().UtilityModule.HubName,
          Description = "Saved: "..ConfigName.."!",
          Duration = 3
       })
@@ -4945,8 +4947,8 @@ end)
       NewConfigName = t
    end)
    tab:Button("Create Config", function()
-      Mainholder.UtilityModule:Notify({
-         Title = Mainholder.UtilityModule.HubName,
+      getgenv().UtilityModule:Notify({
+         Title = getgenv().UtilityModule.HubName,
          Description = "Created Config: "..NewConfigName.."! \nRemember to refresh configs!",
          Duration = 3
       })
@@ -4975,8 +4977,8 @@ end)
 
       ConfigsDropdown:Refresh(Mainholder:GetConfigs(false))
 
-      Mainholder.UtilityModule:Notify({
-         Title = Mainholder.UtilityModule.HubName,
+      getgenv().UtilityModule:Notify({
+         Title = getgenv().UtilityModule.HubName,
          Description = "Imported: "..data.Name.."!".."\nAuthor: "..game:GetService("Players"):GetNameFromUserIdAsync(data.Author).."\nShareable: "..tostring(data.AllowExport),
          Duration = 5
       })
@@ -4986,8 +4988,8 @@ end)
    if setclipboard or writeclipboard then
       ExportInfo = tab:Label("Export Config: ")
       Export_alo = tab:Button("Export Config", function()
-         Mainholder.UtilityModule:Notify({
-            Title = Mainholder.UtilityModule.HubName,
+         getgenv().UtilityModule:Notify({
+            Title = getgenv().UtilityModule.HubName,
             Description = "Exported : "..ConfigName.." to clipboard",
             Duration = 3
          })
@@ -5012,8 +5014,8 @@ end)
 
    tab:Button("Delete Config", function()
       Mainholder:DeleteCfg(ConfigName)
-      Mainholder.UtilityModule:Notify({
-         Title = Mainholder.UtilityModule.HubName,
+      getgenv().UtilityModule:Notify({
+         Title = getgenv().UtilityModule.HubName,
          Description = "Deleted Config: "..ConfigName.."!",
          Duration = 3
       })
