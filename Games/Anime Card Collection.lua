@@ -76,6 +76,9 @@ local UpgradeTab = Window:Tab("Upgrades")
 local TowerTab = Window:Tab("Tower")
 local Market = Window:Tab("Market")
 local Easter = Window:Tab("Easter")
+local Config = Window:Tab("Config")
+Library:ConfigTab(Config)
+
 
 local TweenService = game:GetService("TweenService")
 local CardRemote = game:GetService("ReplicatedStorage").Remotes.Card
