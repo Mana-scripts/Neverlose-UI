@@ -19,7 +19,7 @@ Loaded = true
 
 Utility.Visual_Loader()(Utility.Loader)
 
-Utility:Discord("7wZ7vEgWXR")
+Utility:Discord("6cPKB2XhWs")
 
 local Library do 
     local Workspace = game:GetService("Workspace")
@@ -8054,6 +8054,30 @@ local Library do
                 Default = Enum.KeyCode.RightControl,
                 Callback = function(Value)
                     Window:SetOpen(not Global["GUI_TOGGLED"])
+                end
+            })
+
+            UISection:Button({
+                Name = "Credits: Mana",
+                Callback = function()
+                    Utility:Discord("6cPKB2XhWs")
+                end
+            })
+            
+            UISection:Button({
+                Name = "Discord Server",
+                Callback = function()
+                    Utility:Discord("6cPKB2XhWs")
+                    setclipboard("https://discord.gg/6cPKB2XhWs")
+                    Library:Notify({
+                        Title = "Discord Server",
+                        Duration = 5,
+                        Description = "Coppied Discord Invite to clipboard",
+                        Gradient = {
+                            Color1 = Library.Theme.Accent,
+                            Color2 = Library.Theme.AccentGradient,
+                        }
+                    })
                 end
             })
         end
