@@ -17,7 +17,7 @@ local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubuserconten
 
 Loaded = true
 
-UtilityModule.Visual_Loader()(not UtilityModule.Loader)
+UtilityModule.Visual_Loader()(UtilityModule.Loader)
 
 UtilityModule:Discord("7wZ7vEgWXR")
 
