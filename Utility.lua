@@ -35,8 +35,6 @@ function Module:waitForCondition(time, conditionFunc)
     spawn(function()
         local waited = 0
         local success = false
-
-        -- Wait up to 5 seconds
         while waited < time do
             if conditionFunc() then
                 success = true
@@ -46,21 +44,13 @@ function Module:waitForCondition(time, conditionFunc)
             waited = waited + 0.1
         end
 
-        if success then
-            -- Condition became true
-            getgenv().UtilityModule:Notify({
-                Title = "Success",
-                Duration = 3,
-                Description = "Condition met!"
-            })
-        else
+        if not success then
             getgenv().UtilityModule:Notify({
                 Title = "Error",
                 Duration = 3,
-                Description = "Rejoining Game: HttpError"
+                Description = "Something went wrong Rejoining"
             })
             task.wait(3.1)
-            -- Condition never became true → Rejoin the game
             game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
         end
     end)
@@ -105,7 +95,8 @@ function Module:TapSimulatorRemoteBypass()
     for i,v in pairs(Remotes) do
         print(i,v)
     end
-    Remotes.Tap:FireServer(true, nil, true)
+
+    -- Remotes.Tap:FireServer(true, nil, true)
 
   return EventsFolder, FunctionsFolder, Remotes
 end
@@ -342,17 +333,5 @@ if not getgenv().Qyrix_Loaded then
         Loaded = true
     }
 end
-
-Module:Notify({
-    Title = Module.HubName,
-    Duration = 5,
-    Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
-})
-
-Module:Notify({
-    Title = Module.HubName,
-    Duration = 6,
-    Description = "Loading Script!"
-})
 
 return Module
