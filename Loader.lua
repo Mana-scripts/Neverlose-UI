@@ -1,4 +1,11 @@
 
+local Loaded = false
+if getgenv().UtilityModule then
+   getgenv().UtilityModule:waitForCondition(16, function()
+      return Loaded == true
+   end)
+end
+
 local Data = {
 	Owner = "Mana",
 	Library = "Neverlose-UI"
@@ -41,6 +48,51 @@ function LoadScript(id)
 end
 
 LoadScript(game.PlaceId)
+
+getgenv().UtilityModule:Notify({
+    Title = getgenv().UtilityModule.HubName,
+    Duration = 5,
+    Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
+})
+
+getgenv().UtilityModule:Notify({
+    Title = getgenv().UtilityModule.HubName,
+    Duration = 6,
+    Description = "Loading Script!"
+})
+
+Loaded = true
+
+local function identifyExecutorName(small_name)
+	small_name = small_name or false
+	if identifyexecutor then
+		return small_name == true and string.split(identifyexecutor(), " ")[1]:lower() or string.split(identifyexecutor(), " ")[1]
+	end
+	return "Unknown"
+end
+
+local Supported_Executors = {
+	'wave',
+	'volt',
+	'potassium',
+	'seliware'
+}
+
+if table.find(Supported_Executors, identifyExecutorName(true)) then
+	task.wait(5)
+	getgenv().UtilityModule:Notify({
+		Title = "Executor Supported",
+		Duration = 5,
+		Description = tostring(identifyExecutorName()).." Supported!"
+	})
+else
+	task.wait(5)
+	getgenv().UtilityModule:Notify({
+		Title = "Warning!",
+		Duration = 5,
+		Description = tostring(identifyExecutorName()).." may not be supported for this script."
+	})
+end
 
 -- print(game.PlaceId)
 -- setclipboard(tostring(game.PlaceId))
