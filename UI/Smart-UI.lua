@@ -85,7 +85,8 @@ local Library do
 
     local RectNew = Rect.new
 
-    local IsMobile = UserInputService.TouchEnabled or false
+    -- local IsMobile = UserInputService.TouchEnabled or false
+    local IsMobile = false
 
     Library = {
         Theme =  { },
@@ -8063,7 +8064,7 @@ local Library do
                     Utility:Discord("6cPKB2XhWs")
                 end
             })
-            
+
             UISection:Button({
                 Name = "Discord Server",
                 Callback = function()
