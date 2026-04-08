@@ -13,13 +13,13 @@ if getgenv().UtilityModule then
    end)
 end
 
-local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+local Utility = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
 Loaded = true
 
-UtilityModule.Visual_Loader()(UtilityModule.Loader)
+Utility.Visual_Loader()(Utility.Loader)
 
-UtilityModule:Discord("7wZ7vEgWXR")
+Utility:Discord("7wZ7vEgWXR")
 
 local Library do 
     local Workspace = game:GetService("Workspace")
@@ -130,7 +130,9 @@ local Library do
         NotifHolder = nil,
         UnusedHolder = nil,
 
-        Font = nil
+        Font = nil,
+
+        Ready = false
     }
 
     Library.__index = Library
@@ -2190,7 +2192,7 @@ local Library do
         end
 
         Library.Notify = function(self, Data)
-            UtilityModule:Notify({
+            Utility:Notify({
                 Title = Data.Title,
                 Duration = Data.Duration,
                 Description = Data.Description,
@@ -8059,6 +8061,10 @@ local Library do
         return Page
     end
 end
+
+Library.Ready = true
+
+repeat task.wait() until getgenv().UtilityModule and Library.Ready == true
 
 -- getgenv().Library = Library
 
