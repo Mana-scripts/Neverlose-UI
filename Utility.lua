@@ -1,5 +1,11 @@
 local Module = {}
 
+Module.HubName = "Qyrix"
+Module.Loader = true
+
+Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
+Module.Visual_Loader = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))
+
 function Module:Discord(code)
     local req = (syn and syn.request) or (http and http.request) or http_request
     pcall(function()
@@ -24,12 +30,6 @@ function Module:Discord(code)
         end
     end)
 end
-
-Module.HubName = "Qyrix"
-Module.Loader = true
-
-Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
-Module.Visual_Loader = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))
 
 function Module:waitForCondition(time, conditionFunc)
     spawn(function()
@@ -135,8 +135,9 @@ function Module:Notify(options)
     local optionsTitle = options.Title
 	local optionsDuration = options.Duration
 	local optionsDescription = options.Description
-	local GradientColor1 = options.Gradient.Color1 or Color3.fromRGB(15,15,15)
-	local GradientColor2 = options.Gradient.Color2 or Color3.fromRGB(15,15,15)
+    local optionsGradient = options.Gradient or {}
+	local GradientColor1 = optionsGradient.Color1 or Color3.fromRGB(15,15,15)
+	local GradientColor2 = optionsGradient.Color2 or Color3.fromRGB(15,15,15)
 
     local FakeNotificationFrame = Instance.new("Frame")
     local NotificationFrame = Instance.new("Frame")
