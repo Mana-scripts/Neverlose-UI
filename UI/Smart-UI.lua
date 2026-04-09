@@ -2419,6 +2419,9 @@ local Library do
                     -- responsive size
                     Size = UDim2New(0.3, 0, 0.6, 0),
 
+                    -- OldSize
+                    -- Size = UDim2New(0, 677, 0, 644),
+
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
@@ -2480,6 +2483,8 @@ local Library do
                     AnchorPoint = Vector2New(1, 0),
                     BackgroundTransparency = 0.15,
                     Size = UDim2New(0.25, 0, 1, 0),
+                    -- OldSize
+                    -- Size = UDim2New(0, 225, 1, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
