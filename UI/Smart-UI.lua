@@ -105,9 +105,9 @@ local Library do
         FadeSpeed = 0.2,
 
         Folders = {
-            Directory = "lyapossss",
-            Configs = "lyapossss/Configs",
-            Assets = "lyapossss/Assets",
+            Directory = "Mango",
+            Configs = "Mango/Configs",
+            Assets = "Mango/Assets",
         },
 
         -- Ignore below
@@ -2395,37 +2395,34 @@ local Library do
 
 
             local Items = { } do
-                -- Items["MainFrame"] = Instances:Create("Frame", {
-                --     Parent = Library.Holder.Instance,
-                --     Name = "\0",
-                --     BorderColor3 = FromRGB(0, 0, 0),
-                --     AnchorPoint = Vector2New(0.5, 0.5),
-                --     BackgroundTransparency = 0.12,
-                --     Position = UDim2New(0.5519999861717224, 0, 0.5, 0),
-                --     Size = UDim2New(0, 677, 0, 644),
-                --     ZIndex = 2,
-                --     BorderSizePixel = 0,
-                --     BackgroundColor3 = FromRGB(27, 25, 29)
-                -- })  Items["MainFrame"]:AddToTheme({BackgroundColor3 = "Background"})
-
                 Items["MainFrame"] = Instances:Create("Frame", {
                     Parent = Library.Holder.Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(0.5, 0.5),
                     BackgroundTransparency = 0.12,
-                    Position = UDim2New(0.5, 0, 0.5, 0),
-
-                    -- responsive size
-                    Size = UDim2New(0.3, 0, 0.6, 0),
-
-                    -- OldSize
-                    -- Size = UDim2New(0, 677, 0, 644),
-
+                    Position = UDim2New(0.5519999861717224, 0, 0.5, 0),
+                    Size = UDim2New(0, 677, 0, 644),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
-                })
+                })  Items["MainFrame"]:AddToTheme({BackgroundColor3 = "Background"})
+
+                -- Items["MainFrame"] = Instances:Create("Frame", {
+                --     Parent = Library.Holder.Instance,
+                --     Name = "\0",
+                --     BorderColor3 = FromRGB(0, 0, 0),
+                --     AnchorPoint = Vector2New(0.5, 0.5),
+                --     BackgroundTransparency = 0.12,
+                --     Position = UDim2New(0.5, 0, 0.5, 0),
+
+                --     -- responsive size
+                --     Size = UDim2New(0.3, 0, 0.6, 0),
+
+                --     ZIndex = 2,
+                --     BorderSizePixel = 0,
+                --     BackgroundColor3 = FromRGB(27, 25, 29)
+                -- })
                 
                 if IsMobile then 
                     Instances:Create("UIScale", {
@@ -2462,19 +2459,6 @@ local Library do
                 )
                 -- Library:MakeBlurred(Items["MainFrame"], Window)
                 
-                -- Items["LeftTabs"] = Instances:Create("Frame", {
-                --     Parent = Items["MainFrame"].Instance,
-                --     Name = "\0",
-                --     Visible = true,
-                --     BorderColor3 = FromRGB(0, 0, 0),
-                --     AnchorPoint = Vector2New(1, 0),
-                --     BackgroundTransparency = 0.15,
-                --     Size = UDim2New(0, 225, 1, 0),
-                --     ZIndex = 2,
-                --     BorderSizePixel = 0,
-                --     BackgroundColor3 = FromRGB(27, 25, 29)
-                -- })  Items["LeftTabs"]:AddToTheme({BackgroundColor3 = "Background"})
-
                 Items["LeftTabs"] = Instances:Create("Frame", {
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
@@ -2482,13 +2466,25 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(1, 0),
                     BackgroundTransparency = 0.15,
-                    Size = UDim2New(0.25, 0, 1, 0),
-                    -- OldSize
-                    -- Size = UDim2New(0, 225, 1, 0),
+                    Size = UDim2New(0, 225, 1, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
                 })  Items["LeftTabs"]:AddToTheme({BackgroundColor3 = "Background"})
+
+                -- Mana Edited
+                -- Items["LeftTabs"] = Instances:Create("Frame", {
+                --     Parent = Items["MainFrame"].Instance,
+                --     Name = "\0",
+                --     Visible = true,
+                --     BorderColor3 = FromRGB(0, 0, 0),
+                --     AnchorPoint = Vector2New(1, 0),
+                --     BackgroundTransparency = 0.15,
+                --     Size = UDim2New(0.25, 0, 1, 0),
+                --     ZIndex = 2,
+                --     BorderSizePixel = 0,
+                --     BackgroundColor3 = FromRGB(27, 25, 29)
+                -- })  Items["LeftTabs"]:AddToTheme({BackgroundColor3 = "Background"})
 
                 -- Library:MakeBlurred(Items["LeftTabs"], Window)
 
@@ -2711,29 +2707,30 @@ local Library do
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["SubTitle"]:AddToTheme({TextColor3 = "Text"})
 
-                -- Items["Content"] = Instances:Create("Frame", {
-                --     Parent = Items["MainFrame"].Instance,
-                --     Name = "\0",
-                --     BorderColor3 = FromRGB(0, 0, 0),
-                --     BackgroundTransparency = 0.75,
-                --     Position = UDim2New(0, 0, 0, 55),
-                --     Size = UDim2New(1, 0, 1, -55),
-                --     ZIndex = 2,
-                --     BorderSizePixel = 0,
-                --     BackgroundColor3 = FromRGB(27, 25, 29)
-                -- })  Items["Content"]:AddToTheme({BackgroundColor3 = "Background"})
-
                 Items["Content"] = Instances:Create("Frame", {
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     BackgroundTransparency = 0.75,
-                    Position = UDim2New(0, 0, 0.08, 0),
-                    Size = UDim2New(1, 0, 0.92, 0),
+                    Position = UDim2New(0, 0, 0, 55),
+                    Size = UDim2New(1, 0, 1, -55),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
                 })  Items["Content"]:AddToTheme({BackgroundColor3 = "Background"})
+
+                -- Mana Edited
+                -- Items["Content"] = Instances:Create("Frame", {
+                --     Parent = Items["MainFrame"].Instance,
+                --     Name = "\0",
+                --     BorderColor3 = FromRGB(0, 0, 0),
+                --     BackgroundTransparency = 0.75,
+                --     Position = UDim2New(0, 0, 0.08, 0),
+                --     Size = UDim2New(1, 0, 0.92, 0),
+                --     ZIndex = 2,
+                --     BorderSizePixel = 0,
+                --     BackgroundColor3 = FromRGB(27, 25, 29)
+                -- })  Items["Content"]:AddToTheme({BackgroundColor3 = "Background"})
 
                 Items["CloseButton"] = Instances:Create("TextButton", {
                     Parent = Items["MainFrame"].Instance,
