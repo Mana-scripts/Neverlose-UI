@@ -5,6 +5,7 @@
 
 local Global = {   }
 -- Global["GUI_TOGGLED"] = true
+Global["MANA_EDITED_VALUES_UI"] = false
 
 local Loaded = false
 if getgenv().UtilityModule then
@@ -2402,7 +2403,7 @@ local Library do
                     AnchorPoint = Vector2New(0.5, 0.5),
                     BackgroundTransparency = 0.12,
                     Position = UDim2New(0.5519999861717224, 0, 0.5, 0),
-                    Size = UDim2New(0, 677, 0, 644),
+                    Size = Global["MANA_EDITED_VALUES_UI"] and UDim2New(0.3, 0, 0.6, 0) or UDim2New(0, 677, 0, 644),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
@@ -2466,7 +2467,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(1, 0),
                     BackgroundTransparency = 0.15,
-                    Size = UDim2New(0, 225, 1, 0),
+                    Size = Global["MANA_EDITED_VALUES_UI"] and UDim2New(0.25, 0, 1, 0) or UDim2New(0, 225, 1, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
@@ -2713,7 +2714,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     BackgroundTransparency = 0.75,
                     Position = UDim2New(0, 0, 0, 55),
-                    Size = UDim2New(1, 0, 1, -55),
+                    Size = Global["MANA_EDITED_VALUES_UI"] and UDim2New(1, 0, 0.92, 0) or UDim2New(1, 0, 1, -55),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(27, 25, 29)
