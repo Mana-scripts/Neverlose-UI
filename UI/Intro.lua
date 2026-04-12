@@ -9,6 +9,7 @@ function LoadGui(Load)
     local HolderFrame = Instance.new("Frame")
     local Frame1 = Instance.new("ImageLabel")
     local LoadButton = Instance.new("TextButton")
+    LoadButton.Visible = false
     local LoadButtonCorner = Instance.new("UICorner")
     local LoadButtonTextSizeConstraint = Instance.new("UITextSizeConstraint")
     local LoadingLine = Instance.new("Frame")
@@ -138,8 +139,6 @@ function LoadGui(Load)
         end
     end
 
-    task.wait(0.67)
-
     local TweenService = game:GetService("TweenService")
     --{0.624, 0},{0.266, 0} -- Start Frame2 Pos
     --{0.385, 0},{0.266, 0} -- End Frame2 Pos
@@ -199,6 +198,8 @@ function LoadGui(Load)
             v.Visible = true
         end
     end
+
+    LoadButton.Visible = false
 
     function LoadLine()
         TweenService:Create(
@@ -295,11 +296,14 @@ function LoadGui(Load)
 
         Animation:Destroy()
     end
-    local Loading = false
-    LoadButton.MouseButton1Click:Connect(function()
-        Loading = true
-        Unload()
-    end)
+    -- local Loading = false
+    -- LoadButton.MouseButton1Click:Connect(function()
+    --     Loading = true
+    --     Unload()
+    -- end)
+
+    task.wait(.2)
+    Unload()
     
     spawn(function()
         task.wait(6.7)
