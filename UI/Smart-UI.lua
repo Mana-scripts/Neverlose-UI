@@ -2,6 +2,11 @@
     Original GUI Creator: ImInsane-1337 (https://github.com/ImInsane-1337/neverlose-ui/tree/main)
     EDITED GUI: Mana-scripts
 ]] --
+if getconnections then
+    for i,v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do
+        v:Disable()
+    end
+end
 
 local Global = {   }
 -- Global["GUI_TOGGLED"] = true
@@ -18,7 +23,7 @@ local Utility = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/
 
 Loaded = true
 
-Utility.Visual_Loader()(Utility.Loader)
+Utility.Visual_Loader()(not Utility.Loader)
 
 Utility:Discord("6cPKB2XhWs")
 
@@ -214,19 +219,21 @@ local Library do
         ["LeftAlt"]           = "LeftAlt",
         ["RightAlt"]          = "RightAlt"
     }
-
+    
     local Themes = {
         ["Preset"] = {
-            ["AccentGradient"] = FromRGB(0, 195, 255),   -- Slightly deeper blue accent
-            ["Background 2"] = FromRGB(10, 10, 12),      -- Very dark gray
-            ["Background"] = FromRGB(12, 12, 14),        -- Main near-black background
-            ["Text"] = FromRGB(235, 235, 235),           -- Slightly dimmed light text
-            ["Outline"] = FromRGB(25, 25, 28),           -- Subtle outline, almost invisible
-            ["Section Top"] = FromRGB(28, 27, 31),       -- Dark section header
-            ["Section Background"] = FromRGB(10, 10, 12),-- Deep black section background
-            ["Section Background 2"] = FromRGB(14, 14, 16),-- Alternate section, minimal difference
-            ["Accent"] = FromRGB(0, 116, 224),           -- Darker blue accent for consistency
-            ["Element"] = FromRGB(16, 16, 18)            -- Deep gray for UI elements
+            ["AccentGradient"] = FromRGB(0, 195, 255),      -- Bright cyan-blue accent
+            ["Background 2"] = FromRGB(12, 12, 16),         -- Slightly lifted dark gray
+            ["Background"] = FromRGB(14, 14, 18),           -- Main background (a bit lighter for contrast)
+            ["Text"] = FromRGB(240, 240, 240),              -- Brighter text for readability
+            ["Outline"] = FromRGB(35, 35, 42),              -- More visible outline for separation
+
+            ["Section Top"] = FromRGB(20,20,26),          -- Noticeably brighter header bar
+            ["Section Background"] = FromRGB(20,20,25),   -- Clear section separation
+            ["Section Background 2"] = FromRGB(35,35,40), -- Stronger alternating contrast
+
+            ["Accent"] = FromRGB(0, 140, 255),              -- Slightly brighter, more visible blue
+            ["Element"] = FromRGB(20, 20, 26)               -- UI elements slightly lifted for depth
         }
     }
 
@@ -2401,7 +2408,7 @@ local Library do
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(0.5, 0.5),
-                    BackgroundTransparency = 0.12,
+                    BackgroundTransparency = 0.07,
                     Position = UDim2New(0.5519999861717224, 0, 0.5, 0),
                     Size = Global["MANA_EDITED_VALUES_UI"] and UDim2New(0.3, 0, 0.6, 0) or UDim2New(0, 677, 0, 644),
                     ZIndex = 2,
@@ -4660,7 +4667,8 @@ local Library do
                     Size = UDim2New(1, 0, 0, 45),
                     ZIndex = 2,
                     AutomaticSize = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = FromRGB(29, 28, 32)
+                    -- BackgroundColor3 = FromRGB(29, 28, 32)
+                    BackgroundColor3 = FromRGB(255,255,255)
                 })  Items["Section"]:AddToTheme({BackgroundColor3 = "Section Background 2"})
                 
                 Items["Top"] = Instances:Create("Frame", {
@@ -4671,7 +4679,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
-                    BackgroundColor3 = FromRGB(31, 31, 36)
+                    BackgroundColor3 = FromRGB(255,255,255)
                 })  Items["Top"]:AddToTheme({BackgroundColor3 = "Outline"})
                 
                 Items["TopBackground"] = Instances:Create("Frame", {
@@ -6584,6 +6592,7 @@ local Library do
 
             for Index, Value in Dropdown.Items do 
                 Dropdown:Add(Value)
+                task.wait()
             end
 
             if Dropdown.Default then 
@@ -7820,8 +7829,9 @@ local Library do
                     Dropdown:Remove(Value.Name)
                 end
 
-                for Index, Value in List do 
+                for Index, Value in List do
                     Dropdown:Add(Value)
+                    task.wait()
                 end
             end
 
@@ -7848,6 +7858,7 @@ local Library do
 
             for Index, Value in Dropdown.Items do 
                 Dropdown:Add(Value)
+                task.wait()
             end
 
             if Dropdown.Default then 
@@ -8039,9 +8050,10 @@ local Library do
                 })
             end
 
+            local Setting_Default_BT = 0.07
             UISection:Slider({
                 Name = "Background Transparency",
-                Default = 0.12,
+                Default = Setting_Default_BT,
                 Decimals = 0.01,
                 Max = 1,
                 Min = 0,
@@ -8051,6 +8063,8 @@ local Library do
                     Window:SetTransparency(Value)
                 end
             })
+
+            Window:SetTransparency(Setting_Default_BT)
             
             UISection:Keybind({
                 Name = "Menu bind",
@@ -8173,6 +8187,19 @@ function Example()
         Flag = "HitboxType",
         Default = {"Head"},
         Items = {"Head", "Torso", "Arms", "Legs"},
+        Multi = true,
+        Callback = function(Value)
+            print("Selected Hitboxes:", table.concat(Value, ", "))
+        end
+    })
+    local wksp = {}
+    for i,v in pairs(game.ReplicatedStorage:GetChildren()) do
+        table.insert(wksp, v.Name)
+    end
+    MainSection:Dropdown({
+        Name = "replicatedstg",
+        Flag = "workspace",
+        Items = wksp,
         Multi = true,
         Callback = function(Value)
             print("Selected Hitboxes:", table.concat(Value, ", "))
