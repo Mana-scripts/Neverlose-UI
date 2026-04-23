@@ -8,7 +8,7 @@ if getconnections then
     end
 end
 
-local Library_Ready = false
+local Library_Ready = {}
 
 local Global = {   }
 -- Global["GUI_TOGGLED"] = true
@@ -6358,6 +6358,9 @@ local Library do
                 end
             end
 
+            local R_Num = math.random()
+            Library_Ready["Dropdown_"..R_Num] = false
+
             function Dropdown:Add(Option)
                 local OptionButton = Instances:Create("TextButton", {
                     Parent = Items["Holder"].Instance,
@@ -6562,7 +6565,7 @@ local Library do
                         Dropdown:Add(Value)
                     end
                 end)
-                
+
                 if DefaultVal then
                     Dropdown:Set(DefaultVal)
                 else
@@ -6600,6 +6603,7 @@ local Library do
                     Dropdown:Add(Value)
                     task.wait()
                 end
+                Library_Ready["Dropdown_"..R_Num] = true
             end)
 
             if Dropdown.Default then 
@@ -7620,6 +7624,8 @@ local Library do
                     Items["_"].Instance.Position = UDim2New(0, 30, 0, 25)
                 end
             end
+            local R_Num = math.random()
+            Library_Ready["ListBox_"..R_Num] = false
 
             function Dropdown:Set(Option)
                 if Dropdown.Multi then 
@@ -7869,6 +7875,7 @@ local Library do
                     Dropdown:Add(Value)
                     task.wait()
                 end
+                Library_Ready["ListBox_"..R_Num] = true
             end)
 
 
@@ -7886,10 +7893,20 @@ local Library do
     end
 
     spawn(function()
+        local TryingLoad = true
         local Success, Result = Library:SafeCall(function()
             local Data = Library:GetLastLoadedConfig()
+            while TryingLoad do
+                for i,v in pairs(Library_Ready) do
+                    if v == true then
+                        TryingLoad = false
+                        task.wait(0.1)
+                    end
+                end
+                task.wait()
+            end
+            print("Library Ready for AutoLoad!")
             if Data.AutoLoad == true then
-                repeat task.wait() until Library_Ready == true
                 Library:LoadConfig(readfile(Library.Folders.Configs .. "/" .. Data.Config))
             end
         end)
@@ -8123,6 +8140,24 @@ repeat task.wait() until getgenv().UtilityModule and Library.Ready == true
 -- getgenv().Library = Library
 
 function Example()
+    local CardConfigModule = require(game:GetService("ReplicatedStorage").Modules.Config.Core.CardConfig)
+    function Cards(Extra)
+        Extra = Extra or nil
+        local Cards = {}
+        if Extra ~= nil then
+            Cards = {Extra}
+        end
+        for i,v in pairs(CardConfigModule.Packs) do
+            for i,v in pairs(v.List) do
+                if not table.find(Cards, i) then
+                    table.insert(Cards, i)
+                end
+            end
+        end
+        return Cards
+    end
+
+
     -- local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImInsane-1337/neverlose-ui/refs/heads/main/source/library.lua"))()
     local CheatName = getgenv().UtilityModule.HubName
 
@@ -8204,6 +8239,16 @@ function Example()
             print("Selected Hitboxes:", table.concat(Value, ", "))
         end
     })
+
+     MainSection:Dropdown({
+        Name = "Cards",
+        Flag = "Cards",
+        Items = Cards(),
+        Multi = true,
+        Callback = function(Value)
+            print("Selected Hitboxes:", table.concat(Value, ", "))
+        end
+    })
     local wksp = {}
     for i,v in pairs(game.ReplicatedStorage:GetChildren()) do
         table.insert(wksp, v.Name)
@@ -8259,7 +8304,12 @@ end
 
 -- Example()
 
-Library_Ready = true
+for i,v in pairs(Library_Ready) do
+    if v == false then
+        v = true
+    end
+end
+
 
 return Library
 
