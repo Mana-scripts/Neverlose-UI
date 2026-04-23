@@ -985,7 +985,7 @@ local Library do
                 else
                     SetFunction(Value)
                 end
-                task.wait(0.005)
+                task.wait(0.03)
             end
         end)
 
