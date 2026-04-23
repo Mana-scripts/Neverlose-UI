@@ -7900,6 +7900,7 @@ local Library do
             while TryingLoad do
                 for i,v in pairs(Library_Ready) do
                     if v == true then
+                        print(i,v)
                         TryingLoad = false
                         task.wait(0.1)
                     end
