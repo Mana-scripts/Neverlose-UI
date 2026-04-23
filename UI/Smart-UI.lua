@@ -8,6 +8,8 @@ if getconnections then
     end
 end
 
+local Library_Ready = false
+
 local Global = {   }
 -- Global["GUI_TOGGLED"] = true
 Global["MANA_EDITED_VALUES_UI"] = false
@@ -6555,9 +6557,12 @@ local Library do
                 end
                 Dropdown.Options = {}
                 Dropdown.OptionsWithIndexes = {}
-                for Index, Value in ipairs(List) do
-                    Dropdown:Add(Value)
-                end
+                spawn(function()
+                    for Index, Value in ipairs(List) do
+                        Dropdown:Add(Value)
+                    end
+                end)
+                
                 if DefaultVal then
                     Dropdown:Set(DefaultVal)
                 else
@@ -6590,10 +6595,12 @@ local Library do
                 end
             end)
 
-            for Index, Value in Dropdown.Items do 
-                Dropdown:Add(Value)
-                task.wait()
-            end
+            spawn(function()
+                for Index, Value in Dropdown.Items do 
+                    Dropdown:Add(Value)
+                    task.wait()
+                end
+            end)
 
             if Dropdown.Default then 
                 Dropdown:Set(Dropdown.Default)
@@ -7829,10 +7836,12 @@ local Library do
                     Dropdown:Remove(Value.Name)
                 end
 
-                for Index, Value in List do
-                    Dropdown:Add(Value)
-                    task.wait()
-                end
+                spawn(function()
+                    for Index, Value in List do
+                        Dropdown:Add(Value)
+                        task.wait()
+                    end
+                end)
             end
 
             Library:Connect(Items["Search"].Instance:GetPropertyChangedSignal("Text"), function()
@@ -7855,11 +7864,13 @@ local Library do
                 end)
             end)
 
+            spawn(function()
+                for Index, Value in Dropdown.Items do 
+                    Dropdown:Add(Value)
+                    task.wait()
+                end
+            end)
 
-            for Index, Value in Dropdown.Items do 
-                Dropdown:Add(Value)
-                task.wait()
-            end
 
             if Dropdown.Default then 
                 Dropdown:Set(Dropdown.Default)
@@ -7878,6 +7889,7 @@ local Library do
         local Success, Result = Library:SafeCall(function()
             local Data = Library:GetLastLoadedConfig()
             if Data.AutoLoad == true then
+                repeat task.wait() until Library_Ready == true
                 Library:LoadConfig(readfile(Library.Folders.Configs .. "/" .. Data.Config))
             end
         end)
@@ -8246,6 +8258,8 @@ function Example()
 end
 
 -- Example()
+
+Library_Ready = true
 
 return Library
 
