@@ -95,6 +95,7 @@ local Library do
 
     -- local IsMobile = UserInputService.TouchEnabled or false
     local IsMobile = false
+    local CheatName = "Qyrix"
 
     Library = {
         Theme =  { },
@@ -113,9 +114,11 @@ local Library do
         FadeSpeed = 0.2,
 
         Folders = {
-            Directory = "Mango",
-            Configs = "Mango/Configs",
-            Assets = "Mango/Assets",
+            Directory = CheatName,
+            Configs = CheatName .. "/Configs",
+            Assets = CheatName .. "/Assets",
+            Utility = CheatName .. "/Utility",
+            LastLoaded = CheatName .. "/Utility/LastLoaded"
         },
 
         -- Ignore below
@@ -147,6 +150,12 @@ local Library do
     Library.__index = Library
     Library.Sections.__index = Library.Sections
     Library.Pages.__index = Library.Pages
+
+    for Index, Value in Library.Folders do 
+        if not isfolder(Value) then
+            makefolder(Value)
+        end
+    end
 
     local Keys = {
         ["Unknown"]           = "Unknown",
@@ -898,16 +907,28 @@ local Library do
     end
 
     Library.Save = function(self, File, content)
+        
         local Encoded = HttpService:JSONEncode(content)
         
         writefile(File, Encoded)
     end
 
-    local function Check_Lastloaded_Exists()
-        local File = Library.Folders.LastLoaded .. "/LastLoaded.json"
+    Library.Check_Lastloaded_Exists = function(self)
+        local success, File = pcall(function()
+            print(self.Folders.LastLoaded)
+            return tostring(self.Folders.LastLoaded .. "/LastLoaded.json")
+        end)
+
+        if not success then
+
+            self:Save(self.Folders.LastLoaded .. "/LastLoaded.json", {
+                Config = "",
+                AutoLoad = false,
+            })
+        end
 
         if not isfile(File) then
-            Library:Save(File, {
+            self:Save(File, {
                 Config = "",
                 AutoLoad = false,
             })
@@ -917,7 +938,7 @@ local Library do
     end
 
     Library.GetLastLoadedConfig = function(self)
-        local File = Check_Lastloaded_Exists()
+        local File = self:Check_Lastloaded_Exists()
         local FileRead = readfile(File)
         local LastConfig = HttpService:JSONDecode(FileRead)
 
@@ -928,7 +949,7 @@ local Library do
     end
 
     Library.SetLastLoadedConfig = function(self, Name)
-        local File = Check_Lastloaded_Exists()
+        local File = self:Check_Lastloaded_Exists()
         local FileRead = readfile(File)
         local LastConfig = HttpService:JSONDecode(FileRead)
         LastConfig.Config = tostring(Name)
@@ -939,7 +960,7 @@ local Library do
     end
 
     Library.SetAutoLoad = function(self, Bool)
-        local File = Check_Lastloaded_Exists()
+        local File = self:Check_Lastloaded_Exists()
         local FileRead = readfile(File)
         local LastConfig = HttpService:JSONDecode(FileRead)
         LastConfig.AutoLoad = Bool
@@ -2394,14 +2415,18 @@ local Library do
                 CurrentAlignment = "LeftTabs",
             }
 
-            Library.Folders = Data.Folders
+            -- Library.Folders = Data.Folders
 
-            -- Folders
-            for Index, Value in Library.Folders do 
-                if not isfolder(Value) then
-                    makefolder(Value)
-                end
-            end
+            -- for i,v in pairs(Library.Folders) do
+            --     print(i,v)
+            -- end
+
+            -- -- Folders
+            -- for Index, Value in Library.Folders do 
+            --     if not isfolder(Value) then
+            --         makefolder(Value)
+            --     end
+            -- end
 
 
 
@@ -7909,6 +7934,15 @@ local Library do
             end
             print("Library Ready for AutoLoad!")
             if Data.AutoLoad == true then
+                Library:Notify({
+                    Title = "Config",
+                    Duration = 5,
+                    Description = "Auto loaded "..Data.Config.."!",
+                    Gradient = {
+                        Color1 = Library.Theme.Accent,
+                        Color2 = Library.Theme.AccentGradient,
+                    }
+                })
                 Library:LoadConfig(readfile(Library.Folders.Configs .. "/" .. Data.Config))
             end
         end)
@@ -8142,22 +8176,22 @@ repeat task.wait() until getgenv().UtilityModule and Library.Ready == true
 -- getgenv().Library = Library
 
 function Example()
-    local CardConfigModule = require(game:GetService("ReplicatedStorage").Modules.Config.Core.CardConfig)
-    function Cards(Extra)
-        Extra = Extra or nil
-        local Cards = {}
-        if Extra ~= nil then
-            Cards = {Extra}
-        end
-        for i,v in pairs(CardConfigModule.Packs) do
-            for i,v in pairs(v.List) do
-                if not table.find(Cards, i) then
-                    table.insert(Cards, i)
-                end
-            end
-        end
-        return Cards
-    end
+    -- local CardConfigModule = require(game:GetService("ReplicatedStorage").Modules.Config.Core.CardConfig)
+    -- function Cards(Extra)
+    --     Extra = Extra or nil
+    --     local Cards = {}
+    --     if Extra ~= nil then
+    --         Cards = {Extra}
+    --     end
+    --     for i,v in pairs(CardConfigModule.Packs) do
+    --         for i,v in pairs(v.List) do
+    --             if not table.find(Cards, i) then
+    --                 table.insert(Cards, i)
+    --             end
+    --         end
+    --     end
+    --     return Cards
+    -- end
 
 
     -- local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImInsane-1337/neverlose-ui/refs/heads/main/source/library.lua"))()
@@ -8176,11 +8210,8 @@ function Example()
         SubName = "Pixel Blade",
         Logo = "116342860199829",
         Folders = {
-            Directory = CheatName,
-            Configs = CheatName .. "/Configs",
-            Assets = CheatName .. "/Assets",
-            Utility = CheatName .. "/Utility",
-            LastLoaded = CheatName .. "/Utility/LastLoaded"
+            Directory = "Hi",
+            Configs = "Hi/LOL"
         }
     })
 
@@ -8245,7 +8276,7 @@ function Example()
      MainSection:Dropdown({
         Name = "Cards",
         Flag = "Cards",
-        Items = Cards(),
+        Items = {"NONE", "ALL", "hi", "nah"},
         Multi = true,
         Callback = function(Value)
             print("Selected Hitboxes:", table.concat(Value, ", "))
