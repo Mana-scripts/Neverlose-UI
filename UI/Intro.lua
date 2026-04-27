@@ -1,4 +1,12 @@
-function LoadGui(Load)
+-- loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+
+function LoadGui(options)
+    local Load = options.Load or true
+    local Key = options.Key
+    local KeyPath = options.KeyPath
+    local Can_Load = false
+    local oldkey
+
     if not Load then return end
 
     if game.CoreGui:FindFirstChild("Animation") then
@@ -23,19 +31,34 @@ function LoadGui(Load)
     local UIGradient_3 = Instance.new("UIGradient")
     local UICorner_2 = Instance.new("UICorner")
 
+    local KeyBox = Instance.new("TextBox")
+    local UICorner = Instance.new("UICorner")
+    local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
+
+    local TweenService = game:GetService("TweenService")
+
+    
+    if not isfile(KeyPath) then
+        writefile(KeyPath, "")
+        oldkey = ""
+    else
+        oldkey = readfile(KeyPath)
+    end
+
     Animation.Name = "Animation"
     Animation.Parent = game.CoreGui
     Animation.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     HolderFrame.Name = "HolderFrame"
     HolderFrame.Parent = Animation
-    HolderFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    HolderFrame.BackgroundTransparency = 1.000
+    HolderFrame.BackgroundColor3 = Color3.fromRGB(0, 16, 35)
+    HolderFrame.BackgroundTransparency = 1
     HolderFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     HolderFrame.BorderSizePixel = 0
     HolderFrame.ClipsDescendants = true
     HolderFrame.Position = UDim2.new(0.384467274, 0, 0.265765756, 0)
-    HolderFrame.Size = UDim2.new(0, 432, 0, 265)
+    HolderFrame.Size = UDim2.new(0, 432, 0, 278)
+    HolderFrame.ZIndex = 999999999
 
     Frame1.Name = "Frame1"
     Frame1.Parent = HolderFrame
@@ -47,6 +70,82 @@ function LoadGui(Load)
     Frame1.Size = UDim2.new(0, 432, 0, 265)
     Frame1.ZIndex = 5
     Frame1.Image = "rbxassetid://116342860199829"
+
+    KeyBox.Name = "KeyBox"
+    KeyBox.Parent = Frame1
+    KeyBox.BackgroundColor3 = Color3.fromRGB(6, 0, 52)
+    KeyBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    KeyBox.BorderSizePixel = 0 --UDim2.new(0.291815996, 0, 0.791022062, 0)
+    KeyBox.Position = UDim2.new(0.268518507, 0, 0.791022062, 0)
+    KeyBox.Size = UDim2.new(0, 200, 0, 37)
+    KeyBox.Font = Enum.Font.SourceSans
+    KeyBox.PlaceholderColor3 = Color3.fromRGB(127, 127, 127)
+    KeyBox.PlaceholderText = "Paste Key Here!"
+    KeyBox.Text = ""
+    KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeyBox.TextScaled = true
+    KeyBox.TextSize = 14.000
+    KeyBox.TextWrapped = true
+
+    UICorner.CornerRadius = UDim.new(0, 3)
+    UICorner.Parent = KeyBox
+
+    UITextSizeConstraint.Parent = KeyBox
+    UITextSizeConstraint.MaxTextSize = 17
+
+    function Unload_Key_Holder()
+        TweenService:Create(
+            KeyBox,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+            {BackgroundTransparency = 1}
+        ):Play()
+
+        TweenService:Create(
+            KeyBox,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+            {TextTransparency = 1}
+        ):Play()
+    end
+
+    if string.lower(oldkey) == Key:lower() then
+        HolderFrame.BackgroundTransparency = 1
+        Unload_Key_Holder()
+        task.wait(0.5)
+        Can_Load = true
+    end
+
+    KeyBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local Value = string.lower(KeyBox.Text)
+        if (Value == tostring(Key:lower()) or KeyBox.Text == tostring(Key)) and not Can_Load then
+            writefile(KeyPath, Key:lower())
+            Unload_Key_Holder()
+            task.wait(0.5)
+            Can_Load = true
+        end
+    end)
+
+    KeyBox.FocusLost:Connect(function(ep)
+        local Value = string.lower(KeyBox.Text)
+        print("Hi", Value)
+        if Value ~= tostring(Key:lower()) and not Can_Load then
+            getgenv().UtilityModule:Notify({
+                Title = "Key System",
+                Duration = 5,
+                Description = "Incorrect Key Please get key from https://discord.gg/8TnBzn63sJ",
+                Gradient = {
+                    Color1 = Color3.fromRGB(73, 203, 243),
+                    Color2 = Color3.fromRGB(194, 102, 238)
+                }
+            })
+            KeyBox.Text = "https://discord.gg/8TnBzn63sJ"
+            spawn(function()
+                KeyBox.ClearTextOnFocus = false
+                task.wait(4)
+                KeyBox.ClearTextOnFocus = true
+            end)
+            setclipboard("https://discord.gg/8TnBzn63sJ")
+        end
+    end)
 
     LoadButton.Name = "LoadButton"
     LoadButton.Parent = Frame1
@@ -81,6 +180,7 @@ function LoadGui(Load)
     LoadingLine.BorderSizePixel = 0
     LoadingLine.Position = UDim2.new(0.291815996, 0, 0.791022062, 0)
     LoadingLine.Size = UDim2.new(0, 179, 0, 3)
+    LoadingLine.BackgroundTransparency = 1
 
     LoadingLineCorner.CornerRadius = UDim.new(0, 10)
     LoadingLineCorner.Name = "LoadingLineCorner"
@@ -139,7 +239,6 @@ function LoadGui(Load)
         end
     end
 
-    local TweenService = game:GetService("TweenService")
     --{0.624, 0},{0.266, 0} -- Start Frame2 Pos
     --{0.385, 0},{0.266, 0} -- End Frame2 Pos
     spawn(function()
@@ -190,6 +289,14 @@ function LoadGui(Load)
 
     -- task.wait(0.2)
 
+    -- spawn(function()
+    --     task.wait(0.1)
+    --     TweenService:Create(
+    --         HolderFrame,
+    --         TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+    --         {BackgroundTransparency = 0}
+    --     ):Play()
+    -- end)
 
     Tween.Completed:Wait()
 
@@ -202,6 +309,11 @@ function LoadGui(Load)
     LoadButton.Visible = false
 
     function LoadLine()
+        TweenService:Create(
+            LoadingLine,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+            {BackgroundTransparency = 0}
+        ):Play()
         TweenService:Create(
             LoadingLineIndicator,
             TweenInfo.new(0.3, Enum.EasingStyle.Quad),
@@ -233,6 +345,8 @@ function LoadGui(Load)
             {TextTransparency = 0}
         ):Play()
     end
+
+    repeat task.wait() until Can_Load == true
 
     LoadLine()
 
@@ -318,7 +432,11 @@ end
 local Example = false
 
 if Example then
-    LoadGui(Example)
+    LoadGui({
+        Load = Example,
+        Key = "Hello",
+        KeyPath = "Qyrix/Utility/Key.txt"
+    })
 end
 
 return function(Load)
