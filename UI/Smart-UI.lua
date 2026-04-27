@@ -25,8 +25,6 @@ local Utility = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/
 
 Loaded = true
 
-Utility.Visual_Loader()(not Utility.Loader)
-
 Utility:Discord("6cPKB2XhWs")
 
 local Library do 
@@ -2414,6 +2412,12 @@ local Library do
                 IsOpen = false,
                 CurrentAlignment = "LeftTabs",
             }
+
+            getgenv().UtilityModule.Visual_Loader()({
+                Load = true,
+                Key = Data.Key,
+                KeyPath = Folders.Utility.."/Key.txt"
+            })
 
             -- Library.Folders = Data.Folders
 
