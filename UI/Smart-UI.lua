@@ -2412,12 +2412,14 @@ local Library do
                 IsOpen = false,
                 CurrentAlignment = "LeftTabs",
             }
-
-            getgenv().UtilityModule.Visual_Loader()({
-                Load = true,
-                Key = Data.Key,
-                KeyPath = Folders.Utility.."/Key.txt"
-            })
+            
+            if Data.Key then
+                getgenv().UtilityModule.Visual_Loader()({
+                    Load = true,
+                    Key = Data.Key,
+                    KeyPath = Folders.Utility.."/Key.txt"
+                })
+            end
 
             -- Library.Folders = Data.Folders
 
