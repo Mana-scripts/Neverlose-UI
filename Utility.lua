@@ -135,9 +135,6 @@ function Module:Notify(options)
     local optionsTitle = options.Title
 	local optionsDuration = options.Duration
 	local optionsDescription = options.Description
-    local optionsGradient = options.Gradient or {}
-	local GradientColor1 = optionsGradient.Color1 or Color3.fromRGB(15,15,15)
-	local GradientColor2 = optionsGradient.Color2 or Color3.fromRGB(15,15,15)
 
     local FakeNotificationFrame = Instance.new("Frame")
     local NotificationFrame = Instance.new("Frame")
@@ -162,8 +159,6 @@ function Module:Notify(options)
     local NotificationSize = FakeNotificationFrame.Size
     FakeNotificationFrame.Size = UDim2.new(0, 0, NotificationSize.Y.Scale, 0)
 
-    game.Debris:AddItem(FakeNotificationFrame, optionsDuration + 2)
-
     NotificationFrame.Name = "NotificationFrame"
     NotificationFrame.Parent = FakeNotificationFrame
     NotificationFrame.BackgroundColor3 = Color3.fromRGB(29, 29, 29)
@@ -181,7 +176,7 @@ function Module:Notify(options)
     Description.BorderColor3 = Color3.fromRGB(0, 0, 0)
     Description.BorderSizePixel = 0
     Description.Position = UDim2.new(0.0695570484, 0, 0.431457043, 0)
-    Description.Size = UDim2.new(0.740449429, 0, 0.4, 0)
+    Description.Size = UDim2.new(0.740449429, 0, 0.552676737, 0)
     Description.Font = Enum.Font.SourceSans
     Description.Text = "1/5M pet hatched. Sending to webhook"
     Description.TextColor3 = Color3.fromRGB(111, 111, 111)
@@ -222,32 +217,25 @@ function Module:Notify(options)
     Time.Size = UDim2.new(0.0942330807, 0, 0.318181932, 0)
     Time.Font = Enum.Font.SourceSans
     Time.Text = "1"
-    Time.TextColor3 = Color3.fromRGB(111, 111, 111)
+    Time.TextColor3 = Color3.fromRGB(255, 255, 255)
     Time.TextScaled = true
     Time.TextSize = 14.000
     Time.TextWrapped = true
-    
+
     UITextSizeConstraint_3.Parent = Time
     UITextSizeConstraint_3.MaxTextSize = 17
-    local _Y = 5
-    local TimeFrame_Size = UDim2.new(0.93, 0, 0, _Y)
+
     TimeFrame.Name = "TimeFrame"
     TimeFrame.Parent = NotificationFrame
-    TimeFrame.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+    TimeFrame.BackgroundColor3 = Color3.fromRGB(29, 29, 29)
     TimeFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     TimeFrame.BorderSizePixel = 0
-    TimeFrame.Position = UDim2.new(0.035, 0, 0.9, 0)
-    TimeFrame.Size = TimeFrame_Size
-    TimeFrame.Visible = true
+    TimeFrame.Position = UDim2.new(0, 0, 1.04999995, 0)
+    TimeFrame.Size = UDim2.new(1, 0, 0, 11)
+    TimeFrame.Visible = false
 
-    UICorner_2.CornerRadius = UDim.new(0, 40)
+    UICorner_2.CornerRadius = UDim.new(0, 10)
     UICorner_2.Parent = TimeFrame
-
-
-    local New_Gradient = Instance.new("UIGradient")
-    New_Gradient.Parent = TimeFrame
-    New_Gradient.Rotation = 0
-    New_Gradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, GradientColor1), ColorSequenceKeypoint.new(1, GradientColor2)}
 
     -- Start Settings -- 
 
@@ -255,29 +243,12 @@ function Module:Notify(options)
     Title.TextTransparency = 1
     Description.TextTransparency = 1
     Time.TextTransparency = 1
-    -- print(optionsDescription, optionsTitle, optionsDuration)
+    print(optionsDescription, optionsTitle, optionsDuration)
     Description.Text = optionsDescription
     Title.Text = optionsTitle
     Time.Text = optionsDuration
-    Time.Visible = false
-
-    TimeFrame.Size = UDim2.new(0, 0, 0, _Y)
 
     local TweenService = game:GetService("TweenService")
-    spawn(function()
-        TweenService:Create(
-            TimeFrame,
-            TweenInfo.new(
-                optionsDuration - 0.1,
-                Enum.EasingStyle.Linear,
-                Enum.EasingDirection.InOut,
-                0,
-                false,
-                0
-            ),
-            {Size = TimeFrame_Size}
-        ):Play()
-    end)
 
     spawn(function()
         TweenService:Create(
@@ -302,73 +273,45 @@ function Module:Notify(options)
     end)
 
     spawn(function()
-        local startTime = tick()
-
-        while tick() - startTime < optionsDuration do
-            local timeLeft = math.ceil(optionsDuration - (tick() - startTime))
-            Time.Text = timeLeft
-            task.wait(0.1)
-        end
-
-        Time.Text = "0"
-        -- NotifyTabel.Done = true
+        repeat task.wait(1)
+			Time.Text = optionsDuration
+			optionsDuration = optionsDuration - 1
+			if tonumber(Time.Text) < 0 then
+				Time.Text = 0
+				NotifyTabel.Done = true
+			end
+		until optionsDuration == optionsDuration - 1 or NotifyTabel.Done
+		TweenService:Create(
+			FakeNotificationFrame,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+			{Size = UDim2.new(0, 0, FakeNotificationFrame.Size.Y.Scale, 0)}
+		):Play()
+		for i,v in pairs(NotificationFrame:GetChildren()) do
+			if v:IsA("TextLabel") then
+				TweenService:Create(
+					v,
+					TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+					{TextTransparency = 1}
+				):Play()
+			end
+		end
+		TweenService:Create(
+			NotificationFrame,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+			{BackgroundTransparency = 1}
+		):Play()
+		task.wait(0.3)
+		TweenService:Create(
+			FakeNotificationFrame,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+			{Size = UDim2.new(0, 0, 0, -1)}
+		):Play()
+		
+		repeat task.wait() until FakeNotificationFrame.Size == UDim2.new(0, 0, 0, -1)
+		task.wait(0.2)
+		FakeNotificationFrame:Destroy()
     end)
-
-    spawn(function()
-        task.wait(optionsDuration) -- wait for timer to finish
-
-        NotifyTabel.Done = true
-
-        TweenService:Create(
-            FakeNotificationFrame,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-            {Size = UDim2.new(0, 0, FakeNotificationFrame.Size.Y.Scale, 0)}
-        ):Play()
-
-        for _, v in pairs(NotificationFrame:GetChildren()) do
-            if v:IsA("TextLabel") then
-                TweenService:Create(
-                    v,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                    {TextTransparency = 1}
-                ):Play()
-            end
-        end
-
-        TweenService:Create(
-            NotificationFrame,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 1}
-        ):Play()
-
-        TweenService:Create(
-            TimeFrame,
-            TweenInfo.new(0.1, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 1}
-        ):Play()
-
-        task.wait(0.3)
-
-        TweenService:Create(
-            FakeNotificationFrame,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-            {Size = UDim2.new(0, 0, 0, -1)}
-        ):Play()
-
-        task.wait(0.3)
-        FakeNotificationFrame:Destroy()
-    end)
-
-    function Example()
-        Notify_Test:Notify({
-            Title = "Test!",
-            Duration = 5,
-            Description = "Hello world!",
-        })
-    end
-
-    -- Example()
-
+    
     return {
         Tabel = NotifyTabel,
         Instance = FakeNotificationFrame
@@ -390,9 +333,6 @@ Module:Notify({
                     Color2 = Color3.fromRGB(194, 102, 238)
                 }
             })
-
-            task.wait(5)
-game.Players.LocalPlayer:Kick("Currently down!")
 
 getgenv().UtilityModule = Module
 
