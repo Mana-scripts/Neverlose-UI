@@ -32,10 +32,6 @@ function LoadGui(options)
     local UIGradient_3 = Instance.new("UIGradient")
     local UICorner_2 = Instance.new("UICorner")
 
-    local KeyBox = Instance.new("TextBox")
-    local UICorner = Instance.new("UICorner")
-    local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
-
     local TweenService = game:GetService("TweenService")
 
     
@@ -72,81 +68,89 @@ function LoadGui(options)
     Frame1.ZIndex = 5
     Frame1.Image = "rbxassetid://116342860199829"
 
-    KeyBox.Name = "KeyBox"
-    KeyBox.Parent = Frame1
-    KeyBox.BackgroundColor3 = Color3.fromRGB(6, 0, 52)
-    KeyBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    KeyBox.BorderSizePixel = 0 --UDim2.new(0.291815996, 0, 0.791022062, 0)
-    KeyBox.Position = UDim2.new(0.268518507, 0, 0.791022062, 0)
-    KeyBox.Size = UDim2.new(0, 200, 0, 37)
-    KeyBox.Font = Enum.Font.SourceSans
-    KeyBox.PlaceholderColor3 = Color3.fromRGB(127, 127, 127)
-    KeyBox.PlaceholderText = "Paste Key Here!"
-    KeyBox.Text = ""
-    KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    KeyBox.TextScaled = true
-    KeyBox.TextSize = 14.000
-    KeyBox.TextWrapped = true
+    if KeySystem then
+        local KeyBox = Instance.new("TextBox")
+        local UICorner = Instance.new("UICorner")
+        local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
+        KeyBox.Name = "KeyBox"
+        KeyBox.Parent = Frame1
+        KeyBox.BackgroundColor3 = Color3.fromRGB(6, 0, 52)
+        KeyBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        KeyBox.BorderSizePixel = 0 --UDim2.new(0.291815996, 0, 0.791022062, 0)
+        KeyBox.Position = UDim2.new(0.268518507, 0, 0.791022062, 0)
+        KeyBox.Size = UDim2.new(0, 200, 0, 37)
+        KeyBox.Font = Enum.Font.SourceSans
+        KeyBox.PlaceholderColor3 = Color3.fromRGB(127, 127, 127)
+        KeyBox.PlaceholderText = "Paste Key Here!"
+        KeyBox.Text = ""
+        KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        KeyBox.TextScaled = true
+        KeyBox.TextSize = 14.000
+        KeyBox.TextWrapped = true
 
-    UICorner.CornerRadius = UDim.new(0, 3)
-    UICorner.Parent = KeyBox
+        UICorner.CornerRadius = UDim.new(0, 3)
+        UICorner.Parent = KeyBox
 
-    UITextSizeConstraint.Parent = KeyBox
-    UITextSizeConstraint.MaxTextSize = 17
+        UITextSizeConstraint.Parent = KeyBox
+        UITextSizeConstraint.MaxTextSize = 17
 
-    function Unload_Key_Holder()
-        TweenService:Create(
-            KeyBox,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 1}
-        ):Play()
+        function Unload_Key_Holder()
+            TweenService:Create(
+                KeyBox,
+                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+                {BackgroundTransparency = 1}
+            ):Play()
 
-        TweenService:Create(
-            KeyBox,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-            {TextTransparency = 1}
-        ):Play()
-    end
+            TweenService:Create(
+                KeyBox,
+                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+                {TextTransparency = 1}
+            ):Play()
+        end
 
-    if string.lower(oldkey) == Key:lower() then
-        HolderFrame.BackgroundTransparency = 1
-        Unload_Key_Holder()
-        task.wait(0.5)
-        Can_Load = true
-    end
-
-    KeyBox:GetPropertyChangedSignal("Text"):Connect(function()
-        local Value = string.lower(KeyBox.Text)
-        if (Value == tostring(Key:lower()) or KeyBox.Text == tostring(Key)) and not Can_Load then
-            writefile(KeyPath, Key:lower())
+        if string.lower(oldkey) == Key:lower() then
+            HolderFrame.BackgroundTransparency = 1
             Unload_Key_Holder()
             task.wait(0.5)
             Can_Load = true
         end
-    end)
-    
-    KeyBox.FocusLost:Connect(function(ep)
-        local Value = string.lower(KeyBox.Text)
-        print("Hi", Value)
-        if Value ~= tostring(Key:lower()) and not Can_Load then
-            getgenv().UtilityModule:Notify({
-                Title = "Key System",
-                Duration = 5,
-                Description = "Incorrect Key Please get key from https://discord.gg/8TnBzn63sJ",
-                Gradient = {
-                    Color1 = Color3.fromRGB(73, 203, 243),
-                    Color2 = Color3.fromRGB(194, 102, 238)
-                }
-            })
-            KeyBox.Text = "https://discord.gg/8TnBzn63sJ"
-            spawn(function()
-                KeyBox.ClearTextOnFocus = false
-                task.wait(4)
-                KeyBox.ClearTextOnFocus = true
-            end)
-            setclipboard("https://discord.gg/8TnBzn63sJ")
-        end
-    end)
+
+        KeyBox:GetPropertyChangedSignal("Text"):Connect(function()
+            local Value = string.lower(KeyBox.Text)
+            if (Value == tostring(Key:lower()) or KeyBox.Text == tostring(Key)) and not Can_Load then
+                writefile(KeyPath, Key:lower())
+                Unload_Key_Holder()
+                task.wait(0.5)
+                Can_Load = true
+            end
+        end)
+        
+        KeyBox.FocusLost:Connect(function(ep)
+            local Value = string.lower(KeyBox.Text)
+            print("Hi", Value)
+            if Value ~= tostring(Key:lower()) and not Can_Load then
+                getgenv().UtilityModule:Notify({
+                    Title = "Key System",
+                    Duration = 5,
+                    Description = "Incorrect Key Please get key from https://discord.gg/8TnBzn63sJ",
+                    Gradient = {
+                        Color1 = Color3.fromRGB(73, 203, 243),
+                        Color2 = Color3.fromRGB(194, 102, 238)
+                    }
+                })
+                KeyBox.Text = "https://discord.gg/8TnBzn63sJ"
+                spawn(function()
+                    KeyBox.ClearTextOnFocus = false
+                    task.wait(4)
+                    KeyBox.ClearTextOnFocus = true
+                end)
+                setclipboard("https://discord.gg/8TnBzn63sJ")
+            end
+        end)
+
+    else
+        Can_Load = true
+    end
 
     LoadButton.Name = "LoadButton"
     LoadButton.Parent = Frame1
