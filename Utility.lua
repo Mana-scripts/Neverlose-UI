@@ -324,15 +324,17 @@ if not getgenv().Qyrix_Loaded then
     }
 end
 
-Module:Notify({
-                Title = "Script",
-                Duration = 5,
-                Description = "Script is currently down!",
-                Gradient = {
-                    Color1 = Color3.fromRGB(73, 203, 243),
-                    Color2 = Color3.fromRGB(194, 102, 238)
-                }
-            })
+-- Module:Notify({
+--                 Title = "Script",
+--                 Duration = 5,
+--                 Description = "Script is currently down!",
+--                 Gradient = {
+--                     Color1 = Color3.fromRGB(73, 203, 243),
+--                     Color2 = Color3.fromRGB(194, 102, 238)
+--                 }
+--             })
+
+--             task.wait(5)
 
 getgenv().UtilityModule = Module
 
