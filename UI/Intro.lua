@@ -1,6 +1,7 @@
 -- loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
 function LoadGui(options)
+    local KeySystem = options.KeySystem or false
     local Load = options.Load or true
     local Key = options.Key
     local KeyPath = options.KeyPath
@@ -123,7 +124,7 @@ function LoadGui(options)
             Can_Load = true
         end
     end)
-
+    
     KeyBox.FocusLost:Connect(function(ep)
         local Value = string.lower(KeyBox.Text)
         print("Hi", Value)
@@ -439,6 +440,6 @@ if Example then
     })
 end
 
-return function(Load)
-    LoadGui(Load)
+return function(options)
+    LoadGui(options)
 end
