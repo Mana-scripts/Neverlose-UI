@@ -1,9 +1,14 @@
 local Module = {}
 
+local UID = game:GetService("HttpService"):GenerateGUID(false)
+
 Module.HubName = "Qyrix"
 Module.Loader = true
 
-Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Woof.lua"))
+Module.KeySystem = true
+Module.Key = "Qyrix_"
+
+Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Smart-UI.lua"))
 Module.Visual_Loader = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))
 
 function Module:Discord(code)
@@ -336,6 +341,6 @@ end
 
 --             task.wait(5)
 
-getgenv().UtilityModule = Module
+getgenv()[UID] = Module
 
-return Module
+return UID
