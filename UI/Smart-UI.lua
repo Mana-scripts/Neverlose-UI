@@ -13,6 +13,7 @@ local Library_Ready = {}
 local Global = {   }
 -- Global["GUI_TOGGLED"] = true
 Global["MANA_EDITED_VALUES_UI"] = false
+Global["KEYSYSTEM"] = false
 
 local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
@@ -2389,7 +2390,7 @@ local Library do
                 end)
             end)
         end
-
+        
         Library.Window = function(self, Data)
             Data = Data or { }
 
@@ -2404,14 +2405,18 @@ local Library do
                 CurrentAlignment = "LeftTabs",
             }
 
-            -- if Data.Key then
+            if not isfolder(Library.Folders.Utility) then
+                makefolder(Library.Folders.Utility)
+            end
+
+            if Global["KEYSYSTEM"] then
                 UtilityModule.Visual_Loader()({
                     Load = true,
                     KeySystem = UtilityModule.KeySystem,
                     Key = UtilityModule.Key,
-                    KeyPath = Folders.Utility.."/Key.txt"
+                    KeyPath = Library.Folders.Utility.."/Key.txt"
                 })
-            -- end
+            end
 
             -- Library.Folders = Data.Folders
 
