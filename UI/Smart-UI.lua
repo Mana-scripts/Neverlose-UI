@@ -2390,7 +2390,7 @@ local Library do
                 end)
             end)
         end
-        
+
         Library.Window = function(self, Data)
             Data = Data or { }
 
@@ -8211,11 +8211,7 @@ function Example()
     local Window = Library:Window({
         Name = CheatName,
         SubName = "Pixel Blade",
-        Logo = "116342860199829",
-        Folders = {
-            Directory = "Hi",
-            Configs = "Hi/LOL"
-        }
+        Logo = "116342860199829"
     })
 
     local KeybindList = Library:KeybindList("Keybinds")
