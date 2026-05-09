@@ -71,9 +71,9 @@ function fireproximitypromptfunc(Obj, Amount, Skip, Distance)
 end
 
 
-local Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Smart-UI.lua"))()
+local Library, UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Smart-UI.lua"))()
 
-local HubName = getgenv().UtilityModule.HubName
+local HubName = UtilityModule.HubName
 
 local Accent = Color3.fromRGB(34, 43, 140)
 local Gradient = Color3.fromRGB(72, 46, 178)
@@ -1328,7 +1328,7 @@ end)
 --                             tostring(number)
 --                         )
 --                         if Notify_When_Collected then
---                             getgenv().UtilityModule:Notify({
+--                             UtilityModule:Notify({
 --                                 Title = "Easter Eggs",
 --                                 Duration = 3,
 --                                 Description = "Collected a Easter Eggs!"
