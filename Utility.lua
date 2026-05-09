@@ -1,7 +1,5 @@
 local Module = {}
 
-local UID = game:GetService("HttpService"):GenerateGUID(false)
-
 Module.HubName = "Qyrix"
 Module.Loader = true
 
@@ -50,7 +48,7 @@ function Module:waitForCondition(time, conditionFunc)
         end
 
         if not success then
-            getgenv().UtilityModule:Notify({
+            Module:Notify({
                 Title = "Error",
                 Duration = 3,
                 Description = "Failed to load Utility Module"
@@ -341,6 +339,5 @@ end
 
 --             task.wait(5)
 
-getgenv()[UID] = Module
 
-return UID
+return Module
