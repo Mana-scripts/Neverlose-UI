@@ -15,17 +15,17 @@ local Global = {   }
 Global["MANA_EDITED_VALUES_UI"] = false
 
 local Loaded = false
-if getgenv().UtilityModule then
-   getgenv().UtilityModule:waitForCondition(15, function()
+if getgenv()[UtilityModule] then
+   getgenv()[UtilityModule]:waitForCondition(15, function()
       return Loaded == true
    end)
 end
 
-local Utility = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
+local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
 Loaded = true
 
-Utility:Discord("6cPKB2XhWs")
+getgenv()[UtilityModule]:Discord("6cPKB2XhWs")
 
 local Library do 
     local Workspace = game:GetService("Workspace")
@@ -2223,7 +2223,7 @@ local Library do
         end
 
         Library.Notify = function(self, Data)
-            Utility:Notify({
+            getgenv()[UtilityModule]:Notify({
                 Title = Data.Title,
                 Duration = Data.Duration,
                 Description = Data.Description,
@@ -2414,12 +2414,12 @@ local Library do
             }
 
             -- if Data.Key then
-               -- getgenv().UtilityModule.Visual_Loader()({
-                  --  Load = true,
-                  --  KeySystem = false
-                   -- Key = Data.Key or "",
-                   -- KeyPath = Folders.Utility.."/Key.txt"
-               -- })
+                getgenv()[UtilityModule].Visual_Loader()({
+                    Load = true,
+                    KeySystem = getgenv()[UtilityModule].KeySystem,
+                    Key = getgenv()[UtilityModule].Key,
+                    KeyPath = Folders.Utility.."/Key.txt"
+                })
             -- end
 
             -- Library.Folders = Data.Folders
@@ -8150,14 +8150,14 @@ local Library do
             UISection:Button({
                 Name = "Credits: Mana",
                 Callback = function()
-                    Utility:Discord("6cPKB2XhWs")
+                    getgenv()[UtilityModule]:Discord("6cPKB2XhWs")
                 end
             })
 
             UISection:Button({
                 Name = "Discord Server",
                 Callback = function()
-                    Utility:Discord("6cPKB2XhWs")
+                    getgenv()[UtilityModule]:Discord("6cPKB2XhWs")
                     setclipboard("https://discord.gg/6cPKB2XhWs")
                     Library:Notify({
                         Title = "Discord Server",
@@ -8178,7 +8178,7 @@ end
 
 Library.Ready = true
 
-repeat task.wait() until getgenv().UtilityModule and Library.Ready == true
+repeat task.wait() until getgenv()[UtilityModule] and Library.Ready == true
 
 -- getgenv().Library = Library
 
@@ -8202,7 +8202,7 @@ function Example()
 
 
     -- local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImInsane-1337/neverlose-ui/refs/heads/main/source/library.lua"))()
-    local CheatName = getgenv().UtilityModule.HubName
+    local CheatName = getgenv()[UtilityModule].HubName
 
     local Accent = Color3.fromRGB(34, 43, 140)
     local Gradient = Color3.fromRGB(72, 46, 178)
@@ -8351,6 +8351,6 @@ for i,v in pairs(Library_Ready) do
 end
 
 
-return Library
+return Library, UtilityModule
 
 
