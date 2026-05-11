@@ -17,7 +17,19 @@ Global["KEYSYSTEM"] = true
 
 local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
+
+
 UtilityModule:Discord("6cPKB2XhWs")
+
+if Global["KEYSYSTEM"] then
+    UtilityModule.Visual_Loader()({
+        Load = true,
+        KeySystem = UtilityModule.KeySystem or false,
+        Key = UtilityModule.Key or "Qyrix",
+        KeyPath = "Key.txt"
+    })
+end
+
 
 local Library do 
     local Workspace = game:GetService("Workspace")
@@ -2405,18 +2417,9 @@ local Library do
                 CurrentAlignment = "LeftTabs",
             }
 
-            if not isfolder(Library.Folders.Utility) then
-                makefolder(Library.Folders.Utility)
-            end
-
-            if Global["KEYSYSTEM"] then
-                UtilityModule.Visual_Loader()({
-                    Load = true,
-                    KeySystem = UtilityModule.KeySystem,
-                    Key = UtilityModule.Key,
-                    KeyPath = Library.Folders.Utility.."/Key.txt"
-                })
-            end
+            -- if not isfolder(Library.Folders.Utility) then
+            --     makefolder(Library.Folders.Utility)
+            -- end
 
             -- Library.Folders = Data.Folders
 
