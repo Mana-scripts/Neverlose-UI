@@ -441,7 +441,7 @@ if Example then
         Load = Example,
         KeySystem = true,
         Key = "Qyrix_Key_hi",
-        KeyPath = "Qyrix/Utility/Key.txt"
+        KeyPath = "Key.txt"
     })
 end
 
