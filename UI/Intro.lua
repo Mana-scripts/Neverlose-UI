@@ -1,9 +1,10 @@
 -- loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
 return (function(options)
-    local KeySystem = options.KeySystem
+    local key = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Test.lua"))()
+    local KeySystem = key.KEYSYSTEM
     local Load = options.Load
-    local Key = options.Key
+    local Key = key.KEY
     local KeyPath = options.KeyPath
     local Can_Load = false
     local oldkey
