@@ -1,11 +1,3 @@
-
-local Loaded = false
-if getgenv().UtilityModule then
-   getgenv().UtilityModule:waitForCondition(16, function()
-      return Loaded == true
-   end)
-end
-
 local Data = {
 	Owner = "Mana",
 	Library = "Neverlose-UI"
@@ -61,6 +53,9 @@ local Games = {
 	[130426042808804] = EncodeSpaces("Anime Final Quest.lua"), -- Cursed Realm
 	[132561514935233] = EncodeSpaces("Anime Final Quest.lua"), -- MetroStation1
 	[136683944064056] = EncodeSpaces("Anime Final Quest.lua"), -- Wave1
+
+	-- [[Kick A Lucky Block]] --
+	[89469502395769] = EncodeSpaces("Kick A Lucky Block.lua")
 	
 }
 
@@ -83,19 +78,6 @@ end
 
 LoadScript(game.PlaceId)
 
-getgenv().UtilityModule:Notify({
-    Title = getgenv().UtilityModule.HubName,
-    Duration = 5,
-    Description = "Welcome "..game.Players.LocalPlayer.Name.."!"
-})
-
-getgenv().UtilityModule:Notify({
-    Title = getgenv().UtilityModule.HubName,
-    Duration = 6,
-    Description = "Loading Script!"
-})
-
-Loaded = true
 
 local function identifyExecutorName(small_name)
 	small_name = small_name or false
@@ -114,18 +96,8 @@ local Supported_Executors = {
 
 if table.find(Supported_Executors, identifyExecutorName(true)) then
 	task.wait(5)
-	getgenv().UtilityModule:Notify({
-		Title = "Executor Supported",
-		Duration = 5,
-		Description = tostring(identifyExecutorName()).." Supported!"
-	})
 else
 	task.wait(5)
-	getgenv().UtilityModule:Notify({
-		Title = "Warning!",
-		Duration = 5,
-		Description = tostring(identifyExecutorName()).." may not be supported for this script."
-	})
 end
 
 -- print(game.PlaceId)
