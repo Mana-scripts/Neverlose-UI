@@ -3,6 +3,9 @@ local Module = {}
 Module.HubName = "Qyrix"
 Module.Loader = true
 
+local RunService = game:GetService("RunService")
+local CoreGui = RunService:IsStudio() and game.Players.LocalPlayer.PlayerGui or game.CoreGui
+
 Module.KeySystem = true
 Module.Key = "Qyrix_"
 
@@ -108,10 +111,10 @@ end
 local NotificationsFrame
 local NotificationsGUI
 
-if not game.CoreGui:FindFirstChild("NotificationsGUI") then
+if not CoreGui:FindFirstChild("NotificationsGUI") then
     NotificationsGUI = Instance.new("ScreenGui")
     NotificationsGUI.Name = "NotificationsGUI"
-    NotificationsGUI.Parent = game.CoreGui
+    NotificationsGUI.Parent = CoreGui
     local UIListLayout = Instance.new("UIListLayout")
     NotificationsFrame = Instance.new("Frame")
     NotificationsFrame.Name = "NotificationsFrame"
@@ -128,8 +131,8 @@ if not game.CoreGui:FindFirstChild("NotificationsGUI") then
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 else
-    NotificationsGUI = game.CoreGui:FindFirstChild("NotificationsGUI")
-    NotificationsFrame = game.CoreGui.NotificationsGUI:FindFirstChild("NotificationsFrame")
+    NotificationsGUI = CoreGui:FindFirstChild("NotificationsGUI")
+    NotificationsFrame = CoreGui.NotificationsGUI:FindFirstChild("NotificationsFrame")
 end
 
 function Module:Notify(options)
