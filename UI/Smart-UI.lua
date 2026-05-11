@@ -13,7 +13,7 @@ local Library_Ready = {}
 local Global = {   }
 -- Global["GUI_TOGGLED"] = true
 Global["MANA_EDITED_VALUES_UI"] = false
-Global["KEYSYSTEM"] = false
+Global["KEYSYSTEM"] = true
 
 local UtilityModule = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
@@ -6776,7 +6776,7 @@ local Library do
                     Parent2 = Items["Label"],
                     Alpha = Colorpicker.Alpha
                 })
-
+                
                 return NewColorpicker
             end
 
@@ -8207,7 +8207,7 @@ function Example()
     Library.Theme.AccentGradient = Gradient
     Library:ChangeTheme("Accent", Accent)
     Library:ChangeTheme("AccentGradient", Gradient)
-
+    
     local Window = Library:Window({
         Name = CheatName,
         SubName = "Pixel Blade",
