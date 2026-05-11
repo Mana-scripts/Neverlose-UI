@@ -1,6 +1,6 @@
 -- loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua"))()
 
-function LoadGui(options)
+return (function(options)
     local KeySystem = options.KeySystem or false
     local Load = options.Load or true
     local Key = options.Key
@@ -432,19 +432,10 @@ function LoadGui(options)
 
     repeat task.wait() until not game.CoreGui:FindFirstChild("Animation")
 
-end
-
-local Example = false
-
-if Example then
-    LoadGui({
-        Load = Example,
-        KeySystem = true,
-        Key = "Qyrix_Key_hi",
-        KeyPath = "Key.txt"
-    })
-end
-
-return function(options)
-    LoadGui(options)
-end
+end)
+-- ({
+--         Load = true,
+--         KeySystem = true,
+--         Key = "Qyrix_Key_hi",
+--         KeyPath = "Key.txt"
+--     })
