@@ -439,7 +439,8 @@ local Example = false
 if Example then
     LoadGui({
         Load = Example,
-        Key = "Hello",
+        KeySystem = true,
+        Key = "Qyrix_Key_hi",
         KeyPath = "Qyrix/Utility/Key.txt"
     })
 end
