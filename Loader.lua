@@ -56,6 +56,9 @@ local Games = {
 
 	-- [[Kick A Lucky Block]] --
 	[89469502395769] = EncodeSpaces("Kick A Lucky Block.lua")
+
+	-- [[Hyper Speed Runner]] --
+	[88933961678687] = EncodeSpaces("Hyper Speed Runner.lua")
 	
 }
 
@@ -94,11 +97,11 @@ local Supported_Executors = {
 	'seliware'
 }
 
-if table.find(Supported_Executors, identifyExecutorName(true)) then
-	task.wait(5)
-else
-	task.wait(5)
-end
+-- if table.find(Supported_Executors, identifyExecutorName(true)) then
+-- 	task.wait(5)
+-- else
+-- 	task.wait(5)
+-- end
 
 -- print(game.PlaceId)
 -- setclipboard(tostring(game.PlaceId))
