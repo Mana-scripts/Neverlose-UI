@@ -55,7 +55,7 @@ local Games = {
 	[136683944064056] = EncodeSpaces("Anime Final Quest.lua"), -- Wave1
 
 	-- [[Kick A Lucky Block]] --
-	[89469502395769] = EncodeSpaces("Kick A Lucky Block.lua")
+	[89469502395769] = EncodeSpaces("Kick A Lucky Block.lua"),
 
 	-- [[Hyper Speed Runner]] --
 	[88933961678687] = EncodeSpaces("Hyper Speed Runner.lua")
