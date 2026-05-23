@@ -4989,7 +4989,7 @@ function Library:Window(Data)
             Name = "Discord",
             Callback = function()
                 setclipboard("https://discord.gg/2r3jVkhHMk")
-                UtilityModule:Discord("2r3jVkhHMk")
+                Library.UtilityModule:Discord("2r3jVkhHMk")
             end
         }).data = {
             ToolTip = "Coppies Discord Server invite!",
