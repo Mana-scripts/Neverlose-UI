@@ -50,6 +50,11 @@ else
     Library.UtilityModule = loadstring(Utility)()
 end
 
+Library.UtilityModule.Visual_Loader()({
+    Load = true,
+    KeyPath = "Key.txt"
+})
+
 function Library:Notify(options)
     -- Module:Notify({
     --     Title = "Script",
@@ -4973,7 +4978,7 @@ function Library:Window(Data)
             Name = "Settings",
             Side = 2
         })
-
+        
         SettingsSection:Keybind({
             Name = "Toggle UI",
             Flag = "Key bind for GUI",
