@@ -18,6 +18,7 @@ local Library = {
     },
 
     Name = GuiName,
+    UtilityModule = {},
 }
 
 Library.__index = {}
@@ -25,28 +26,28 @@ Library.__index = {}
 
 Library.ThemeObjects = {}
 
-local UtilityModule
+
 local FileName = Library.Folders.Utility.."/Utility.lua" or "Utility.lua"
 local Utility = game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua")
 if isfile and dofile then
     if isfile(FileName) then
         local CheckVersion = loadstring(readfile(FileName))()
         if CheckVersion.Version == loadstring(Utility)().Version then
-            UtilityModule = CheckVersion
+            Library.UtilityModule = CheckVersion
 			print("Correct Version!")
         else
             print("Updated to Correct Version!")
             writefile(FileName, tostring(Utility))
-            UtilityModule = loadstring(readfile(FileName))()
+            Library.UtilityModule = loadstring(readfile(FileName))()
         end
 	else
         print("Writing UtilityModule!")
-        UtilityModule = loadstring(Utility)()
+        Library.UtilityModule = loadstring(Utility)()
 		writefile(FileName, Utility)
     end
 else
     warn("FileSystem Not supported Switching to httpservice")
-    UtilityModule = loadstring(Utility)()
+    Library.UtilityModule = loadstring(Utility)()
 end
 
 function Library:Notify(options)
@@ -55,8 +56,8 @@ function Library:Notify(options)
     --     Duration = 5,
     --     Description = "Script is currently down!"
     -- })
-
-    UtilityModule:Notify(options)
+    
+    Library.UtilityModule:Notify(options)
 end
 
 local RunService = game:GetService("RunService")
