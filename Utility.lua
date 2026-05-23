@@ -8,6 +8,7 @@ local CoreGui = RunService:IsStudio() and game.Players.LocalPlayer.PlayerGui or 
 
 Module.KeySystem = true
 Module.Key = "Qyrix_"
+Module.Version = "V3.1"
 
 Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Smart-UI.lua"))
 Module.Visual_Loader = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))
