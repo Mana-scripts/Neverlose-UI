@@ -7,10 +7,9 @@ local RunService = game:GetService("RunService")
 local CoreGui = RunService:IsStudio() and game.Players.LocalPlayer.PlayerGui or game.CoreGui
 
 Module.KeySystem = true
-Module.Key = "Qyrix_"
-Module.Version = "V3.1"
+Module.Key = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Test.lua"))()
+Module.Version = "V3.2"
 
-Module.Library = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Smart-UI.lua"))
 Module.Visual_Loader = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/UI/Intro.lua"))
 
 function Module:Discord(code)
