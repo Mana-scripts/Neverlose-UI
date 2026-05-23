@@ -45,8 +45,18 @@ if isfile and dofile then
 		writefile(FileName, Utility)
     end
 else
-    print("FileSystem Not supported Switching to httpservice")
+    warn("FileSystem Not supported Switching to httpservice")
     UtilityModule = loadstring(Utility)()
+end
+
+function Library:Notify(options)
+    -- Module:Notify({
+    --     Title = "Script",
+    --     Duration = 5,
+    --     Description = "Script is currently down!"
+    -- })
+
+    UtilityModule:Notify(options)
 end
 
 local RunService = game:GetService("RunService")
