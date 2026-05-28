@@ -2207,10 +2207,18 @@ function Library:Window(Data)
 
 
 
-    
 
+    local IsDefaulted = false
     function Window_Table:Tab(Data)
-        local Tabs = {}
+        local Tabs = {
+            IsDefaultTab = IsDefaultTab
+        }
+
+        if IsDefaulted == false then
+            Tabs.IsDefaultTab = true
+            IsDefaulted = true
+        end
+
         local Name = Data.Name
 
         local Tab = Instance.new("TextButton")
@@ -2220,7 +2228,6 @@ function Library:Window(Data)
 
         Library:RegisterTheme(UIStroke_34, "Color", "Stroke")
 
-        -- StarterGui.SupGang.MainFrame.LeftFrame.TabsHolder.Tab
         Tab.Name = "Tab"
         Tab.AnchorPoint = Vector2.new(0.5, 0.5)
         Tab.Position = UDim2.new(0.43333321809768677, 0, 0.01769467070698738, 0)
@@ -2271,6 +2278,7 @@ function Library:Window(Data)
         Container.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
         Container.Parent = ContainerHolder
         Container.Visible = false
+        Container:SetAttribute("Name", Name)
 
         Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
         Container.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -2361,19 +2369,12 @@ function Library:Window(Data)
             ChangeTab(Tab, true)
         end)
 
-        -- local UpdateContainerSize = AutoScaleSectionContainer(
-        --     Container,
-        --     Holder1,
-        --     UIListLayout,
-        --     Holder2,
-        --     UIListLayout_5
-        -- )
-
-
         function Tabs:Section(Data)
+
             local Section_Table = {
                 SectionToggled = false,
-                Value = false
+                Value = false,
+                Default = Tabs.IsDefaultTab
             }
 
             local Name = Data.Name or "Remember A Title!"
@@ -2526,14 +2527,15 @@ function Library:Window(Data)
                 ExtraY = 7,
                 MinY = 37,
                 ClosedY = 37,
-                DefaultOpen = false
+                DefaultOpen = true
             })
 
             Section_Table.SectionScaler = SectionScaler
-            Section_Table.SectionToggled = false
+            Section_Table.SectionToggled = true
+            Section_Table.Value = true
 
-            SectionScaler.SetOpen(false)
-            SectionArrow.Rotation = 0
+            SectionScaler.SetOpen(true)
+            SectionArrow.Rotation = 180
 
             Section_Table.UpdateSize = function()
                 if Section_Table.SectionScaler then
@@ -2549,10 +2551,6 @@ function Library:Window(Data)
                         Section_Table.SectionScaler.SetOpen(false)
                     end
                 end
-
-                -- task.delay(0.3, function()
-                --     UpdateContainerSize()
-                -- end)
             end
 
             function Section_Table:Set(value, NoCallback)
@@ -2571,6 +2569,8 @@ function Library:Window(Data)
 
                 return value
             end
+
+            Section_Table:Set(Section_Table.Default)
 
             function Section_Table:Get()
                 return Section_Table.SectionToggled == true
@@ -4970,6 +4970,7 @@ function Library:Window(Data)
             end
 
             Library.Flags[SectionFlag] = Section_Table
+
             return Section_Table
         end
 
