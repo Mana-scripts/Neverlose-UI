@@ -697,10 +697,33 @@ local function CreateToolTip(Data)
 end
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function Library:SetOpen(State)
     SupGang.Enabled = State
 end
 
+
+
+
+
+local Globals = {}
+Globals["UITOGGLED"] = false
+Globals["SETTINGSTOGGLED"] = false
 
 function Library:Window(Data)
     local Tab_Toggled = false
@@ -710,6 +733,86 @@ function Library:Window(Data)
 
     local MainFrame = Instance.new("Frame")
     local ContainerHolder = Instance.new("Frame")
+    local SettingsFrame = Instance.new("Frame")
+
+    local ToggleButton = Instance.new("ImageButton")
+    local UICorner = Instance.new("UICorner")
+
+
+
+    ToggleButton.Name = "ToggleButton"
+    ToggleButton.Position = UDim2.new(0.5066050291061401, -34, 0.5549374222755432, -498)
+    ToggleButton.Size = UDim2.new(0, 43, 0, 43)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    ToggleButton.Image = "rbxassetid://108751890179023"
+    ToggleButton.Parent = SupGang
+    ToggleButton.BackgroundTransparency = 1
+    ToggleButton.ImageTransparency = 1
+
+    ToggleButton:SetAttribute("Ignore", true)
+
+
+    UICorner.Parent = ToggleButton
+
+    function Library:ToggleButton(state)
+        TweenItem({
+            Inst = ToggleButton,
+            Property = "ImageTransparency",
+            Value = state and 0 or 1
+        }):Play()
+    end
+
+    function Library:ToggleSettings(state)
+        TweenItem({
+            Inst = SettingsFrame,
+            Property = "Size", 
+            Value = state and UDim2.new(0, 283, 0, 298) or UDim2.new(0, 283, 0, 0)
+        }):Play()
+    end
+
+    function Library:ToggleUI(state)
+        -- for i,v in pairs(SupGang:GetDescendants()) do
+        --     if not v:GetAttribute("Ignore") and v:IsA("GuiObject") then
+        --         if string.find(v.ClassName, "Image") then
+        --             Original_Values[v.Name] = v.ImageTransparency
+        --         elseif string.find(v.ClassName, "TextButton") then
+        --             Original_Values[v.Name] = v.BackgroundTransparency
+        --         elseif string.find(v.ClassName, "TextLabel") then
+        --             Original_Values[v.Name] = v.TextTransparency
+        --         elseif string.find(v.ClassName, "TextButton") then
+
+        --         elseif string.find(v.ClassName, "TextButton") then
+
+        --         end
+        --     end
+        -- end
+        MainFrame.ClipsDescendants = true
+        -- Library:TweenColorpickerFrame(false)
+        TweenItem({
+            Inst = MainFrame,
+            Property = "Size",
+            Value = state and UDim2.new(0, 590, 0, 567) or UDim2.new(0, 590, 0, 0)
+        }):Play()
+        if not state then
+            Globals["SETTINGSTOGGLED"] = false
+            Library:ToggleSettings(false)
+        end
+    end
+        -- Colorpicker_Table.Toggled = false
+
+
+    ToggleButton.MouseButton1Click:Connect(function()
+        Globals["UITOGGLED"] = not Globals["UITOGGLED"]
+        Library:ToggleUI(Globals["UITOGGLED"])
+    end)
+
+    Library:ToggleSettings(Globals["SETTINGSTOGGLED"])
+
+    SettingsFrame.ClipsDescendants = true
+
+    MakeDraggable(ToggleButton, ToggleButton)
 
     local MainHolder = Instance.new("Folder")
     local LibraryTitle = Instance.new("TextLabel")
@@ -733,20 +836,37 @@ function Library:Window(Data)
     local UIStroke_33 = Instance.new("UIStroke")
     local UICorner_37 = Instance.new("UICorner")
 
+    local UICorner_43 = Instance.new("UICorner")
+    local SettingsHolder = Instance.new("Folder")
+    local LibraryTitle_2 = Instance.new("TextLabel")
+    local UITextSizeConstraint_33 = Instance.new("UITextSizeConstraint")
+    local line1_4 = Instance.new("Frame")
+    local UIListLayout_11 = Instance.new("UIListLayout")
+    local _0NoItemHere = Instance.new("Frame")
+
     -- Library:RegisterTheme(LibraryTitle, "TextColor3", "Text")
 
     Library:RegisterTheme(UIStroke_33, "Color", "Stroke")
 
     MainFrame.Name = "MainFrame"
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.AnchorPoint = Vector2.new(0, 0)
     MainFrame.Position = UDim2.new(0.3446079194545746, 0, 0.4499991834163666, 0)
     MainFrame.Size = UDim2.new(0, 590, 0, 567)
     MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
     MainFrame.BorderSizePixel = 0
     MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     MainFrame.Parent = SupGang
+    MainFrame.ClipsDescendants = true
 
     local MainFrameScaler = AutoScaleGui(MainFrame, {
+        BaseResolution = Vector2.new(1920, 1080),
+        MinScale = 0.65,
+        MaxScale = 1,
+        Center = false,
+        KeepOnScreen = true
+    })
+
+    local ToggleButtonScaler = AutoScaleGui(ToggleButton, {
         BaseResolution = Vector2.new(1920, 1080),
         MinScale = 0.65,
         MaxScale = 1,
@@ -821,7 +941,7 @@ function Library:Window(Data)
     OptionsFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     OptionsFrame.Parent = MainHolder
     OptionsFrame.BackgroundTransparency = 1
-    OptionsFrame.Visible = false
+    OptionsFrame.Visible = true
 
     UICorner_35.CornerRadius = UDim.new(0, 3)
     UICorner_35.Parent = OptionsFrame
@@ -851,6 +971,11 @@ function Library:Window(Data)
     SettingsOption.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
     SettingsOption.Parent = OptionsFrame
 
+    SettingsOption.MouseButton1Click:Connect(function()
+        Globals["SETTINGSTOGGLED"] = not Globals["SETTINGSTOGGLED"]
+        Library:ToggleSettings(Globals["SETTINGSTOGGLED"])
+    end)
+
     SettingsIcon.Name = "SettingsIcon"
     SettingsIcon.Size = UDim2.new(0, 22, 0, 22)
     SettingsIcon.BackgroundTransparency = 1
@@ -874,6 +999,7 @@ function Library:Window(Data)
     SearchOption.Font = Enum.Font.SourceSans
     SearchOption.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
     SearchOption.Parent = OptionsFrame
+    SearchOption.Visible = false
 
     SearchIcon.Name = "SearchIcon"
     SearchIcon.Position = UDim2.new(-0.088897705078125, 0, 0, 0)
@@ -904,6 +1030,7 @@ function Library:Window(Data)
     OptionsSearch.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
     OptionsSearch.Parent = OptionsFrameFolder
     OptionsSearch.BackgroundTransparency = 0.8
+    OptionsSearch.Visible = false
 
     Library:RegisterTheme(OptionsSearch, "BackgroundColor3", "Background")
 
@@ -920,28 +1047,13 @@ function Library:Window(Data)
 
 
 
-    local SettingsFrame = Instance.new("Frame")
-    local UICorner_43 = Instance.new("UICorner")
-    local SettingsHolder = Instance.new("Folder")
-    local LibraryTitle_2 = Instance.new("TextLabel")
-    local UITextSizeConstraint_33 = Instance.new("UITextSizeConstraint")
-    local line1_4 = Instance.new("Frame")
-    local UIListLayout_11 = Instance.new("UIListLayout")
-    local _0NoItemHere = Instance.new("Frame")
-    local DiscordButton = Instance.new("TextButton")
-    local UICorner_44 = Instance.new("UICorner")
-    local UITextSizeConstraint_34 = Instance.new("UITextSizeConstraint")
-    local UIStroke_35 = Instance.new("UIStroke")
-    local UIStroke_36 = Instance.new("UIStroke")
-    local KeyBind_3 = Instance.new("TextButton")
-    local UICorner_45 = Instance.new("UICorner")
-    local KeybindTitle_3 = Instance.new("TextLabel")
-    local UITextSizeConstraint_35 = Instance.new("UITextSizeConstraint")
-    local UIStroke_37 = Instance.new("UIStroke")
-    local KeyText_3 = Instance.new("TextLabel")
-    local UITextSizeConstraint_36 = Instance.new("UITextSizeConstraint")
-    local UIStroke_38 = Instance.new("UIStroke")
-    local UICorner_46 = Instance.new("UICorner")
+
+
+
+
+
+
+
 
     Library:RegisterTheme(UIStroke_35, "Color", "Stroke")
     Library:RegisterTheme(UIStroke_36, "Color", "Stroke")
@@ -957,7 +1069,20 @@ function Library:Window(Data)
     SettingsFrame.BorderSizePixel = 0
     SettingsFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     SettingsFrame.Parent = SupGang
-    SettingsFrame.Visible = false
+    -- SettingsFrame.Visible = false
+
+    function Library:ChangeParent(newparent, item)
+        if newparent then
+            if newparent == "Settings" then
+                item.Parent = SettingsFrame
+                return
+            end
+            item.Parent = newparent
+        end
+    end
+
+    
+
 
     local SettingsFrameScaler = AutoScaleGui(SettingsFrame, {
         BaseResolution = Vector2.new(1920, 1080),
@@ -1017,103 +1142,6 @@ function Library:Window(Data)
     _0NoItemHere.BorderColor3 = Color3.fromRGB(0, 0, 0)
     _0NoItemHere.Parent = SettingsFrame
 
-    DiscordButton.Name = "DiscordButton"
-    DiscordButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    DiscordButton.Position = UDim2.new(0.576241135597229, 0, 0.18421052396297455, 0)
-    DiscordButton.Size = UDim2.new(0, 256, 0, 30)
-    DiscordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-    DiscordButton.BorderSizePixel = 0
-    DiscordButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    DiscordButton.Text = "Discord"
-    DiscordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    DiscordButton.TextSize = 14
-    DiscordButton.TextScaled = true
-    DiscordButton.TextWrapped = true
-    DiscordButton.Font = Enum.Font.SourceSans
-    DiscordButton.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-    DiscordButton.AutoButtonColor = false
-    DiscordButton.Parent = SettingsFrame
-
-    UICorner_44.CornerRadius = UDim.new(0, 3)
-    UICorner_44.Parent = DiscordButton
-
-    UITextSizeConstraint_34.MaxTextSize = 14
-    UITextSizeConstraint_34.Parent = DiscordButton
-
-    UIStroke_35.Parent = DiscordButton
-
-    UIStroke_36.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    UIStroke_36.Color = Library.Colors["Stroke"]
-    UIStroke_36.Parent = DiscordButton
-
-    KeyBind_3.Name = "KeyBind"
-    KeyBind_3.AnchorPoint = Vector2.new(0.5, 0.5)
-    KeyBind_3.Position = UDim2.new(0.576241135597229, 0, 0.2017543911933899, 0)
-    KeyBind_3.Size = UDim2.new(0, 256, 0, 30)
-    KeyBind_3.BackgroundTransparency = 0.800000011920929
-    KeyBind_3.BackgroundColor3 = Color3.fromRGB(13, 13, 13)
-    KeyBind_3.BorderSizePixel = 0
-    KeyBind_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    KeyBind_3.Text = ""
-    KeyBind_3.TextColor3 = Color3.fromRGB(0, 0, 0)
-    KeyBind_3.TextSize = 14
-    KeyBind_3.Font = Enum.Font.SourceSans
-    KeyBind_3.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-    KeyBind_3.AutoButtonColor = false
-    KeyBind_3.Parent = SettingsFrame
-
-    UICorner_45.CornerRadius = UDim.new(0, 3)
-    UICorner_45.Parent = KeyBind_3
-
-    KeybindTitle_3.Name = "KeybindTitle"
-    KeybindTitle_3.Position = UDim2.new(0.027070926502346992, 0, 0, 0)
-    KeybindTitle_3.Size = UDim2.new(0, 249, 0, 30)
-    KeybindTitle_3.BackgroundTransparency = 1
-    KeybindTitle_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    KeybindTitle_3.BorderSizePixel = 0
-    KeybindTitle_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    KeybindTitle_3.Text = "Menu Keybind"
-    KeybindTitle_3.TextColor3 = Color3.fromRGB(255, 255, 255)
-    KeybindTitle_3.TextSize = 14
-    KeybindTitle_3.TextScaled = true
-    KeybindTitle_3.TextWrapped = true
-    KeybindTitle_3.TextXAlignment = Enum.TextXAlignment.Left
-    KeybindTitle_3.Font = Enum.Font.SourceSans
-    KeybindTitle_3.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-    KeybindTitle_3.Parent = KeyBind_3
-
-    UITextSizeConstraint_35.MaxTextSize = 14
-    UITextSizeConstraint_35.Parent = KeybindTitle_3
-
-    UIStroke_37.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    UIStroke_37.Color = Library.Colors["Stroke"]
-    UIStroke_37.Parent = KeyBind_3
-
-    KeyText_3.Name = "KeyText"
-    KeyText_3.Position = UDim2.new(0.5307614207267761, 0, 0.1034482792019844, 0)
-    KeyText_3.Size = UDim2.new(0, 108, 0, 23)
-    KeyText_3.BackgroundTransparency = 1
-    KeyText_3.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
-    KeyText_3.BorderSizePixel = 0
-    KeyText_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    KeyText_3.Text = "LeftControl"
-    KeyText_3.TextColor3 = Color3.fromRGB(255, 255, 255)
-    KeyText_3.TextSize = 14
-    KeyText_3.TextScaled = true
-    KeyText_3.TextWrapped = true
-    KeyText_3.Font = Enum.Font.SourceSans
-    KeyText_3.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-    KeyText_3.Parent = KeyBind_3
-
-    UITextSizeConstraint_36.MaxTextSize = 14
-    UITextSizeConstraint_36.Parent = KeyText_3
-
-    UIStroke_38.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    UIStroke_38.Color = Library.Colors["Stroke"]
-    UIStroke_38.Parent = KeyText_3
-
-    UICorner_46.CornerRadius = UDim.new(0, 3)
-    UICorner_46.Parent = KeyText_3
 
 
 
@@ -1757,7 +1785,7 @@ function Library:Window(Data)
 
     local ColorpickerFrameTween
 
-    local function TweenColorpickerFrame(Open)
+    function Library:TweenColorpickerFrame(Open)
         if ColorpickerFrameTween then
             ColorpickerFrameTween:Cancel()
         end
@@ -1781,6 +1809,7 @@ function Library:Window(Data)
         ColorpickerFrameTween.Completed:Once(function()
             if not Open then
                 ColorpickerFrame.Visible = false
+                MainFrame.ClipsDescendants = true
             end
         end)
 
@@ -2358,6 +2387,14 @@ function Library:Window(Data)
 
             task.defer(UpdateContainerSize)
 
+            function Section_Table:Destroy(time)
+                time = time or 1
+                task.spawn(function()
+                    task.wait(time)
+                    Section:Destroy()
+                end)
+            end
+
             if Side == 1 then
                 Section.Parent = Holder1
             elseif Side == 2 then
@@ -2544,6 +2581,7 @@ function Library:Window(Data)
                 UIScale.Parent = Button
                 UIScale.Scale = 1
                 
+                Button_Table.Instance = Button
 
                 Button.Name = "Button"
                 Button.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2671,6 +2709,9 @@ function Library:Window(Data)
                             OffsetY = 15
                         })
                     end
+
+                    Library:ChangeParent(Button_Table.data.Parent, Button)
+
                 end)
 
                 
@@ -2701,7 +2742,7 @@ function Library:Window(Data)
                 local UIStroke_15 = Instance.new("UIStroke")
                 Library:RegisterTheme(UIStroke_15, "Color", "Stroke")
 
-
+                Toggle_Table.Instance = Toggle
 
                 Toggle.Name = "Toggle"
                 Toggle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2836,9 +2877,10 @@ function Library:Window(Data)
                             OffsetY = 15
                         })
                     end
+                    Library:ChangeParent(Toggle_Table.data.Parent, Toggle)
                 end)
 
-                Toggle_Table:Set(Default, true)
+                Toggle_Table:Set(Default)
 
                 Library.Flags[Flag] = Toggle_Table
                 return Toggle_Table
@@ -2886,6 +2928,7 @@ function Library:Window(Data)
                 Library:RegisterTheme(UIStroke, "Color", "Stroke")
                 Library:RegisterTheme(UIStroke_2, "Color", "Stroke")
 
+                Dropdown_Table.Instance = SectionDropdownHolder
 
                 local DropdownFrameFolder = Instance.new("Folder")
                 local SearchBox = Instance.new("TextBox")
@@ -2989,8 +3032,12 @@ function Library:Window(Data)
                 DropdownHolder.ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0)
                 DropdownHolder.Parent = DropdownFrame
 
+                DropdownHolder.AutomaticCanvasSize = Enum.AutomaticSize.Y
+                DropdownHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
+
                 local UIPadding = Instance.new("UIPadding")
                 UIPadding.PaddingTop = UDim.new(0, 2)
+                UIPadding.PaddingBottom = UDim.new(0, 20)
                 UIPadding.Parent = DropdownHolder
 
                 UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -3038,89 +3085,105 @@ function Library:Window(Data)
                 local UIPadding = Instance.new("UIPadding")
                 UIPadding.PaddingTop = UDim.new(0, 2)
                 UIPadding.PaddingRight = UDim.new(0, 1)
+                UIPadding.PaddingBottom = UDim.new(0, 10)
                 UIPadding.Parent = SectionDropdownHolder
-
+                
                 function Dropdown_Table:SearchFunction(key)
-                    for i,v in pairs(DropdownHolder:GetChildren()) do
+                    local SkipAnimation = false
+                    local TotalItems = DropdownHolder:GetChildren()
+                    if #TotalItems > 200 then
+                        SkipAnimation = true
+                    end
+                    for i,v in pairs(TotalItems) do
                         if v:IsA("TextButton") then
                             local Text = v.Text:lower()
                             if string.find(Text, string.lower(key)) then
                                 v.Visible = true
-                                TweenItem({
-                                    Inst = v.UIStroke,
-                                    Property = "Transparency",
-                                    Value = 0
-                                }):Play()
-
-                                if v:FindFirstChild("ToggleItemFrame") then
+                                if not SkipAnimation then
                                     TweenItem({
-                                        Inst = v.ToggleItemFrame.UIStroke,
+                                        Inst = v.UIStroke,
                                         Property = "Transparency",
                                         Value = 0
                                     }):Play()
 
+                                    if v:FindFirstChild("ToggleItemFrame") then
+                                        TweenItem({
+                                            Inst = v.ToggleItemFrame.UIStroke,
+                                            Property = "Transparency",
+                                            Value = 0
+                                        }):Play()
+
+                                        TweenItem({
+                                            Inst = v.ToggleItemFrame,
+                                            Property = "BackgroundTransparency",
+                                            Value = v:GetAttribute("Enabled") and 0 or 1
+                                        }):Play()
+                                    end
+
                                     TweenItem({
-                                        Inst = v.ToggleItemFrame,
-                                        Property = "BackgroundTransparency",
-                                        Value = v:GetAttribute("Enabled") and 0 or 1
+                                        Inst = v,
+                                        Property = "TextTransparency",
+                                        Value = 0
+                                    }):Play()
+
+                                    TweenItem({
+                                        Inst = v,
+                                        Property = "Size",
+                                        Value = UDim2.new(0.920, 0, 0, 24)
                                     }):Play()
                                 end
-
-                                TweenItem({
-                                    Inst = v,
-                                    Property = "TextTransparency",
-                                    Value = 0
-                                }):Play()
-
-                                TweenItem({
-                                    Inst = v,
-                                    Property = "Size",
-                                    Value = UDim2.new(0.920, 0, 0, 24)
-                                }):Play()
-
-                                task.wait(0.05)
+                                task.wait(0.005)
+                                -- spawn(function()
+                                --     repeat task.wait() until v.Size == UDim2.new(0.920, 0, 0, 24)
+                                --     task.wait(0.1)
+                                -- end)
                             else
-                                TweenItem({
-                                    Inst = v.UIStroke,
-                                    Property = "Transparency",
-                                    Time = 0.1,
-                                    Value = 1
-                                }):Play()
-
-                                if v:FindFirstChild("ToggleItemFrame") then
+                                if not SkipAnimation then
                                     TweenItem({
-                                        Inst = v.ToggleItemFrame.UIStroke,
+                                        Inst = v.UIStroke,
                                         Property = "Transparency",
                                         Time = 0.1,
                                         Value = 1
                                     }):Play()
 
+                                    if v:FindFirstChild("ToggleItemFrame") then
+                                        TweenItem({
+                                            Inst = v.ToggleItemFrame.UIStroke,
+                                            Property = "Transparency",
+                                            Time = 0.1,
+                                            Value = 1
+                                        }):Play()
+
+                                        TweenItem({
+                                            Inst = v.ToggleItemFrame,
+                                            Property = "BackgroundTransparency",
+                                            Time = 0.1,
+                                            Value = 1
+                                        }):Play()
+                                    end
+                                    
                                     TweenItem({
-                                        Inst = v.ToggleItemFrame,
-                                        Property = "BackgroundTransparency",
+                                        Inst = v,
+                                        Property = "TextTransparency",
                                         Time = 0.1,
                                         Value = 1
                                     }):Play()
-                                end
-                                
-                                TweenItem({
-                                    Inst = v,
-                                    Property = "TextTransparency",
-                                    Time = 0.1,
-                                    Value = 1
-                                }):Play()
 
-                                TweenItem({
-                                    Inst = v,
-                                    Property = "Size",
-                                    Value = UDim2.new(0.920, 0, 0, -4) -- Makes an extremely smooth animation!
-                                }):Play()
-                                
-                                task.wait(0.05)
-                                spawn(function()
-                                    repeat task.wait() until v.Size == UDim2.new(0.920, 0, 0, -4)
+                                    TweenItem({
+                                        Inst = v,
+                                        Property = "Size",
+                                        Value = UDim2.new(0.920, 0, 0, -4) -- Makes an extremely smooth animation!
+                                    }):Play()
+                                    
+                                    task.wait(0.005)
+                                    spawn(function()
+                                        repeat task.wait() until v.Size == UDim2.new(0.920, 0, 0, -4)
+                                        v.Visible = false
+                                    end)
+                                else
+                                    task.wait(0.005)
                                     v.Visible = false
-                                end)
+                                end
                             end
                         end
                     end
@@ -3131,7 +3194,7 @@ function Library:Window(Data)
                 end)
 
                 local function GetDropdownOpenHeight()
-                    local ContentHeight = UIListLayout.AbsoluteContentSize.Y + 10
+                    local ContentHeight = UIListLayout.AbsoluteContentSize.Y + 12
                     local HolderHeight = math.clamp(ContentHeight, 0, MaxDropdownHeight)
                     local FrameHeight = SearchHeight + 1 + HolderHeight
 
@@ -3230,7 +3293,7 @@ function Library:Window(Data)
                 Dropdown.MouseButton1Click:Connect(function()
                     local FrameHeight, HolderHeight, ContentHeight = GetDropdownOpenHeight()
                     Dropdown_Table.Toggled = not Dropdown_Table.Toggled
-                    DropdownHolder.CanvasSize = UDim2.new(0, 0, 0, ContentHeight)
+                    -- DropdownHolder.CanvasSize = UDim2.new(0, 0, 0, ContentHeight + 10)
 
                     TweenItem({
                         Inst = SectionDropdownHolder,
@@ -3240,7 +3303,7 @@ function Library:Window(Data)
                             1,
                             0,
                             0,
-                            213
+                            215
                         ) or UDim2.new(
                             1,
                             0,
@@ -3296,6 +3359,8 @@ function Library:Window(Data)
                         OffsetX = 5,
                         OffsetY = 15
                     })
+
+                    Library:ChangeParent(Dropdown_Table.data.Parent, SectionDropdownHolder)
                 end)
 
 
@@ -3589,25 +3654,26 @@ function Library:Window(Data)
 
                     SearchBox.Text = ""
                     
-                    for i, v in pairs(NewList) do
-                        Dropdown_Table:MakeItem(v)
-                    end
-
+                    task.spawn(function()
+                        for i, v in pairs(NewList) do
+                            Dropdown_Table:MakeItem(v)
+                            task.wait(0.005)
+                        end
+                    end)
+                    
                     -- UpdateTitle()
-
-                    local _, _, ContentHeight = GetDropdownOpenHeight()
-                    DropdownHolder.CanvasSize = UDim2.new(0, 0, 0, ContentHeight)
-                    DropdownHolder.CanvasPosition = Vector2.new(0, 0)
-
 
                     if Section_Table.ForceUpdateSize then
                         task.defer(Section_Table.ForceUpdateSize)
                     end
                 end
 
-                for _, v in ipairs(List) do
-                    Dropdown_Table:MakeItem(v)
-                end
+                task.spawn(function()
+                    for i, v in pairs(List) do
+                        Dropdown_Table:MakeItem(v)
+                        task.wait(0.005)
+                    end
+                end)
 
                 if Default ~= nil then
                     Dropdown_Table:Set(Default, true)
@@ -3657,6 +3723,8 @@ function Library:Window(Data)
                 Library:RegisterTheme(UIStroke_14, "Color", "Stroke")
 
                 Library:RegisterTheme(SliderInputBox, "TextColor3", "Text")
+
+                Slider_Table.Instance = Slider
 
                 Slider.Name = "Slider"
                 Slider.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3780,6 +3848,7 @@ function Library:Window(Data)
                             OffsetY = 15
                         })
                     end
+                    Library:ChangeParent(Slider_Table.data.Parent, Slider)
                 end)
 
                 -- Slider_Table.data.ToolTip = Data.ToolTip
@@ -3978,6 +4047,8 @@ function Library:Window(Data)
 
                 Library:RegisterTheme(UIStroke_8, "Color", "Stroke")
 
+                Colorpicker_Table.Instance = Colorpicker
+
                 Colorpicker.Name = "Colorpicker"
                 Colorpicker.AnchorPoint = Vector2.new(0.5, 0.5)
                 Colorpicker.Position = UDim2.new(0.5000001192092896, 0, 0.2815171480178833, 0)
@@ -4043,6 +4114,7 @@ function Library:Window(Data)
                             OffsetY = 15
                         })
                     end
+                    Library:ChangeParent(Colorpicker_Table.data.Parent, Colorpicker)
                 end)
 
                 local function FireCallback(ColorValue)
@@ -4129,6 +4201,8 @@ function Library:Window(Data)
                 end
 
                 function Colorpicker_Table:Open()
+                    MainFrame.ClipsDescendants = false
+                    ColorpickerFrame.Visible = true
                     local WasAlreadyOpen = ColorpickerFrame.Visible and ActiveColorpicker ~= nil
 
                     ActiveColorpicker = Colorpicker_Table
@@ -4138,7 +4212,7 @@ function Library:Window(Data)
                         TweenPickerVisuals(Colorpicker_Table.Flag)
                     else
                         UpdatePickerVisuals(Colorpicker_Table.Flag)
-                        TweenColorpickerFrame(true)
+                        Library:TweenColorpickerFrame(true)
                     end
                 end
 
@@ -4149,7 +4223,7 @@ function Library:Window(Data)
 
                     Colorpicker_Table.Toggled = false
 
-                    TweenColorpickerFrame(false)
+                    Library:TweenColorpickerFrame(false)
                 end
 
                 Colorpicker.MouseButton1Click:Connect(function()
@@ -4250,6 +4324,8 @@ function Library:Window(Data)
                     return Input_Table.Value or ""
                 end
 
+                Input_Table.Instance = Input
+
                 Input.Name = "Input"
                 Input.Position = UDim2.new(0.02008502557873726, 0, 0.4342949688434601, 0)
                 Input.Size = UDim2.new(0.8999999761581421, 0, 0, 28)
@@ -4336,6 +4412,7 @@ function Library:Window(Data)
                             OffsetY = 15
                         })
                     end
+                    Library:ChangeParent(Input_Table.data.Parent, Input)
                 end)
 
                 InputBox.FocusLost:Connect(function(ep)
@@ -4377,6 +4454,8 @@ function Library:Window(Data)
 
                 Library:RegisterTheme(UIStroke_10, "Color", "Stroke")
                 Library:RegisterTheme(UIStroke_11, "Color", "Stroke")
+
+                Keybind_Table.Instance = KeyBind
 
                 KeyBind.Name = "KeyBind"
                 KeyBind.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -4461,6 +4540,7 @@ function Library:Window(Data)
                             OffsetY = 15
                         })
                     end
+                    Library:ChangeParent(Keybind_Table.data.Parent, KeyBind)
                 end)
 
                 local Listening = false
@@ -4664,6 +4744,8 @@ function Library:Window(Data)
                 local UITextSizeConstraint_14 = Instance.new("UITextSizeConstraint")
                 local UIStroke_16 = Instance.new("UIStroke")
                 Library:RegisterTheme(UIStroke_16, "Color", "Stroke")
+
+                Text_Table.Instance = Text
                 
                 Text.Name = "Text"
                 Text.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -4923,6 +5005,8 @@ function Library:Window(Data)
                             OffsetY = 15
                         })
                     end
+
+                    Library:ChangeParent(Text_Table.data.Parent, Text)
                 end)
 
 
@@ -4984,10 +5068,13 @@ function Library:Window(Data)
             Flag = "Key bind for GUI",
             Default = Enum.KeyCode.RightControl,
             Callback = function(Key)
-                Library:SetOpen(not Key) -- Make A smoother opening sequence
+                -- Library:SetOpen(not Key) -- Make A smoother opening sequence
+                Globals["UITOGGLED"] = not Globals["UITOGGLED"]
+                Library:ToggleUI(Globals["UITOGGLED"])
             end
         }).data = {
-            ToolTip = "Bind a key to open the GUI"
+            ToolTip = "Bind a key to open the GUI",
+            Parent = "Settings"
         }
 
         SettingsSection:Button({
@@ -4998,14 +5085,31 @@ function Library:Window(Data)
             end
         }).data = {
             ToolTip = "Coppies Discord Server invite!",
-            CustomColor = Color3.fromRGB(114,137,218)
+            CustomColor = Color3.fromRGB(114,137,218),
+            Parent = "Settings"
+        }
+
+        SettingsSection:Toggle({
+            Name = "UI Button",
+            Flag = "UI Button",
+            Default = true,
+            Callback = function(t)
+                Library:ToggleButton(t)
+            end
+        }).data = {
+            ToolTip = "Toggles a GUI Button",
+            CustomColor = Color3.fromRGB(114,137,218),
+            Parent = "Settings"
         }
 
         SettingsSection:Text({
             Name = "Credits: Mana"
         }).data = {
-            ToolTip = "Creator of the Script & GUI"
+            ToolTip = "Creator of the Script & GUI",
+            Parent = "Settings"
         }
+
+        SettingsSection:Destroy(5)
 
         local ConfigsSection = Tab:Section({
             Name = "Configs",
@@ -5159,10 +5263,15 @@ function Example()
         Side = 2
     })
 
+    local Giant_Table = {"Hi", "Apple", "Orange", "d", "HALSDSLA", "NahBro","Hi", "Apple", "Orange", "d", "HALSDSLA", "NahBro","Hi", "Apple", "Orange", "d", "HALSDSLA", "NahBro","Hi", "Apple", "Orange", "d", "HALSDSLA", "NahBro","Hi", "Apple", "Orange", "d", "HALSDSLA", "NahBro",}
+    for i,v in pairs(game.CoreGui:GetChildren()) do
+        table.insert(Giant_Table, v.Name)
+    end
+
     Farming_Section:Dropdown({
         Name = "Ping",
         Flag = "Hi",
-        List = {"Hi", "Apple", "Orange", "d", "HALSDSLA", "NahBro"},
+        List = Giant_Table,
         Multi = true,
         Callback = function(test)
             print("Hai | "..tostring(test))
@@ -5290,7 +5399,7 @@ function Example()
     }
 
 
-    Nah_Section:Toggle({
+    local Hallo = Nah_Section:Toggle({
         Name = "Change Text",
         Default = false,
         Callback = function(t)
@@ -5304,6 +5413,6 @@ function Example()
 
 end
 
--- Example()
+--Example()
 
 return Library
