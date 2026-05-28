@@ -104,7 +104,7 @@ function TweenItem(Data)
 
     local inst = Data.Inst
     local Property = Data.Property
-    local Value = Data.Value
+    -- local Value = Data.Value
 
     local Speed = Data.Speed -- pixels per second
     local Time = Data.Time or 0.3
@@ -114,26 +114,26 @@ function TweenItem(Data)
     if Speed then
         local Distance = 0
 
-        if Property == "Position" then
+        if Property.Position then
             local CurrentPos = inst.AbsolutePosition
 
-            local TargetX = Value.X.Offset
-            local TargetY = Value.Y.Offset
+            local TargetX = Property.Position.X.Offset
+            local TargetY = Property.Position.Y.Offset
 
             Distance = (Vector2.new(TargetX, TargetY) - CurrentPos).Magnitude
             Time = Distance / Speed
 
-        elseif Property == "Size" then
+        elseif Property.Size then
             local CurrentSize = inst.AbsoluteSize
 
-            local TargetX = Value.X.Offset
-            local TargetY = Value.Y.Offset
+            local TargetX = Property.Size.X.Offset
+            local TargetY = Property.Size.Y.Offset
 
             Distance = (Vector2.new(TargetX, TargetY) - CurrentSize).Magnitude
             Time = Distance / Speed
 
-        elseif Property == "Rotation" then
-            Distance = math.abs(inst.Rotation - Value)
+        elseif Property.Rotation then
+            Distance = math.abs(inst.Rotation - Property.Rotation)
             Time = Distance / Speed
         end
 
@@ -150,9 +150,7 @@ function TweenItem(Data)
             Time,
             Style
         ),
-        {
-            [Property] = Value
-        }
+        Property
     )
 
     function TweenItemData:Play()
@@ -281,8 +279,9 @@ local function AutoScaleListLayout(ListLayout, Options)
 
         CurrentTween = TweenItem({
             Inst = Parent,
-            Property = "Size",
-            Value = TargetSize
+            Property = {
+                Size = TargetSize
+            }
         })
 
         CurrentTween:Play()
@@ -480,9 +479,10 @@ function Library:SetColor(ColorName, ColorValue)
 			local success = pcall(function()
                 TweenItem({
                     Inst = Object,
-                    Property = Data.Property,
-                    Time = 0.3,
-                    Value = ColorValue
+                    Property = {
+                        [Data.Property] = ColorValue
+                    },
+                    Time = 0.3
                 }):Play()
 			end)
 
@@ -567,7 +567,7 @@ local function CreateToolTip(Data)
 	local Height = Data.Height or 20
 	local TweenTime = Data.TweenTime or 0.2
 
-	local OffsetX = Data.OffsetX or 12
+	local OffsetX = 12 --Data.OffsetX or 12
 	local OffsetY = Data.OffsetY or 12
 
 	local BackgroundOpenTransparency = Data.BackgroundOpenTransparency or 0.25
@@ -589,6 +589,33 @@ local function CreateToolTip(Data)
 		return tostring(CurrentText)
 	end
 
+    local function CountStringInfo(Text)
+        local Characters = 0
+        local Spaces = 0
+        local Numbers = 0
+
+        for i = 1, #Text do
+            local Char = Text:sub(i, i)
+
+            Characters += 1
+
+            if Char == " " then
+                Spaces += 1
+            elseif tonumber(Char) then
+                Numbers += 1
+            end
+        end
+
+        local Total = Characters
+
+        return {
+            Characters = Characters,
+            Spaces = Spaces,
+            Numbers = Numbers,
+            Total = Total
+        }
+    end
+    
 	local function GetTextSize(CurrentText)
 		local TextBounds = TextService:GetTextSize(
 			CurrentText,
@@ -597,7 +624,7 @@ local function CreateToolTip(Data)
 			Vector2.new(math.huge, Height)
 		)
 
-		return UDim2.new(0, TextBounds.X + PaddingX, 0, Height)
+		return UDim2.new(0, TextBounds.X - CountStringInfo(CurrentText).Total, 0, Height)
 	end
 
 	local function UpdatePosition()
@@ -759,16 +786,18 @@ function Library:Window(Data)
     function Library:ToggleButton(state)
         TweenItem({
             Inst = ToggleButton,
-            Property = "ImageTransparency",
-            Value = state and 0 or 1
+            Property = {
+                ImageTransparency = state and 0 or 1
+            }
         }):Play()
     end
 
     function Library:ToggleSettings(state)
         TweenItem({
             Inst = SettingsFrame,
-            Property = "Size", 
-            Value = state and UDim2.new(0, 283, 0, 298) or UDim2.new(0, 283, 0, 0)
+            Property = {
+                Size = state and UDim2.new(0, 283, 0, 298) or UDim2.new(0, 283, 0, 0)
+            }, 
         }):Play()
     end
 
@@ -792,8 +821,9 @@ function Library:Window(Data)
         -- Library:TweenColorpickerFrame(false)
         TweenItem({
             Inst = MainFrame,
-            Property = "Size",
-            Value = state and UDim2.new(0, 590, 0, 567) or UDim2.new(0, 590, 0, 0)
+            Property = {
+                Size = state and UDim2.new(0, 590, 0, 567) or UDim2.new(0, 590, 0, 0)
+            },
         }):Play()
         if not state then
             Globals["SETTINGSTOGGLED"] = false
@@ -906,8 +936,7 @@ function Library:Window(Data)
     LibraryTitle.TextSize = 23
     LibraryTitle.TextScaled = true
     LibraryTitle.TextWrapped = true
-    LibraryTitle.Font = Enum.Font.SourceSans
-    LibraryTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    LibraryTitle.Font = Enum.Font.Gotham
     LibraryTitle.Parent = MainHolder
 
     UITextSizeConstraint_29.MaxTextSize = 25
@@ -967,8 +996,7 @@ function Library:Window(Data)
     SettingsOption.Text = ""
     SettingsOption.TextColor3 = Color3.fromRGB(0, 0, 0)
     SettingsOption.TextSize = 14
-    SettingsOption.Font = Enum.Font.SourceSans
-    SettingsOption.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    SettingsOption.Font = Enum.Font.Gotham
     SettingsOption.Parent = OptionsFrame
 
     SettingsOption.MouseButton1Click:Connect(function()
@@ -996,8 +1024,7 @@ function Library:Window(Data)
     SearchOption.Text = ""
     SearchOption.TextColor3 = Color3.fromRGB(0, 0, 0)
     SearchOption.TextSize = 14
-    SearchOption.Font = Enum.Font.SourceSans
-    SearchOption.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    SearchOption.Font = Enum.Font.Gotham
     SearchOption.Parent = OptionsFrame
     SearchOption.Visible = false
 
@@ -1026,8 +1053,7 @@ function Library:Window(Data)
     OptionsSearch.PlaceholderText = "Search Here!"
     OptionsSearch.TextColor3 = Color3.fromRGB(255, 255, 255)
     OptionsSearch.TextSize = 19
-    OptionsSearch.Font = Enum.Font.SourceSans
-    OptionsSearch.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    OptionsSearch.Font = Enum.Font.Gotham
     OptionsSearch.Parent = OptionsFrameFolder
     OptionsSearch.BackgroundTransparency = 0.8
     OptionsSearch.Visible = false
@@ -1111,8 +1137,7 @@ function Library:Window(Data)
     LibraryTitle_2.TextSize = 23
     LibraryTitle_2.TextScaled = true
     LibraryTitle_2.TextWrapped = true
-    LibraryTitle_2.Font = Enum.Font.SourceSans
-    LibraryTitle_2.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    LibraryTitle_2.Font = Enum.Font.Gotham
     LibraryTitle_2.Parent = SettingsHolder
 
     UITextSizeConstraint_33.MaxTextSize = 25
@@ -1164,8 +1189,7 @@ function Library:Window(Data)
     ToolTip.TextColor3 = Color3.fromRGB(200, 200, 200)
     ToolTip.TextSize = 16
     ToolTip.TextXAlignment = Enum.TextXAlignment.Left
-    ToolTip.Font = Enum.Font.SourceSans
-    ToolTip.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    ToolTip.Font = Enum.Font.Gotham
     ToolTip.Parent = SupGang
     ToolTip.Visible = true
 
@@ -1175,7 +1199,7 @@ function Library:Window(Data)
     UIPadding_11.PaddingLeft = UDim.new(0, 4)
     UIPadding_11.Parent = ToolTip
 
-    UITextSizeConstraint_32.MaxTextSize = 14
+    UITextSizeConstraint_32.MaxTextSize = 12
     UITextSizeConstraint_32.Parent = ToolTip
 
 
@@ -1326,8 +1350,9 @@ function Library:Window(Data)
 
             local FadeOut = TweenItem({
                 Inst = Object,
-                Property = Type,
-                Value = 1,
+                Property = {
+                    [Type] = 1
+                },
                 Time = Time
             })
 
@@ -1345,8 +1370,7 @@ function Library:Window(Data)
 
                 local FadeIn = TweenItem({
                     Inst = Object,
-                    Property = Type,
-                    Value = 0,
+                    Property = {[Type]=0},
                     Time = Time
                 })
 
@@ -1394,9 +1418,8 @@ function Library:Window(Data)
 
         TweenItem({
             Inst = PlayerImage,
-            Property = "ImageTransparency",
-            Time = 0.5,
-            Value = 0
+            Property = {["ImageTransparency"]=0},
+            Time = 0.5
         }):Play()
 
         task.wait(1.5)
@@ -1409,14 +1432,13 @@ function Library:Window(Data)
 
         TweenItem({
             Inst = PlayerImage,
-            Property = "ImageTransparency",
+            Property = {["ImageTransparency"]=1},
             Time = 0.5,
-            Value = 1
         }):Play():Completed(function()
             PlayerImage.Image = isReady and content or "rbxassetid://108751890179023"
             TweenItem({
                 Inst = PlayerImage,
-                Property = "ImageTransparency",
+                Property = {["ImageTransparency"]=0},
                 Time = 0.5,
                 Value = 0
             }):Play():Completed(function()
@@ -1444,9 +1466,9 @@ function Library:Window(Data)
     GameName.Text = _GameName
     GameName.TextColor3 = Color3.fromRGB(255, 255, 255)
     GameName.TextSize = 14
-    GameName.Font = Enum.Font.SourceSans
-    GameName.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    GameName.Font = Enum.Font.Gotham
     GameName.Parent = PlayerInfo
+    GameName.BackgroundTransparency = 1
 
     Hover_Object(GameName, "Free", _GameName, {
         Time = 0.5,
@@ -1509,8 +1531,7 @@ function Library:Window(Data)
     ColorBox.TextSize = 14
     ColorBox.TextScaled = true
     ColorBox.TextWrapped = true
-    ColorBox.Font = Enum.Font.SourceSans
-    ColorBox.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    ColorBox.Font = Enum.Font.Gotham
     ColorBox.Parent = ColorpickerFrame
     ColorBox.ClearTextOnFocus = false
 
@@ -1859,32 +1880,29 @@ function Library:Window(Data)
 
         TweenItem({
             Inst = Color,
-            Property = "BackgroundColor3",
-            Value = Color3.fromHSV(H, 1, 1),
+            Property = {["BackgroundColor3"]=Color3.fromHSV(H, 1, 1)},
             Time = 0.25
         }):Play():Completed(Done)
 
         TweenItem({
             Inst = ColorSelection,
-            Property = "Position",
-            Value = UDim2.new(
+            Property = {["Position"]=UDim2.new(
                 math.clamp(S, 0, 1),
                 0,
                 math.clamp(1 - V, 0, 1),
                 0
-            ),
+            )},
             Time = 0.25
         }):Play():Completed(Done)
 
         TweenItem({
             Inst = HueSelection,
-            Property = "Position",
-            Value = UDim2.new(
+            Property = {["Position"]=UDim2.new(
                 0.5,
                 0,
                 math.clamp(1 - H, 0, 1),
                 0
-            ),
+            )},
             Time = 0.25
         }):Play():Completed(Done)
     end
@@ -2213,12 +2231,11 @@ function Library:Window(Data)
         Tab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         Tab.Text = Name or ""
         Tab.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Tab.TextSize = 14
-        Tab.TextScaled = true
+        Tab.TextSize = 18
+        Tab.TextScaled = false
         Tab.TextWrapped = true
         Tab.RichText = true
-        Tab.Font = Enum.Font.SourceSans
-        Tab.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+        Tab.Font = Enum.Font.Gotham
         Tab.AutoButtonColor = false
         Tab.Parent = TabsHolder
         Tab.TextTransparency = 0.8
@@ -2233,7 +2250,7 @@ function Library:Window(Data)
         UIStroke_34.Parent = Tab
         UIStroke_34.Transparency = 0.8
 
-        UITextSizeConstraint_31.MaxTextSize = 18
+        UITextSizeConstraint_31.MaxTextSize = 14
         UITextSizeConstraint_31.Parent = Tab
 
 
@@ -2255,14 +2272,19 @@ function Library:Window(Data)
         Container.Parent = ContainerHolder
         Container.Visible = false
 
+        Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        Container.CanvasSize = UDim2.new(0, 0, 0, 0)
+
         Holder1.Name = "Holder1"
         Holder1.Position = UDim2.new(0.004999999888241291, 0, 0, 0)
-        Holder1.Size = UDim2.new(0.47600001096725464, 0, 0, 2274)
+        Holder1.Size = UDim2.new(0.47600001096725464, 0, 1, 0)
         Holder1.BackgroundTransparency = 1
         Holder1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         Holder1.BorderSizePixel = 0
         Holder1.BorderColor3 = Color3.fromRGB(0, 0, 0)
         Holder1.Parent = Container
+
+        -- Holder1.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
         UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -2282,12 +2304,14 @@ function Library:Window(Data)
 
         Holder2.Name = "Holder2"
         Holder2.Position = UDim2.new(0.5, 0, 0, 0)
-        Holder2.Size = UDim2.new(0.47600001096725464, 0, 0, 2274)
+        Holder2.Size = UDim2.new(0.47600001096725464, 0, 1, 0)
         Holder2.BackgroundTransparency = 1
         Holder2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         Holder2.BorderSizePixel = 0
         Holder2.BorderColor3 = Color3.fromRGB(0, 0, 0)
         Holder2.Parent = Container
+
+        -- Holder2.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
         UIListLayout_5.HorizontalAlignment = Enum.HorizontalAlignment.Center
         UIListLayout_5.SortOrder = Enum.SortOrder.LayoutOrder
@@ -2337,13 +2361,13 @@ function Library:Window(Data)
             ChangeTab(Tab, true)
         end)
 
-        local UpdateContainerSize = AutoScaleSectionContainer(
-            Container,
-            Holder1,
-            UIListLayout,
-            Holder2,
-            UIListLayout_5
-        )
+        -- local UpdateContainerSize = AutoScaleSectionContainer(
+        --     Container,
+        --     Holder1,
+        --     UIListLayout,
+        --     Holder2,
+        --     UIListLayout_5
+        -- )
 
 
         function Tabs:Section(Data)
@@ -2385,7 +2409,7 @@ function Library:Window(Data)
 
             Library:RegisterTheme(Section, "BackgroundColor3", "Section Background")
 
-            task.defer(UpdateContainerSize)
+            -- task.defer(UpdateContainerSize)
 
             function Section_Table:Destroy(time)
                 time = time or 1
@@ -2458,14 +2482,13 @@ function Library:Window(Data)
             SectionTitle.Text = Name
             SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
             SectionTitle.TextSize = 19
-            SectionTitle.TextScaled = true
+            SectionTitle.TextScaled = false
             SectionTitle.TextWrapped = true
             SectionTitle.TextXAlignment = Enum.TextXAlignment.Left
-            SectionTitle.Font = Enum.Font.SourceSans
-            SectionTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+            SectionTitle.Font = Enum.Font.Gotham
             SectionTitle.Parent = SectionHolder
 
-            UITextSizeConstraint.MaxTextSize = 19
+            UITextSizeConstraint.MaxTextSize = 15
             UITextSizeConstraint.Parent = SectionTitle
 
             UIPadding_3.PaddingLeft = UDim.new(0, 6)
@@ -2480,8 +2503,7 @@ function Library:Window(Data)
             ToggleSection.Text = ""
             ToggleSection.TextColor3 = Color3.fromRGB(0, 0, 0)
             ToggleSection.TextSize = 14
-            ToggleSection.Font = Enum.Font.SourceSans
-            ToggleSection.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+            ToggleSection.Font = Enum.Font.Gotham
             ToggleSection.Parent = SectionHolder
 
             SectionArrow.Name = "SectionArrow"
@@ -2528,9 +2550,9 @@ function Library:Window(Data)
                     end
                 end
 
-                task.delay(0.3, function()
-                    UpdateContainerSize()
-                end)
+                -- task.delay(0.3, function()
+                --     UpdateContainerSize()
+                -- end)
             end
 
             function Section_Table:Set(value, NoCallback)
@@ -2540,12 +2562,11 @@ function Library:Window(Data)
                 Section_Table.SectionToggled = value
                 SectionScaler.SetOpen(value)
 
-                task.defer(UpdateContainerSize)
+                -- task.defer(UpdateContainerSize)
 
                 TweenItem({
                     Inst = SectionArrow,
-                    Property = "Rotation",
-                    Value = value and 180 or 0
+                    Property = {["Rotation"]=value and 180 or 0}
                 }):Play()
 
                 return value
@@ -2594,8 +2615,7 @@ function Library:Window(Data)
                 Button.TextSize = 14
                 Button.TextScaled = true
                 Button.TextWrapped = true
-                Button.Font = Enum.Font.SourceSans
-                Button.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                Button.Font = Enum.Font.Gotham
                 Button.AutoButtonColor = false
                 Button.Parent = Section
                 Button.Text = Name
@@ -2608,7 +2628,7 @@ function Library:Window(Data)
                 UICorner_2.CornerRadius = UDim.new(0, 3)
                 UICorner_2.Parent = Button
 
-                UITextSizeConstraint_2.MaxTextSize = 14
+                UITextSizeConstraint_2.MaxTextSize = 12
                 UITextSizeConstraint_2.Parent = Button
 
                 UIStroke_2.Parent = Button
@@ -2622,36 +2642,30 @@ function Library:Window(Data)
                         Button_Pressed = true
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundTransparency",
-                            Value = 0
+                            Property = {["BackgroundTransparency"]=0},
                         }):Play()
 
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundColor3",
-                            Value = Button_Table.data.CustomColor or Library.Colors.Accent
+                            Property = {["BackgroundColor3"]=Button_Table.data.CustomColor or Library.Colors.Accent},
                         }):Play()
 
                         TweenItem({
                             Inst = UIScale,
-                            Property = "Scale",
-                            Value = 0.9
+                            Property = {["Scale"]=0.9},
                         }):Play()
                         task.wait(0.1)
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundTransparency",
-                            Value = 0.8
+                            Property = {["BackgroundTransparency"]=0.8},
                         }):Play()
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundColor3",
-                            Value = Library.Colors.Background
+                            Property = {["BackgroundColor3"]=Library.Colors.Background},
                         }):Play()
                         TweenItem({
                             Inst = UIScale,
-                            Property = "Scale",
-                            Value = 1
+                            Property = {["Scale"]=1},
                         }):Play()
                         Button_Pressed = false
                     end)
@@ -2668,14 +2682,12 @@ function Library:Window(Data)
                     if not Button_Pressed then
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundTransparency",
-                            Value = 0.5
+                            Property = {["BackgroundTransparency"]=0.5},
                         }):Play()
 
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundColor3",
-                            Value = Button_Table.data.CustomColor or Library.Colors.Accent
+                            Property = {["BackgroundColor3"]=Button_Table.data.CustomColor or Library.Colors.Accent},
                         }):Play()
                     end
                 end)
@@ -2684,14 +2696,12 @@ function Library:Window(Data)
                     if not Button_Pressed then
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundTransparency",
-                            Value = 0.8
+                            Property = {["BackgroundTransparency"]=0.8},
                         }):Play()
 
                         TweenItem({
                             Inst = Button,
-                            Property = "BackgroundColor3",
-                            Value = Library.Colors.Background
+                            Property = {["BackgroundColor3"]=Library.Colors.Background},
                         }):Play()
                     end
                 end)
@@ -2755,8 +2765,7 @@ function Library:Window(Data)
                 Toggle.Text = ""
                 Toggle.TextColor3 = Color3.fromRGB(0, 0, 0)
                 Toggle.TextSize = 14
-                Toggle.Font = Enum.Font.SourceSans
-                Toggle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                Toggle.Font = Enum.Font.Gotham
                 Toggle.AutoButtonColor = false
                 Toggle.Parent = Section
 
@@ -2776,11 +2785,10 @@ function Library:Window(Data)
                 ToggleTitle.TextScaled = true
                 ToggleTitle.TextWrapped = true
                 ToggleTitle.TextXAlignment = Enum.TextXAlignment.Left
-                ToggleTitle.Font = Enum.Font.SourceSans
-                ToggleTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                ToggleTitle.Font = Enum.Font.Gotham
                 ToggleTitle.Parent = Toggle
 
-                UITextSizeConstraint_13.MaxTextSize = 14
+                UITextSizeConstraint_13.MaxTextSize = 12
                 UITextSizeConstraint_13.Parent = ToggleTitle
 
                 ToggleFrame.Name = "ToggleFrame"
@@ -2816,14 +2824,12 @@ function Library:Window(Data)
 
                     TweenItem({
                         Inst = ToggleFrame,
-                        Property = "BackgroundTransparency",
-                        Value = value and 0 or 1
+                        Property = {["BackgroundTransparency"]=value and 0 or 1},
                     }):Play()
 
                     TweenItem({
                         Inst = ToggleFrameUIStroke,
-                        Property = "Transparency",
-                        Value = value and 1 or 0.5
+                        Property = {["Transparency"]=value and 1 or 0.5},
                     }):Play()
 
                     if not NoCallback then
@@ -2851,16 +2857,14 @@ function Library:Window(Data)
                 Toggle.MouseEnter:Connect(function()
                     TweenItem({
                         Inst = ToggleFrame,
-                        Property = "BackgroundTransparency",
-                        Value = 0.5
+                        Property = {["BackgroundTransparency"]=0.5},
                     }):Play()
                 end)
 
                 Toggle.MouseLeave:Connect(function()
                     TweenItem({
                         Inst = ToggleFrame,
-                        Property = "BackgroundTransparency",
-                        Value = Toggle_Table.Toggled and 0 or 1
+                        Property = {["BackgroundTransparency"]=Toggle_Table.Toggled and 0 or 1},
                     }):Play()
                 end)
 
@@ -2957,8 +2961,7 @@ function Library:Window(Data)
                 Dropdown.Text = ""
                 Dropdown.TextColor3 = Color3.fromRGB(0, 0, 0)
                 Dropdown.TextSize = 14
-                Dropdown.Font = Enum.Font.SourceSans
-                Dropdown.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                Dropdown.Font = Enum.Font.Gotham
                 Dropdown.AutoButtonColor = false
                 Dropdown.Parent = SectionDropdownHolder
 
@@ -2978,12 +2981,11 @@ function Library:Window(Data)
                 DropdownTitle.TextScaled = true
                 DropdownTitle.TextWrapped = true
                 DropdownTitle.TextXAlignment = Enum.TextXAlignment.Left
-                DropdownTitle.Font = Enum.Font.SourceSans
-                DropdownTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                DropdownTitle.Font = Enum.Font.Gotham
                 DropdownTitle.Parent = Dropdown
                 DropdownTitle.TextTruncate = Enum.TextTruncate.AtEnd
 
-                UITextSizeConstraint.MaxTextSize = 14
+                UITextSizeConstraint.MaxTextSize = 12
                 UITextSizeConstraint.Parent = DropdownTitle
 
                 Arrow.Name = "Arrow"
@@ -3060,8 +3062,7 @@ function Library:Window(Data)
                 SearchBox.TextSize = 14
                 SearchBox.TextScaled = true
                 SearchBox.TextWrapped = true
-                SearchBox.Font = Enum.Font.SourceSans
-                SearchBox.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                SearchBox.Font = Enum.Font.Gotham
                 SearchBox.CursorPosition = -1
                 SearchBox.Parent = DropdownFrameFolder
 
@@ -3087,7 +3088,7 @@ function Library:Window(Data)
                 UIPadding.PaddingRight = UDim.new(0, 1)
                 UIPadding.PaddingBottom = UDim.new(0, 10)
                 UIPadding.Parent = SectionDropdownHolder
-                
+
                 function Dropdown_Table:SearchFunction(key)
                     local SkipAnimation = false
                     local TotalItems = DropdownHolder:GetChildren()
@@ -3102,34 +3103,29 @@ function Library:Window(Data)
                                 if not SkipAnimation then
                                     TweenItem({
                                         Inst = v.UIStroke,
-                                        Property = "Transparency",
-                                        Value = 0
+                                        Property = {["Transparency"]=0},
                                     }):Play()
 
                                     if v:FindFirstChild("ToggleItemFrame") then
                                         TweenItem({
                                             Inst = v.ToggleItemFrame.UIStroke,
-                                            Property = "Transparency",
-                                            Value = 0
+                                            Property = {["Transparency"]=0},
                                         }):Play()
 
                                         TweenItem({
                                             Inst = v.ToggleItemFrame,
-                                            Property = "BackgroundTransparency",
-                                            Value = v:GetAttribute("Enabled") and 0 or 1
+                                            Property = {["BackgroundTransparency"]=v:GetAttribute("Enabled") and 0 or 1},
                                         }):Play()
                                     end
 
                                     TweenItem({
                                         Inst = v,
-                                        Property = "TextTransparency",
-                                        Value = 0
+                                        Property = {["TextTransparency"]=0},
                                     }):Play()
 
                                     TweenItem({
                                         Inst = v,
-                                        Property = "Size",
-                                        Value = UDim2.new(0.920, 0, 0, 24)
+                                        Property = {["Size"]=UDim2.new(0.920, 0, 0, 24)},
                                     }):Play()
                                 end
                                 task.wait(0.005)
@@ -3141,38 +3137,33 @@ function Library:Window(Data)
                                 if not SkipAnimation then
                                     TweenItem({
                                         Inst = v.UIStroke,
-                                        Property = "Transparency",
+                                        Property = {["Transparency"]=1},
                                         Time = 0.1,
-                                        Value = 1
                                     }):Play()
 
                                     if v:FindFirstChild("ToggleItemFrame") then
                                         TweenItem({
                                             Inst = v.ToggleItemFrame.UIStroke,
-                                            Property = "Transparency",
+                                            Property = {["Transparency"]=1},
                                             Time = 0.1,
-                                            Value = 1
                                         }):Play()
 
                                         TweenItem({
                                             Inst = v.ToggleItemFrame,
-                                            Property = "BackgroundTransparency",
+                                            Property = {["BackgroundTransparency"]=1},
                                             Time = 0.1,
-                                            Value = 1
                                         }):Play()
                                     end
                                     
                                     TweenItem({
                                         Inst = v,
-                                        Property = "TextTransparency",
+                                        Property = {["TextTransparency"]=1},
                                         Time = 0.1,
-                                        Value = 1
                                     }):Play()
 
                                     TweenItem({
                                         Inst = v,
-                                        Property = "Size",
-                                        Value = UDim2.new(0.920, 0, 0, -4) -- Makes an extremely smooth animation!
+                                        Property = {["Size"]=UDim2.new(0.920, 0, 0, -4)},
                                     }):Play()
                                     
                                     task.wait(0.005)
@@ -3272,20 +3263,17 @@ function Library:Window(Data)
                     if ItemData.Type == "Multi" then
                         TweenItem({
                             Inst = ItemData.CheckFrame,
-                            Property = "BackgroundTransparency",
-                            Value = Enabled and 0 or 1
+                            Property = {["BackgroundTransparency"]=Enabled and 0 or 1},
                         }):Play()
 
                         TweenItem({
                             Inst = ItemData.CheckStroke,
-                            Property = "Transparency",
-                            Value = Enabled and 1 or 0.5
+                            Property = {["Transparency"]=Enabled and 1 or 0.5},
                         }):Play()
                     else
                         TweenItem({
                             Inst = ItemData.Button,
-                            Property = "BackgroundTransparency",
-                            Value = Enabled and 0.4 or 1
+                            Property = {["BackgroundTransparency"]=Enabled and 0.4 or 1},
                         }):Play()
                     end
                 end
@@ -3297,26 +3285,26 @@ function Library:Window(Data)
 
                     TweenItem({
                         Inst = SectionDropdownHolder,
-                        Property = "Size",
+                        Property = {
+                                ["Size"]=Dropdown_Table.Toggled and UDim2.new(
+                                1,
+                                0,
+                                0,
+                                215
+                            ) or UDim2.new(
+                                1,
+                                0,
+                                0,
+                                ClosedHeight + 3
+                            )
+                        },
                         Time = 0.3,
-                        Value = Dropdown_Table.Toggled and UDim2.new(
-                            1,
-                            0,
-                            0,
-                            215
-                        ) or UDim2.new(
-                            1,
-                            0,
-                            0,
-                            ClosedHeight + 3
-                        )
                     }):Play()
 
                     TweenItem({
                         Inst = Arrow,
-                        Property = "Rotation",
+                        Property = {["Rotation"]=Dropdown_Table.Toggled and 180 or 0},
                         Time = 0.3,
-                        Value = Dropdown_Table.Toggled and 180 or 0
                     }):Play()
 
                     Section_Table.ForceUpdateSize()
@@ -3446,9 +3434,8 @@ function Library:Window(Data)
                         ToggleItem.BorderColor3 = Color3.fromRGB(0, 0, 0)
                         ToggleItem.Text = text
                         ToggleItem.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        ToggleItem.TextSize = 14
-                        ToggleItem.Font = Enum.Font.SourceSans
-                        ToggleItem.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                        ToggleItem.TextSize = 12
+                        ToggleItem.Font = Enum.Font.Gotham
                         ToggleItem.AutoButtonColor = false
                         ToggleItem.Parent = DropdownHolder
                         ToggleItem.ClipsDescendants = true
@@ -3495,16 +3482,14 @@ function Library:Window(Data)
                         ToggleItem.MouseEnter:Connect(function()
                             TweenItem({
                                 Inst = ToggleItemFrame,
-                                Property = "BackgroundTransparency",
-                                Value = 0.5
+                                Property = {["BackgroundTransparency"]=0.5},
                             }):Play()
                         end)
 
                         ToggleItem.MouseLeave:Connect(function()
                             TweenItem({
                                 Inst = ToggleItemFrame,
-                                Property = "BackgroundTransparency",
-                                Value = ItemToggled and 0 or 1
+                                Property = {["BackgroundTransparency"]=ItemToggled and 0 or 1},
                             }):Play()
                         end)
 
@@ -3530,9 +3515,8 @@ function Library:Window(Data)
                         NormalItem.BorderColor3 = Color3.fromRGB(0, 0, 0)
                         NormalItem.Text = text
                         NormalItem.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        NormalItem.TextSize = 14
-                        NormalItem.Font = Enum.Font.SourceSans
-                        NormalItem.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                        NormalItem.TextSize = 12
+                        NormalItem.Font = Enum.Font.Gotham
                         NormalItem.AutoButtonColor = false
                         NormalItem.Parent = DropdownHolder
                         NormalItem.BackgroundTransparency = 1
@@ -3567,16 +3551,14 @@ function Library:Window(Data)
 
                             TweenItem({
                                 Inst = SectionDropdownHolder,
-                                Property = "Size",
+                                Property = {["Size"]=UDim2.new(1, 0, 0, ClosedHeight + 3)},
                                 Time = 0.3,
-                                Value = UDim2.new(1, 0, 0, ClosedHeight + 3)
                             }):Play()
 
                             TweenItem({
                                 Inst = Arrow,
-                                Property = "Rotation",
+                                Property = {["Rotation"]=0},
                                 Time = 0.3,
-                                Value = 0
                             }):Play()
 
                             if Section_Table.ForceUpdateSize then
@@ -3588,28 +3570,24 @@ function Library:Window(Data)
 
                                 TweenItem({
                                     Inst = NormalItem,
-                                    Property = "BackgroundTransparency",
-                                    Value = 0
+                                    Property = {["BackgroundTransparency"]=0},
                                 }):Play()
 
                                 TweenItem({
                                     Inst = UIScale,
-                                    Property = "Scale",
-                                    Value = 0.9
+                                    Property = {["Scale"]=0.9},
                                 }):Play()
 
                                 task.wait(0.1)
 
                                 TweenItem({
                                     Inst = NormalItem,
-                                    Property = "BackgroundTransparency",
-                                    Value = Dropdown_Table.Value == text and 0.4 or 1
+                                    Property = {["BackgroundTransparency"]=Dropdown_Table.Value == text and 0.4 or 1},
                                 }):Play()
 
                                 TweenItem({
                                     Inst = UIScale,
-                                    Property = "Scale",
-                                    Value = 1
+                                    Property = {["Scale"]=1},
                                 }):Play()
 
                                 NormalItem_Pressed = false
@@ -3620,7 +3598,7 @@ function Library:Window(Data)
                             if not NormalItem_Pressed then
                                 TweenItem({
                                     Inst = NormalItem,
-                                    Property = "BackgroundTransparency",
+                                    Property = {["BackgroundTransparency"]=0.5},
                                     Value = 0.5
                                 }):Play()
                             end
@@ -3630,8 +3608,7 @@ function Library:Window(Data)
                             if not NormalItem_Pressed then
                                 TweenItem({
                                     Inst = NormalItem,
-                                    Property = "BackgroundTransparency",
-                                    Value = 1
+                                    Property = {["BackgroundTransparency"]=1},
                                 }):Play()
                             end
                         end)
@@ -3737,8 +3714,7 @@ function Library:Window(Data)
                 Slider.Text = ""
                 Slider.TextColor3 = Color3.fromRGB(0, 0, 0)
                 Slider.TextSize = 14
-                Slider.Font = Enum.Font.SourceSans
-                Slider.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                Slider.Font = Enum.Font.Gotham
                 Slider.AutoButtonColor = false
                 Slider.Parent = Section
 
@@ -3758,11 +3734,10 @@ function Library:Window(Data)
                 SliderTitle.TextScaled = true
                 SliderTitle.TextWrapped = true
                 SliderTitle.TextXAlignment = Enum.TextXAlignment.Left
-                SliderTitle.Font = Enum.Font.SourceSans
-                SliderTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                SliderTitle.Font = Enum.Font.Gotham
                 SliderTitle.Parent = Slider
 
-                UITextSizeConstraint_10.MaxTextSize = 14
+                UITextSizeConstraint_10.MaxTextSize = 12
                 UITextSizeConstraint_10.Parent = SliderTitle
 
                 SliderFrame.Name = "SliderFrame"
@@ -3801,11 +3776,10 @@ function Library:Window(Data)
                 ValueVisual.Text = "7/10"
                 ValueVisual.TextColor3 = Color3.fromRGB(255, 255, 255)
                 ValueVisual.TextSize = 14
-                ValueVisual.Font = Enum.Font.SourceSans
-                ValueVisual.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                ValueVisual.Font = Enum.Font.Gotham
                 ValueVisual.Parent = Slider
 
-                UITextSizeConstraint_11.MaxTextSize = 14
+                UITextSizeConstraint_11.MaxTextSize = 12
                 UITextSizeConstraint_11.Parent = ValueVisual
 
                 UIStroke_13.Parent = ValueVisual
@@ -3828,11 +3802,10 @@ function Library:Window(Data)
                 SliderInputBox.TextScaled = true
                 SliderInputBox.TextWrapped = true
                 SliderInputBox.TextXAlignment = Enum.TextXAlignment.Right
-                SliderInputBox.Font = Enum.Font.SourceSans
-                SliderInputBox.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                SliderInputBox.Font = Enum.Font.Gotham
                 SliderInputBox.Parent = Slider
 
-                UITextSizeConstraint_12.MaxTextSize = 14
+                UITextSizeConstraint_12.MaxTextSize = 12
                 UITextSizeConstraint_12.Parent = SliderInputBox
 
                 spawn(function()
@@ -3929,9 +3902,8 @@ function Library:Window(Data)
 
                     TweenItem({
                         Inst = SliderFrameIndicator,
-                        Property = "Size",
+                        Property = {["Size"]=UDim2.new(Alpha, 0, 1, 0)},
                         Time = 0.15,
-                        Value = UDim2.new(Alpha, 0, 1, 0)
                     }):Play()
 
                     ValueVisual.Text = FormatValue(Value)
@@ -4059,8 +4031,7 @@ function Library:Window(Data)
                 Colorpicker.Text = ""
                 Colorpicker.TextColor3 = Color3.fromRGB(0, 0, 0)
                 Colorpicker.TextSize = 14
-                Colorpicker.Font = Enum.Font.SourceSans
-                Colorpicker.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                Colorpicker.Font = Enum.Font.Gotham
                 Colorpicker.AutoButtonColor = false
                 Colorpicker.Parent = Section
                 Colorpicker:SetAttribute("Colorpicker", true)
@@ -4079,11 +4050,10 @@ function Library:Window(Data)
                 ColorpickerTitle.TextScaled = true
                 ColorpickerTitle.TextWrapped = true
                 ColorpickerTitle.TextXAlignment = Enum.TextXAlignment.Left
-                ColorpickerTitle.Font = Enum.Font.SourceSans
-                ColorpickerTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                ColorpickerTitle.Font = Enum.Font.Gotham
                 ColorpickerTitle.Parent = Colorpicker
 
-                UITextSizeConstraint_5.MaxTextSize = 14
+                UITextSizeConstraint_5.MaxTextSize = 12
                 UITextSizeConstraint_5.Parent = ColorpickerTitle
 
                 UIStroke_8.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -4180,8 +4150,7 @@ function Library:Window(Data)
 
                     TweenItem({
                         Inst = PreviewColor,
-                        Property = "BackgroundColor3",
-                        Value = ColorValue,
+                        Property = {["BackgroundColor3"]=ColorValue},
                         Time = 0.25
                     }):Play()
 
@@ -4241,28 +4210,24 @@ function Library:Window(Data)
                 Colorpicker.MouseEnter:Connect(function()
                     TweenItem({
                         Inst = Colorpicker,
-                        Property = "BackgroundColor3",
-                        Value = PreviewColor.BackgroundColor3
+                        Property = {["BackgroundColor3"]=PreviewColor.BackgroundColor3},
                     }):Play()
 
                     TweenItem({
                         Inst = Colorpicker,
-                        Property = "BackgroundTransparency",
-                        Value = 0.5
+                        Property = {["BackgroundTransparency"]=0.5},
                     }):Play()
                 end)
                 
                 Colorpicker.MouseLeave:Connect(function()
                     TweenItem({
                         Inst = Colorpicker,
-                        Property = "BackgroundColor3",
-                        Value = Color3.fromRGB(13, 13, 13)
+                        Property = {["BackgroundColor3"]=Color3.fromRGB(13, 13, 13)},
                     }):Play()
 
                     TweenItem({
                         Inst = Colorpicker,
-                        Property = "BackgroundTransparency",
-                        Value = 1
+                        Property = {["BackgroundTransparency"]=1},
                     }):Play()
                 end)
 
@@ -4336,8 +4301,7 @@ function Library:Window(Data)
                 Input.Text = ""
                 Input.TextColor3 = Color3.fromRGB(0, 0, 0)
                 Input.TextSize = 14
-                Input.Font = Enum.Font.SourceSans
-                Input.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                Input.Font = Enum.Font.Gotham
                 Input.AutoButtonColor = false
                 Input.Parent = Section
 
@@ -4357,11 +4321,10 @@ function Library:Window(Data)
                 InputTitle.TextScaled = true
                 InputTitle.TextWrapped = true
                 InputTitle.TextXAlignment = Enum.TextXAlignment.Left
-                InputTitle.Font = Enum.Font.SourceSans
-                InputTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                InputTitle.Font = Enum.Font.Gotham
                 InputTitle.Parent = Input
 
-                UITextSizeConstraint_6.MaxTextSize = 14
+                UITextSizeConstraint_6.MaxTextSize = 12
                 UITextSizeConstraint_6.Parent = InputTitle
 
                 UIStroke_9.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -4381,8 +4344,7 @@ function Library:Window(Data)
                 InputBox.TextSize = 14
                 InputBox.TextScaled = true
                 InputBox.TextWrapped = true
-                InputBox.Font = Enum.Font.SourceSans
-                InputBox.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                InputBox.Font = Enum.Font.Gotham
                 InputBox.Parent = Input
 
                 local UICorner = Instance.new("UICorner")
@@ -4396,7 +4358,7 @@ function Library:Window(Data)
 
                 Library:RegisterTheme(UIStroke, "Color", "Stroke")
 
-                UITextSizeConstraint_7.MaxTextSize = 14
+                UITextSizeConstraint_7.MaxTextSize = 12
                 UITextSizeConstraint_7.Parent = InputBox
 
                 spawn(function()
@@ -4468,8 +4430,7 @@ function Library:Window(Data)
                 KeyBind.Text = ""
                 KeyBind.TextColor3 = Color3.fromRGB(0, 0, 0)
                 KeyBind.TextSize = 14
-                KeyBind.Font = Enum.Font.SourceSans
-                KeyBind.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                KeyBind.Font = Enum.Font.Gotham
                 KeyBind.AutoButtonColor = false
                 KeyBind.Parent = Section
 
@@ -4489,11 +4450,10 @@ function Library:Window(Data)
                 KeybindTitle.TextScaled = true
                 KeybindTitle.TextWrapped = true
                 KeybindTitle.TextXAlignment = Enum.TextXAlignment.Left
-                KeybindTitle.Font = Enum.Font.SourceSans
-                KeybindTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                KeybindTitle.Font = Enum.Font.Gotham
                 KeybindTitle.Parent = KeyBind
 
-                UITextSizeConstraint_8.MaxTextSize = 14
+                UITextSizeConstraint_8.MaxTextSize = 12
                 UITextSizeConstraint_8.Parent = KeybindTitle
 
                 UIStroke_10.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -4512,11 +4472,10 @@ function Library:Window(Data)
                 KeyText.TextSize = 14
                 KeyText.TextScaled = true
                 KeyText.TextWrapped = true
-                KeyText.Font = Enum.Font.SourceSans
-                KeyText.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                KeyText.Font = Enum.Font.Gotham
                 KeyText.Parent = KeyBind
 
-                UITextSizeConstraint_9.MaxTextSize = 14
+                UITextSizeConstraint_9.MaxTextSize = 12
                 UITextSizeConstraint_9.Parent = KeyText
 
                 UIStroke_11.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -4758,8 +4717,7 @@ function Library:Window(Data)
                 Text.Text = ""
                 Text.TextColor3 = Color3.fromRGB(0, 0, 0)
                 Text.TextSize = 14
-                Text.Font = Enum.Font.SourceSans
-                Text.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                Text.Font = Enum.Font.Gotham
                 Text.AutoButtonColor = false
                 Text.Parent = Section
 
@@ -4778,11 +4736,10 @@ function Library:Window(Data)
                 TextTitle.TextScaled = not InternalData.AutoSize
                 TextTitle.TextWrapped = true
                 TextTitle.RichText = true
-                TextTitle.Font = Enum.Font.SourceSans
-                TextTitle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                TextTitle.Font = Enum.Font.Gotham
                 TextTitle.Parent = Text
 
-                UITextSizeConstraint_14.MaxTextSize = 14
+                UITextSizeConstraint_14.MaxTextSize = 12
                 UITextSizeConstraint_14.Parent = TextTitle
 
                 UIStroke_16.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -4900,8 +4857,7 @@ function Library:Window(Data)
                             if not InternalData.AutoSize then
                                 TweenItem({
                                     Inst = Text,
-                                    Property = "Size",
-                                    Value = UDim2.new(0.8999999761581421, 0, 0, v > 28 and v or 28)
+                                    Property = {["Size"]=UDim2.new(0.8999999761581421, 0, 0, v > 28 and v or 28)},
                                 }):Play()
                             end
 
@@ -5404,7 +5360,7 @@ function Example()
         Default = false,
         Callback = function(t)
             if t then
-                MyText:Refresh("This is a long text that \n should automatically \n\n\n\n make the text box \n taller when it wraps onto \n multiple lines.")
+                MyText:Refresh("This is a long text that \n should automatically \n\n\n\n make the text box \n taller when it wraps onto \n multiple lines.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nHello world!")
             else
                 MyText:Refresh("This is a long text that should automatically make the text box taller when it wraps onto multiple lines.")
             end
