@@ -23,9 +23,11 @@ local Library = {
 
 Library.__index = {}
 
+Library.Files = {
+    Version = Library.Folders.Utility.."/__version__.lua"
+}
 
 Library.ThemeObjects = {}
-
 
 local FileName = Library.Folders.Utility.."/Utility.lua" or "Utility.lua"
 local Utility = game:HttpGetAsync("https://raw.githubusercontent.com/Mana-scripts/Neverlose-UI/refs/heads/main/Utility.lua")
@@ -49,6 +51,8 @@ else
     warn("FileSystem Not supported Switching to httpservice")
     Library.UtilityModule = loadstring(Utility)()
 end
+
+
 
 Library.UtilityModule.Visual_Loader()({
     Load = true,
@@ -1940,7 +1944,19 @@ function Library:Window(Data)
             makefolder(Library.Folders.Configs)
         end
 
+        if not isfolder(Library.Folders.Utility) then
+            makefolder(Library.Folders.Utility)
+        end
+
         return true
+    end
+
+    if not isfile(Library.Files.Version) then
+        if isfolder(Library.Folders.Main) then
+            delfolder(Library.Folders.Main)
+            CheckFolder()
+        end
+        writefile(Library.Files.Version, Library.UtilityModule.Version)
     end
 
     local function SerializeValue(Value)
@@ -1960,7 +1976,7 @@ function Library:Window(Data)
                 Name = Value.Name
             }
         end
-
+        
         if typeof(Value) == "table" then
             local NewTable = {}
 
